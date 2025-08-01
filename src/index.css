@@ -1,0 +1,93 @@
+@import "@fontsource/jetbrains-mono/700.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.success-toast {
+  background-color: black !important;
+  color: #39FF14 !important;
+  font-family: 'JetBrains_Mono', monospace !important;
+  border-left: 2px solid #39FF14 !important;
+  box-shadow: 0 0 10px #39FF14 !important;
+}
+
+.error-toast {
+  background-color: black !important;
+  color: #FF0000 !important;
+  font-family: 'JetBrains_Mono', monospace !important;
+  border-left: 2px solid #FF0000 !important;
+  box-shadow: 0 0 10px #FF0000 !important;
+}
+
+.info-toast {
+  background-color: black !important;
+  color: #7DF9FF !important;
+  font-family: 'JetBrains_Mono', monospace !important;
+  border-left: 2px solid #7DF9FF !important;
+  box-shadow: 0 0 10px #7DF9FF !important;
+}
+
+.blinking-cursor {
+  display: inline-block;
+  animation: blink 1s step-start infinite;
+}
+
+@layer base {
+  html, body {
+    @apply bg-background text-foreground font-jetbrains;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes neonBorder {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 400% 0%;
+  }
+}
+
+
+.neon-border {
+  position: relative;
+  border-radius: 1rem;
+  z-index: 0;
+}
+
+.neon-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #ff6600 10%,
+    #ff9900 20%,
+    #ff6600 30%,
+    transparent 40%,
+    transparent 100%
+  );
+  background-size: 400% 100%;
+  animation: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px #ff6600);
+  z-index: -1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  box-sizing: border-box;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.neon-border:hover::before {
+  animation: neonBorder 7s linear infinite;
+  opacity: 1;
+}
