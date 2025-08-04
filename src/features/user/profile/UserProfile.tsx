@@ -15,6 +15,8 @@ import { useProfileQuery } from '@/services/auth-user-service/profile/user'
 import type { UserProfileResponse } from "@/types/apiTypes"
 import { formatDate } from "@/utils/formatData"
 import { getLanguageIcon } from "@/utils/languageIcon"
+import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
+import { toast } from "sonner"
 
 
 
@@ -72,12 +74,12 @@ export default function UserProfile() {
 
   const copyUsername = async () => {
     await navigator.clipboard.writeText(profile.username)
-    // You could add a toast notification here
+    toast.info('Username copied to clipboard')
   }
 
   return (
     <TooltipProvider>
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-full mx-auto px-4 py-8 space-y-6">
         {/* Header Section */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Card>
@@ -86,7 +88,7 @@ export default function UserProfile() {
                 {/* Avatar and Basic Info */}
                 <div className="flex flex-col items-center md:items-start">
                   <Avatar className="h-24 w-24 mb-4">
-                    <AvatarImage src={profile.avatar || "/placeholder.svg"} alt={profile.username} />
+                    <AvatarImage src={getCloudinaryUrl(profile.avatar) } alt={profile.username} />
                     <AvatarFallback className="text-lg">
                       {profile.firstName}
                       {profile.lastName}
@@ -109,7 +111,7 @@ export default function UserProfile() {
                     </div>
 
                     <p className="text-lg text-muted-foreground">
-                      {profile.firstName} {profile.lastName}
+                      {profile.firstName} {profile.lastName === 'null' ? '' : profile.lastName}
                     </p>
                   </div>
                 </div>
@@ -120,7 +122,8 @@ export default function UserProfile() {
                     <div className="flex items-center gap-2 text-sm">
                       <Globe className="h-4 w-4 text-muted-foreground" />
                       <span>
-                        {getCountryFlag(profile.country)} {profile.country.toUpperCase()}
+                        { profile.country === 'null' ? '' : getCountryFlag(profile.country)} 
+                        { profile.country === 'null' ? 'not-set' : profile.country.toUpperCase()}
                       </span>
                     </div>
 
@@ -215,7 +218,7 @@ export default function UserProfile() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Last Name</label>
-                        <p className="text-sm mt-1">{profile.lastName}</p>
+                        <p className="text-sm mt-1">{profile.country === 'null' ? 'not-set' : profile.lastName}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Country</label>
