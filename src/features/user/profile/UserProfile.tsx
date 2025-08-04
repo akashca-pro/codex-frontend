@@ -1,50 +1,69 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Copy, Mail, User, Globe, Calendar, Code, Edit, Shield, ShieldCheck, Trash2 } from "lucide-react"
+import { Copy, Mail, User, Globe, Calendar, Code, Edit, Shield, ShieldCheck, Trash2, Code2 } from "lucide-react"
 import EditProfileModal from "./modals/EditProfileModal"
 import ChangePasswordModal from "./modals/ChangePasswordModal"
 import ChangeEmailModal from "./modals/ChangeEmailModal"
 import DeleteAccountModal from "./modals/DeleteAccountModal"
+import { getCountryFlag } from "@/utils/countryCode"
+import { useProfileQuery } from '@/services/auth-user-service/profile/user'
+import type { UserProfileResponse } from "@/types/apiTypes"
+import { formatDate } from "@/utils/formatData"
+import { getLanguageIcon } from "@/utils/languageIcon"
 
-interface UserProfile {
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  country: string
-  joinedDate: string
-  preferredLanguage: string
-  avatar: string
-  stats: {
-    easy: number
-    medium: number
-    hard: number
-    total: number
-  }
-}
+
 
 export default function UserProfile() {
-  const [profile, setProfile] = useState<UserProfile>({
-    username: "johndoe_dev",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    country: "United States",
-    joinedDate: "January 2023",
-    preferredLanguage: "JavaScript",
-    avatar: "/placeholder.svg?height=120&width=120",
-    stats: {
-      easy: 156,
-      medium: 78,
-      hard: 13,
-      total: 247,
-    },
-  })
+
+  const {data} = useProfileQuery()
+
+  console.log(data?.data)
+
+  const [profile, setProfile] = useState<UserProfileResponse>({
+  userId: "",
+  username: "",
+  email:  "",
+  firstName: "",
+  lastName: "",
+  avatar:  "",
+  country:  "",
+  easySolved:  0,
+  mediumSolved:  0,
+  hardSolved:  0,
+  totalSubmission:  0,
+  streak:  0,
+  preferredLanguage :  "",
+  createdAt:  "",
+  updatedAt:  "",
+})
+
+  useEffect(() => {
+  if (data?.data) {
+    setProfile({
+      userId: data.data.userId || "",
+      username: data.data.username || "",
+      email: data.data.email || "",
+      firstName: data.data.firstName || "",
+      lastName: data.data.lastName || "",
+      avatar: data.data.avatar || "",
+      country: data.data.country || "",
+      easySolved: data.data.easySolved || 0,
+      mediumSolved: data.data.mediumSolved || 0,
+      hardSolved: data.data.hardSolved || 0,
+      totalSubmission: data.data.totalSubmission || 0,
+      streak: data.data.streak || 0,
+      preferredLanguage: data.data.preferredLanguage || "",
+      createdAt: data.data.createdAt || "",
+      updatedAt: data.data.updatedAt || "",
+    })
+  }
+}, [data])
+
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
@@ -54,22 +73,6 @@ export default function UserProfile() {
   const copyUsername = async () => {
     await navigator.clipboard.writeText(profile.username)
     // You could add a toast notification here
-  }
-
-  const getCountryFlag = (country: string) => {
-    const flags: { [key: string]: string } = {
-      "United States": "🇺🇸",
-      Canada: "🇨🇦",
-      "United Kingdom": "🇬🇧",
-      Germany: "🇩🇪",
-      France: "🇫🇷",
-      Japan: "🇯🇵",
-      China: "🇨🇳",
-      India: "🇮🇳",
-      Australia: "🇦🇺",
-      Brazil: "🇧🇷",
-    }
-    return flags[country] || "🌍"
   }
 
   return (
@@ -85,8 +88,8 @@ export default function UserProfile() {
                   <Avatar className="h-24 w-24 mb-4">
                     <AvatarImage src={profile.avatar || "/placeholder.svg"} alt={profile.username} />
                     <AvatarFallback className="text-lg">
-                      {profile.firstName[0]}
-                      {profile.lastName[0]}
+                      {profile.firstName}
+                      {profile.lastName}
                     </AvatarFallback>
                   </Avatar>
 
@@ -117,7 +120,7 @@ export default function UserProfile() {
                     <div className="flex items-center gap-2 text-sm">
                       <Globe className="h-4 w-4 text-muted-foreground" />
                       <span>
-                        {getCountryFlag(profile.country)} {profile.country}
+                        {getCountryFlag(profile.country)} {profile.country.toUpperCase()}
                       </span>
                     </div>
 
@@ -128,33 +131,35 @@ export default function UserProfile() {
 
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Joined {profile.joinedDate}</span>
+                      <span>Joined {formatDate(profile.createdAt)}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-sm">
-                      <Code className="h-4 w-4 text-muted-foreground" />
-                      <span>{profile.preferredLanguage}</span>
+                      <Code2 className="h-4 w-4 text-muted-foreground" />
+                      <i className={getLanguageIcon(profile.preferredLanguage)} ></i>
                     </div>
                   </div>
+
+                  
 
                   {/* Stats Overview */}
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold mb-3">Stats Overview</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-green-500">{profile.stats.easy}</div>
+                        <div className="text-2xl font-bold text-green-500">{profile.easySolved}</div>
                         <div className="text-sm text-muted-foreground">Easy</div>
                       </div>
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-yellow-500">{profile.stats.medium}</div>
+                        <div className="text-2xl font-bold text-yellow-500">{profile.mediumSolved}</div>
                         <div className="text-sm text-muted-foreground">Medium</div>
                       </div>
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-red-500">{profile.stats.hard}</div>
+                        <div className="text-2xl font-bold text-red-500">{profile.hardSolved}</div>
                         <div className="text-sm text-muted-foreground">Hard</div>
                       </div>
                       <div className="text-center p-3 bg-muted rounded-lg">
-                        <div className="text-2xl font-bold text-primary">{profile.stats.total}</div>
+                        <div className="text-2xl font-bold text-primary">{profile.totalSubmission}</div>
                         <div className="text-sm text-muted-foreground">Total</div>
                       </div>
                     </div>
@@ -220,7 +225,7 @@ export default function UserProfile() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">Preferred Language</label>
-                        <p className="text-sm mt-1">{profile.preferredLanguage}</p>
+                        <span> {profile.preferredLanguage}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -297,10 +302,20 @@ export default function UserProfile() {
         <AnimatePresence>
           {isEditModalOpen && (
             <EditProfileModal
-              profile={profile}
+              profile={{
+                username : profile.username,
+                firstName : profile.firstName,
+                lastName : profile.firstName,
+                avatar : profile.avatar,
+                country : profile.country,
+                preferredLanguage : profile.preferredLanguage
+              }}
               onClose={() => setIsEditModalOpen(false)}
               onSave={(updatedProfile) => {
-                setProfile(updatedProfile)
+                setProfile({
+                  ...profile,
+                  ...updatedProfile,
+                })
                 setIsEditModalOpen(false)
               }}
             />

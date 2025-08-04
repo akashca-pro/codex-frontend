@@ -14,17 +14,9 @@ interface UserProfile {
   username: string
   firstName: string
   lastName: string
-  email: string
   country: string
-  joinedDate: string
   preferredLanguage: string
   avatar: string
-  stats: {
-    easy: number
-    medium: number
-    hard: number
-    total: number
-  }
 }
 
 interface EditProfileModalProps {

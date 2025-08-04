@@ -4,7 +4,10 @@ export interface ApiSuccess<T> {
   data: T;
 }
 
-export interface ProfileDetails {
+export interface UserProfileResponse {
+  userId: string;
+  username: string;
+  email: string;
   firstName: string;
   lastName: string;
   avatar: string;
@@ -14,13 +17,7 @@ export interface ProfileDetails {
   hardSolved: number;
   totalSubmission: number;
   streak: number;
-}
-
-export interface UserProfileResponse {
-  userId: string;
-  username: string;
-  email: string;
-  profileDetails: ProfileDetails;
+  preferredLanguage : string;
   createdAt: string;
   updatedAt: string;
 }

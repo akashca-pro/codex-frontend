@@ -69,10 +69,6 @@ const userAuthApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags : ['user']
         }),
-        userCheckAuth : builder.query<ApiSuccess<User>,void>({
-            query : () => `${preUrl}check-auth`
-        })
-
     })
 })
 
@@ -86,9 +82,6 @@ export const {
     useUserForgotPasswordMutation,
     useUserPasswordChangeMutation,
     useUserLogoutMutation,
-    useUserCheckAuthQuery,
     
 
 } = userAuthApiSlice
-
-export type UserCheckAuthType = ReturnType<typeof useUserCheckAuthQuery>

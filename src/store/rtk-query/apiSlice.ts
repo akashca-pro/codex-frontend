@@ -35,7 +35,7 @@ const baseQueryWithReauth: BaseQueryFn<
         const state = api.getState() as RootState;
         const role = state.auth.details?.role;
 
-        if (role === 'admin' || role === 'user') {
+        if (role === 'ADMIN' || role === 'USER') {
           const refreshURL = `/${role}/auth/refresh-token`;
 
           const refreshResult = await baseQuery(

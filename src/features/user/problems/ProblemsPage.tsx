@@ -117,9 +117,9 @@ export default function Problems() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Difficulties</SelectItem>
-            <SelectItem value="easy">Easy</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="hard">Hard</SelectItem>
+            <SelectItem value="easy" className="text-green-400 data-[highlighted]:bg-green-900" >Easy</SelectItem>
+            <SelectItem value="medium" className="text-yellow-400 data-[highlighted]:bg-yellow-600" >Medium</SelectItem>
+            <SelectItem value="hard"  className="text-red-400 data-[highlighted]:bg-red-900" >Hard</SelectItem>
           </SelectContent>
         </Select>
 
