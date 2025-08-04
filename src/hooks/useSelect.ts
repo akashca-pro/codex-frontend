@@ -4,6 +4,7 @@ import type { RootState } from "@/store";
 export const useSelect = () => {
   return {
     user: useSelector((state: RootState) => state.auth),
-    email: useSelector((state: RootState) => state.userEmail)
+    email: useSelector((state: RootState) => state.userEmail),
+    checkOAuth : useSelector((state : RootState)=> state.oAuthCheck)
   };
 };

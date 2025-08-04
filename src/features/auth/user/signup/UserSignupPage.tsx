@@ -1,6 +1,7 @@
 import { RedirectAuthUser } from "@/components/protectors/RedirectAuthUser"
-import SignupForm from "@/features/auth/form-components/SignupForm"
+import SignupForm from "@/features/auth/components/form-components/SignupForm"
 import { Link } from "react-router-dom"
+import GoogleLoginButton from "../../components/GoogleLoginButton"
 
 export default function UserSignupPage() {
   return (
@@ -13,8 +14,11 @@ export default function UserSignupPage() {
 
       <SignupForm />
 
-      <div className="mt-6 text-center">
-        <p className="text-gray-400">
+      <div className="text-center">
+        <div className="flex justify-center mt-3">
+          <GoogleLoginButton />
+        </div>
+        <p className="text-gray-400 mt-3">
           Already have an account?{" "}
           <Link to="/login" className="text-orange-500 hover:text-orange-700 transition-colors">
             Sign in

@@ -2,6 +2,7 @@ import { useDispatch } from "react-redux";
 import { clearUser, setUser } from '@/store/slices/authSlice'
 import type { User } from "@/store/slices/authSlice";
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
+import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 
 export const useUserEmailActions = () => {
   const dispatch = useDispatch();
@@ -18,3 +19,11 @@ export const useAuthActions = () => {
     logout: () => dispatch(clearUser()),
   };
 };
+
+export const useOAuthCheckActions = () => {
+  const dispatch = useDispatch();
+  return {
+    setOAuthVerified : () => dispatch(setOAuthVerified()),
+    resetOAuthVerified : () => dispatch(resetOAuthVerified())
+  }
+}

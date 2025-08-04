@@ -1,5 +1,5 @@
 import { RedirectAuthUser } from '@/components/protectors/RedirectAuthUser';
-import OtpVerificationForm from '@/features/auth/form-components/OtpVerificationForm';
+import OtpVerificationForm from '@/features/auth/components/form-components/OtpVerificationForm';
 
 export default function OtpVerificationPage() {
 

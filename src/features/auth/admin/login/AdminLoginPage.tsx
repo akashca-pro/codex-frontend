@@ -1,4 +1,4 @@
-import AdminLoginForm from "@/features/auth/form-components/AdminLoginForm"
+import AdminLoginForm from "@/features/auth/components/form-components/AdminLoginForm"
 import { RedirectAuthUser } from "@/components/protectors/RedirectAuthUser"
 
 export default function AdminLoginPage() {

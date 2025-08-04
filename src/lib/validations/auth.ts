@@ -71,6 +71,15 @@ export const OtpVerificationSchema = z.object({
     .regex(/^\d+$/, "OTP must contain only numbers"),
 })
 
+export const UsernameSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must not exceed 20 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+})
+
 export type SignupSchemaType = z.infer<typeof signupSchema> 
 export type LoginSchemaType = z.infer<typeof LoginSchema>
 export type OtpVerificationSchemaType = z.infer<typeof OtpVerificationSchema>
+export type UsernameSchemaType = z.infer<typeof UsernameSchema>
