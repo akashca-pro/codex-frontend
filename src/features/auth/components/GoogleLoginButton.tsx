@@ -23,9 +23,11 @@ const GoogleLoginButton = () => {
         const res = await googleLogin({ oAuthId : credential }).unwrap();
 
         login({
-          userId : res.data.userId,
-          email : res.data.email,
-          role : res.data.role
+            userId : res.data.userId,
+            username : res.data.username,
+            email : res.data.email,
+            role : res.data.role,
+            avatar : res.data.avatar
         })
         
         toast.success('Access Granted',{

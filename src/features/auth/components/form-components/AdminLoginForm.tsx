@@ -45,9 +45,11 @@ export default function AdminLoginForm() {
         id : toastId
       })
       login({
-        userId : res.data.userId,
-        email : res.data.email,
-        role : res.data.role
+            userId : res.data.userId,
+            username : res.data.username,
+            email : res.data.email,
+            role : res.data.role,
+            avatar : res.data.avatar
       })
     } catch (error : any) {
       console.log(error);

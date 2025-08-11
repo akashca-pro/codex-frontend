@@ -24,6 +24,7 @@ import { useUserSignupMutation } from '@/services/auth-user-service/auth/user'
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useUserEmailActions } from '@/hooks/useDispatch';
+import { generateRandomUsername } from "@/utils/generateRandomUsername"
 
 export default function SignupForm() {
   const navigate = useNavigate();
@@ -42,7 +43,8 @@ export default function SignupForm() {
       confirmPassword : "",
     },
   })
-
+  const watchedUsername = form.watch("username");
+  
   const onSubmit = async(data: SignupSchemaType) => {
     console.log("Form Submitted: ", data);
     const credentials = {
@@ -122,7 +124,7 @@ export default function SignupForm() {
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                  <FormItem className="w-1/2">
+                  <FormItem className="w-4/5">
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -131,6 +133,18 @@ export default function SignupForm() {
                           className="pl-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
                           {...field}
                         />
+                      {!watchedUsername && <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-orange-400 px-2 hover:bg-transparent"
+                        onClick={() => {
+                          const newUsername = generateRandomUsername();
+                          form.setValue("username", newUsername, { shouldValidate: true });
+                        }}
+                      >
+                        Random
+                      </Button>}
                       </div>
                     </FormControl>
                     <FormMessage className="text-red-400 text-sm" />

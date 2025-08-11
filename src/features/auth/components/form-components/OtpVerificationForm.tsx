@@ -68,8 +68,7 @@ export default function OtpVerificationForm() {
     const credentials = {
         email : globalEmail.email
     }
-    const toastId = toast.loading('OTP generating',{
-        description : 'Please wait . . .',
+    const toastId = toast.loading('New OTP generating',{
         className : 'info-toast'
     })
     try {
@@ -125,13 +124,15 @@ export default function OtpVerificationForm() {
         toast.success('OTP Verified',{
             id : toastId,
             className : 'success-toast',
-            description : `Welcome Coder, You're now part of the CodeX swarm.`
+            description : `Welcome , ${res.data.username} You're now part of the CodeX swarm.`
         })
         console.log(res);
         login({
             userId : res.data.userId,
+            username : res.data.username,
             email : res.data.email,
-            role : res.data.role
+            role : res.data.role,
+            avatar : res.data.avatar
         })
         navigate('/dashboard');
     } catch (error : any) {

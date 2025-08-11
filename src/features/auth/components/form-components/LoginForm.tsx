@@ -54,13 +54,16 @@ export default function LoginForm() {
       navigate('/signup/verify-otp');
       }else{
         toast.success('Access Granted',{
+          description : `Welcome back ${res.data.username}! Ready to code?, `,
           className : 'success-toast',
           id : toastId
         })
         login({
-          userId : res.data.userId,
-          email : res.data.email,
-          role : res.data.role
+            userId : res.data.userId,
+            username : res.data.username,
+            email : res.data.email,
+            role : res.data.role,
+            avatar : res.data.avatar
         })
       }
     } catch (error : any) {
