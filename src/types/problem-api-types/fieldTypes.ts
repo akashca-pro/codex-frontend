@@ -1,4 +1,4 @@
-export type Difficulty = 'easy' | 'medium' | 'hard'
+export type Difficulty = 'Easy' | 'Medium' | 'Hard' 
 export type Language = 'javascript' | 'python'
 export type TestCaseCollectionType = 'run' | 'submit'
 

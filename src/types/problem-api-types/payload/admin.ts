@@ -1,4 +1,4 @@
-import type { Difficulty, IExample, ISolutionCode, IStarterCode, ITestCase, ITestCaseCollection, TestCaseCollectionType } from "../fieldTypes";
+import type { Difficulty, IExample, ISolutionCode, IStarterCode, ITestCase, TestCaseCollectionType } from "../fieldTypes";
 
 export interface CreateProblemRequest {
     questionId : string;

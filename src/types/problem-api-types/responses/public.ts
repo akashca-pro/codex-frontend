@@ -1,4 +1,4 @@
-import type { Difficulty, IExample, IStarterCode, ITestCase } from "../fieldTypes";
+import type { IExample, IStarterCode, ITestCase } from "../fieldTypes";
 
 
 export interface ListProblemResponse {
@@ -22,7 +22,7 @@ export interface PublicProblemDetailsResponse {
     questionId : string;
     title : string;
     description : string;
-    difficulty : Difficulty;
+    difficulty : string;
     tags : string[];
     constraints : string[];
     starterCodes : IStarterCode[];

@@ -1,77 +1,44 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, CheckCircle, Circle, Play } from "lucide-react"
-
-const problems = [
-  {
-    id: 1,
-    title: "Two Sum",
-    difficulty: "Easy",
-    acceptance: "49.1%",
-    solved: true,
-    tags: ["Array", "Hash Table"],
-    premium: false,
-  },
-  {
-    id: 2,
-    title: "Add Two Numbers",
-    difficulty: "Medium",
-    acceptance: "37.8%",
-    solved: false,
-    tags: ["Linked List", "Math"],
-    premium: false,
-  },
-  {
-    id: 3,
-    title: "Longest Substring Without Repeating Characters",
-    difficulty: "Medium",
-    acceptance: "33.8%",
-    solved: true,
-    tags: ["Hash Table", "String", "Sliding Window"],
-    premium: false,
-  },
-  {
-    id: 4,
-    title: "Median of Two Sorted Arrays",
-    difficulty: "Hard",
-    acceptance: "35.2%",
-    solved: false,
-    tags: ["Array", "Binary Search", "Divide and Conquer"],
-    premium: true,
-  },
-  {
-    id: 5,
-    title: "Longest Palindromic Substring",
-    difficulty: "Medium",
-    acceptance: "32.1%",
-    solved: false,
-    tags: ["String", "Dynamic Programming"],
-    premium: false,
-  },
-]
+import { Search, Play } from "lucide-react"
+import { usePublicListProblemsQuery } from '@/apis/problem/public'
+import { DifficultyMap } from "@/mappers/problem"
+import { AppPagination } from "@/components/Pagination"
 
 export default function Problems() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [difficultyFilter, setDifficultyFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [page,setPage] = useState(1);
+  const [limit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [difficultyFilter, setDifficultyFilter] = useState('all');
 
-  const filteredProblems = problems.filter((problem) => {
-    const matchesSearch =
-      problem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      problem.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesDifficulty = difficultyFilter === "all" || problem.difficulty.toLowerCase() === difficultyFilter
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "solved" && problem.solved) ||
-      (statusFilter === "unsolved" && !problem.solved)
+  const { data } = usePublicListProblemsQuery({
+    page,
+    difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
+    limit,
+    search : searchTerm
+  });
 
-    return matchesSearch && matchesDifficulty && matchesStatus
-  })
+  const ProblemList = useMemo(()=>{
+    const problems = data?.data?.problems || []
+
+    return problems.map(problem => ({
+      Id : problem.Id,
+      questionId : problem.questionId,
+      title : problem.title,
+      difficulty : DifficultyMap[problem.difficulty] || 'unknown',
+      tags : problem.tags,
+      updatedAt : problem.updatedAt,
+      createdAt : problem.createdAt,
+    }))
+
+  },[data]);
+
+  console.log(ProblemList);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -104,7 +71,7 @@ export default function Problems() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search problems..."
+            placeholder="Search problems by tag, title, or question ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -115,22 +82,11 @@ export default function Problems() {
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Difficulties</SelectItem>
-            <SelectItem value="easy" className="text-green-400 data-[highlighted]:bg-green-900" >Easy</SelectItem>
-            <SelectItem value="medium" className="text-yellow-400 data-[highlighted]:bg-yellow-600" >Medium</SelectItem>
-            <SelectItem value="hard"  className="text-red-400 data-[highlighted]:bg-red-900" >Hard</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Problems</SelectItem>
-            <SelectItem value="solved">Solved</SelectItem>
-            <SelectItem value="unsolved">Unsolved</SelectItem>
+          <SelectContent className="border-none">
+            <SelectItem className="border-none focus:outline-none focus:ring-0 data-[highlighted]:outline-none data-[highlighted]:ring-0" value={'all'}>All Difficulties</SelectItem>
+            <SelectItem value="Easy" className="text-green-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-green-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Easy</SelectItem>
+            <SelectItem value="Medium" className="text-yellow-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-yellow-600 data-[highlighted]:outline-none data-[highlighted]:ring-0">Medium</SelectItem>
+            <SelectItem value="Hard" className="text-red-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-red-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Hard</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -141,69 +97,76 @@ export default function Problems() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Card>
-          <CardHeader>
-            <CardTitle>Problems ({filteredProblems.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {filteredProblems.map((problem, index) => (
-                <motion.div
-                  key={problem.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <div className="flex items-center gap-4 flex-1">
-                    {/* Status Icon */}
-                    <div className="flex-shrink-0">
-                      {problem.solved ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-bold text-lg">
+            Problems ({ProblemList.length || 0})
+          </CardTitle>
+        </CardHeader>
 
-                    {/* Problem Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium truncate">{problem.title}</h3>
-                        {problem.premium && (
-                          <Badge variant="secondary" className="text-xs">
-                            Premium
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {problem.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Difficulty & Acceptance */}
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className={`font-medium ${getDifficultyColor(problem.difficulty)}`}>
-                        {problem.difficulty}
-                      </span>
-                      <span className="text-muted-foreground">{problem.acceptance}</span>
-                    </div>
-
-                    {/* Action Button */}
-                    <Button size="sm" variant="outline">
-                      <Play className="w-4 h-4 mr-2" />
-                      Solve
-                    </Button>
+        <CardContent>
+          <div className="space-y-3">
+            {ProblemList.map((problem, index) => (
+              <motion.div
+                key={problem.Id}
+                className={`
+                  flex items-center justify-between p-4 rounded-xl transition-colors cursor-pointer 
+                  ${index % 2 === 0 ? "bg-background hover:bg-accent/70" : "bg-muted/50 hover:bg-accent/70"}
+                `}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  {/* ID + Title */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-muted-foreground text-sm font-mono font-semibold">
+                      {problem.questionId}.
+                    </span>
+                    <h2 className="font-bold truncate text-base">
+                      {problem.title}
+                    </h2>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+
+                  {/* Tags */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {problem.tags.map((tag) => (
+                        <Badge key={tag} variant={"outline"} className="text-xs font-semibold">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Difficulty */}
+                  <div className="flex items-center gap-4 text-sm">
+                    <span
+                      className={`font-bold ${getDifficultyColor(problem.difficulty)}`}
+                    >
+                      {problem.difficulty}
+                    </span>
+                  </div>
+
+                  {/* Action */}
+                  <Button size="sm" variant="outline" className="font-semibold">
+                    <Play className="w-4 h-4 mr-2" />
+                    Solve
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       </motion.div>
+
+      {ProblemList.length >= 10 && <AppPagination 
+      page={data?.data.currentPage!}
+      totalPages={data?.data.totalPage || 0}
+      onPageChange={(newPage)=>setPage(newPage)}  />}
+
     </div>
   )
 }
