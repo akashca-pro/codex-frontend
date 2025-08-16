@@ -1,6 +1,6 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google"
 import { toast } from "sonner"
-import { useUserGoogleLoginMutation, } from '@/services/auth-user-service/auth/user'
+import { useUserGoogleLoginMutation, } from '@/apis/auth-user/auth/user'
 import { useAuthActions } from '@/hooks/useDispatch'
 
 const GoogleLoginButton = () => {

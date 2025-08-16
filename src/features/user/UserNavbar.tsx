@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useNavigate } from "react-router-dom"
-import { useUserLogoutMutation } from '@/services/auth-user-service/auth/user';
+import { useUserLogoutMutation } from '@/apis/auth-user/auth/user';
 import { toast } from "sonner"
 import { useAuthActions } from '@/hooks/useDispatch'
 

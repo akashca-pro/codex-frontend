@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux"
-import { useUserCheckAuthQuery } from '@/services/auth-user-service/auth/user'
+import { useUserCheckAuthQuery } from '@/apis/auth-user/auth/user'
 import { useSelect } from "./useSelect";
 import { useAuthActions } from '@/hooks/useDispatch'
 export const useUserAuth = () => {

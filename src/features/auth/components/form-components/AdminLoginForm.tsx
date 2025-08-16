@@ -9,7 +9,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form"
-import { useAdminLoginMutation } from "@/services/auth-user-service/auth/admin";
+import { useAdminLoginMutation } from "@/apis/auth-user/auth/admin";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

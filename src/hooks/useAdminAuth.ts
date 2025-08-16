@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux"
-import { useAdminCheckAuthQuery } from '@/services/auth-user-service/auth/admin'
+import { useAdminCheckAuthQuery } from '@/apis/auth-user/auth/admin'
 import { useSelect } from "./useSelect";
 import { useAuthActions } from '@/hooks/useDispatch'
 export const useAdminAuth = () => {

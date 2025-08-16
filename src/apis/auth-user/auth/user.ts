@@ -1,5 +1,4 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
-import { type User } from "@/store/slices/authSlice";
 import { type ApiSuccess } from "@/types/apiTypes";
 
 const preUrl = '/user/auth/'

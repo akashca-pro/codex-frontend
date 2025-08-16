@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { toast } from "sonner"
-import { useUserLoginMutation } from '@/services/auth-user-service/auth/user'
+import { useUserLoginMutation } from '@/apis/auth-user/auth/user'
 import { useAuthActions, useUserEmailActions } from '@/hooks/useDispatch'
 import { useNavigate } from "react-router-dom"
 

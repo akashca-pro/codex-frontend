@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useAuthActions } from '@/hooks/useDispatch'
 import { useSelect } from '@/hooks/useSelect'
-import { useUserResendOtpMutation, useUserVerifyOtpMutation} from '@/services/auth-user-service/auth/user'
+import { useUserResendOtpMutation, useUserVerifyOtpMutation} from '@/apis/auth-user/auth/user'
 
 export default function OtpVerificationForm() {
   const [resendOtp] = useUserResendOtpMutation();

@@ -20,7 +20,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
-import { useUserSignupMutation } from '@/services/auth-user-service/auth/user'
+import { useUserSignupMutation } from '@/apis/auth-user/auth/user'
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useUserEmailActions } from '@/hooks/useDispatch';
