@@ -17,6 +17,8 @@ import Editor from "./features/user/editor/EditorPage";
 import Settings from "./features/user/settings/SettingsPage";
 import Leaderboard from "./features/user/leaderboard/LeaderboardPage";
 import UserProfile from "./features/user/profile/UserProfile";
+import AdminProblems from "./features/admin/problems/AdminProblems";
+import AdminSettings from "./features/admin/settings/AdminSettings";
 
 const App = () => {
   return (
@@ -64,14 +66,15 @@ const App = () => {
 
         {/* Admin routes */}
 
-        <Route path="/admin/dashboard" element={
+        <Route path="/admin/" element={
           <AuthGuard role="ADMIN" >
           <AdminLayout/>
           </AuthGuard>
           } >
   
-          <Route index element={<AdminDashboard/>} />
-          
+          <Route path="dashboard" element={<AdminDashboard/>} />
+          <Route path="problems" element={<AdminProblems/>}/>
+          <Route path="settings" element={<AdminSettings/>}/>
         </Route>
 
       </Routes>

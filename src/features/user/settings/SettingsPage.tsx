@@ -12,7 +12,7 @@ import { User, Bell, Palette, Code, Shield } from "lucide-react"
 
 export default function Settings() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-bold">Settings</h1>
@@ -26,11 +26,7 @@ export default function Settings() {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Profile
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
               Notifications
@@ -49,8 +45,7 @@ export default function Settings() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Profile Settings */}
-          <TabsContent value="profile">
+          {/* <TabsContent value="profile">
             <Card>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
@@ -106,7 +101,7 @@ export default function Settings() {
                 <Button>Save Changes</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
 
           {/* Notification Settings */}
           <TabsContent value="notifications">

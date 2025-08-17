@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNavigate, useLocation } from "react-router-dom"
-import { useUserLogoutMutation } from '@/apis/auth-user/auth/user'
+import { useAdminLogoutMutation } from '@/apis/auth-user/auth/admin'
 import { toast } from "sonner"
 import { useAuthActions } from '@/hooks/useDispatch'
 import { useSelect } from '@/hooks/useSelect'
@@ -22,20 +22,18 @@ import { useState } from "react"
 const navItems = [
   { id: "dashboard", label: "Dashboard" },
   { id: "problems", label: "Problems" },
-  { id: "leaderboard", label: "Leaderboard" },
-  { id: "settings", label: "Settings" },
-  { id : "editor", label : "CodePad" }
+  { id : "settings", label: "Settings" }
 ]
 
-export default function UserNavbar() {
+export default function AdminNavbar() {
   const { user } = useSelect()
   const navigate = useNavigate()
   const location = useLocation()
-  const [logout] = useUserLogoutMutation()
+  const [logout] = useAdminLogoutMutation()
   const { logout: reduxLogout } = useAuthActions()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const currentPath = location.pathname.split("/")[1] || "dashboard"
+  const currentPath = location.pathname.split("/admin/")[1] || "/admin/dashboard"
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out. . .")
@@ -56,8 +54,7 @@ export default function UserNavbar() {
   }
 
   return (
-    <div>
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-10">
+    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
 
       {/* Logo */}
       <div className="h-16 p-4 flex items-center">
@@ -72,7 +69,7 @@ export default function UserNavbar() {
       {/* Desktop Navigation */}
       <Tabs
         value={currentPath}
-        onValueChange={(val) => navigate(`/${val}`)}
+        onValueChange={(val) => navigate(`/admin/${val}`)}
         className="hidden md:block"
       >
         <TabsList className="bg-transparent space-x-2">
@@ -187,6 +184,5 @@ export default function UserNavbar() {
         </DropdownMenu>
       </div>
     </header>
-    </div>
   )
 }

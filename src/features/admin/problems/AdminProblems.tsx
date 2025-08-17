@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,19 +8,27 @@ import { Search} from "lucide-react"
 import { usePublicListProblemsQuery } from '@/apis/problem/public'
 import { DifficultyMap } from "@/mappers/problem"
 import { AppPagination } from "@/components/Pagination"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
-export default function Problems() {
+export default function AdminProblems() {
   const [page,setPage] = useState(1);
   const [limit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+  const [active,setActive] = useState(true);
   const [difficultyFilter, setDifficultyFilter] = useState('all');
 
-  const { data } = usePublicListProblemsQuery({
+  const { data, refetch } = usePublicListProblemsQuery({
     page,
     difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
     limit,
-    search : searchTerm
+    search : searchTerm,
+    active
   });
+
+  useEffect(()=>{
+    refetch()
+  },[active])
 
   const ProblemList = useMemo(()=>{
     const problems = data?.data?.problems || []
@@ -31,6 +39,7 @@ export default function Problems() {
       title : problem.title,
       difficulty : DifficultyMap[problem.difficulty] || 'unknown',
       tags : problem.tags,
+      active : problem.active,
       updatedAt : problem.updatedAt,
       createdAt : problem.createdAt,
     }))
@@ -54,10 +63,13 @@ export default function Problems() {
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <h1 className="text-2xl sm:text-3xl font-bold">Problems</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Practice coding problems to improve your skills.
-        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold pb-1">Problems</h1>
+        <div className="text-sm sm:text-base text-muted-foreground">
+        <Badge variant="outline"
+         className={`sm:text-xs font-semibold ${active === true ? 'border-green-500' : 'border-yellow-500'} `}>
+        {active === true ? 'Active' : 'Not-Active'}
+        </Badge>
+        </div>
       </motion.div>
 
       {/* Filters */}
@@ -75,6 +87,15 @@ export default function Problems() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-full"
           />
+        </div>
+
+        <div className="flex items-center space-x-2">
+        <Label htmlFor="active-switch">Active</Label>
+        <Switch
+            id="active-switch"
+            checked={active}
+            onCheckedChange={setActive}
+        />
         </div>
 
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
