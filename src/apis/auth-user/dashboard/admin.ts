@@ -1,6 +1,6 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 
-const preUrl = '/admin/dashboard/'
+const preUrl = '/admin/profile/'
 
 const adminDashboardApiSlice = apiSlice.injectEndpoints({
     endpoints : (builder) => ({

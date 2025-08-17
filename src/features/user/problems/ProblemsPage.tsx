@@ -2,10 +2,9 @@ import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Play } from "lucide-react"
+import { Search} from "lucide-react"
 import { usePublicListProblemsQuery } from '@/apis/problem/public'
 import { DifficultyMap } from "@/mappers/problem"
 import { AppPagination } from "@/components/Pagination"
@@ -38,8 +37,6 @@ export default function Problems() {
 
   },[data]);
 
-  console.log(ProblemList);
-
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
@@ -54,16 +51,18 @@ export default function Problems() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <h1 className="text-3xl font-bold">Problems</h1>
-        <p className="text-muted-foreground">Practice coding problems to improve your skills.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Problems</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Practice coding problems to improve your skills.
+        </p>
       </motion.div>
 
       {/* Filters */}
       <motion.div
-        className="flex flex-col sm:flex-row gap-4"
+        className="flex flex-col sm:flex-row gap-3 sm:gap-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -74,19 +73,19 @@ export default function Problems() {
             placeholder="Search problems by tag, title, or question ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
 
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
           <SelectContent className="border-none">
-            <SelectItem className="border-none focus:outline-none focus:ring-0 data-[highlighted]:outline-none data-[highlighted]:ring-0" value={'all'}>All Difficulties</SelectItem>
-            <SelectItem value="Easy" className="text-green-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-green-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Easy</SelectItem>
-            <SelectItem value="Medium" className="text-yellow-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-yellow-600 data-[highlighted]:outline-none data-[highlighted]:ring-0">Medium</SelectItem>
-            <SelectItem value="Hard" className="text-red-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-red-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Hard</SelectItem>
+            <SelectItem value={'all'}>All Difficulties</SelectItem>
+            <SelectItem value="Easy" className="text-green-400 data-[highlighted]:bg-green-900">Easy</SelectItem>
+            <SelectItem value="Medium" className="text-yellow-400 data-[highlighted]:bg-yellow-600">Medium</SelectItem>
+            <SelectItem value="Hard" className="text-red-400 data-[highlighted]:bg-red-900">Hard</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -97,76 +96,71 @@ export default function Problems() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-bold text-lg">
-            Problems ({ProblemList.length || 0})
-          </CardTitle>
-        </CardHeader>
+        <Card >
+          <CardHeader>
+            <CardTitle className="font-bold text-lg sm:text-xl">
+              Problems ({ProblemList.length || 0})
+            </CardTitle>
+          </CardHeader>
 
-        <CardContent>
-          <div className="space-y-3">
-            {ProblemList.map((problem, index) => (
-              <motion.div
-                key={problem.Id}
-                className={`
-                  flex items-center justify-between p-4 rounded-xl transition-colors cursor-pointer 
-                  ${index % 2 === 0 ? "bg-background hover:bg-accent/70" : "bg-muted/50 hover:bg-accent/70"}
-                `}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  {/* ID + Title */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted-foreground text-sm font-mono font-semibold">
-                      {problem.questionId}.
-                    </span>
-                    <h2 className="font-bold truncate text-base">
-                      {problem.title}
-                    </h2>
-                  </div>
+          <CardContent>
+            <div className="space-y-3">
+              {ProblemList.map((problem, index) => (
+                <motion.div
+                  key={problem.Id}
+                  className={`
+                    flex flex-col sm:flex-row sm:items-center sm:justify-between 
+                    gap-3 sm:gap-0 p-4 rounded-xl transition-colors cursor-pointer
+                    ${index % 2 === 0 ? "bg-background hover:bg-accent/70" : "bg-muted/50 border border-black hover:bg-accent/70"}
+                  `}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                    {/* ID + Title */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-muted-foreground text-xs sm:text-sm font-mono font-semibold">
+                        {problem.questionId}.
+                      </span>
+                      <h2 className="font-bold truncate text-sm sm:text-base">
+                        {problem.title}
+                      </h2>
+                    </div>
 
-                  {/* Tags */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {problem.tags.map((tag) => (
-                        <Badge key={tag} variant={"outline"} className="text-xs font-semibold">
-                          {tag}
-                        </Badge>
-                      ))}
+                    {/* Tags */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        {problem.tags.map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-[10px] sm:text-xs font-semibold">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Difficulty */}
+                    <div className="flex items-center text-xs sm:text-sm font-bold">
+                      <span className={getDifficultyColor(problem.difficulty)}>
+                        {problem.difficulty}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Difficulty */}
-                  <div className="flex items-center gap-4 text-sm">
-                    <span
-                      className={`font-bold ${getDifficultyColor(problem.difficulty)}`}
-                    >
-                      {problem.difficulty}
-                    </span>
-                  </div>
-
-                  {/* Action */}
-                  <Button size="sm" variant="outline" className="font-semibold">
-                    <Play className="w-4 h-4 mr-2" />
-                    Solve
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
-      {ProblemList.length >= 10 && <AppPagination 
-      page={data?.data.currentPage!}
-      totalPages={data?.data.totalPage || 0}
-      onPageChange={(newPage)=>setPage(newPage)}  />}
-
+      {ProblemList.length >= 10 && (
+        <AppPagination 
+          page={data?.data.currentPage!}
+          totalPages={data?.data.totalPage || 0}
+          onPageChange={(newPage)=>setPage(newPage)}  
+        />
+      )}
     </div>
   )
 }

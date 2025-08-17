@@ -1,14 +1,14 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import type { ApiSuccess, UserProfileResponse } from "@/types/apiTypes";
 
-const preUrl = `/user/dashboard`
+const preUrl = `/user/profile`
 
 const userProfileApi = apiSlice.injectEndpoints({
     endpoints : (builder) => ({
 
         profile : builder.query<ApiSuccess<UserProfileResponse>,void>({
             query : () => ({
-                url : `${preUrl}/profile`,
+                url : `${preUrl}/`,
                 method : 'GET'
             }),
             providesTags : ['user']
