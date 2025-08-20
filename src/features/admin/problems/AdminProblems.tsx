@@ -4,31 +4,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search} from "lucide-react"
-import { usePublicListProblemsQuery } from '@/apis/problem/public'
+import { Plus, Search} from "lucide-react"
+import { useAdminListProblemQuery } from '@/apis/problem/admin'
 import { DifficultyMap } from "@/mappers/problem"
 import { AppPagination } from "@/components/Pagination"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import CreateProblemDialog from "./components/dialog/CreateProblemDialog"
+import { useNavigate } from "react-router-dom"
+
+
 
 export default function AdminProblems() {
+  const navigate = useNavigate();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [page,setPage] = useState(1);
   const [limit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [active,setActive] = useState(true);
   const [difficultyFilter, setDifficultyFilter] = useState('all');
+  const [sort,setSort] = useState('latest');
 
-  const { data, refetch } = usePublicListProblemsQuery({
+  const { data, refetch : refetchProblemList} = useAdminListProblemQuery({
     page,
     difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
     limit,
     search : searchTerm,
-    active
+    active,
+    sort
   });
 
   useEffect(()=>{
-    refetch()
-  },[active])
+    setPage(1);
+  },[active,sort])
 
   const ProblemList = useMemo(()=>{
     const problems = data?.data?.problems || []
@@ -62,15 +71,33 @@ export default function AdminProblems() {
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="flex items-center justify-between"
+    >
+    {/* Left side: Heading + Badge */}
+    <div>
         <h1 className="text-2xl sm:text-3xl font-bold pb-1">Problems</h1>
         <div className="text-sm sm:text-base text-muted-foreground">
-        <Badge variant="outline"
-         className={`sm:text-xs font-semibold ${active === true ? 'border-green-500' : 'border-yellow-500'} `}>
-        {active === true ? 'Active' : 'Not-Active'}
+        <Badge
+            variant="outline"
+            className={`sm:text-xs font-semibold ${
+            active === true ? "border-green-500" : "border-gray-600"
+            }`}
+        >
+            {active === true ? "Active" : "InActive"}
         </Badge>
         </div>
-      </motion.div>
+    </div>
+
+    {/* Right side: Button */}
+    <Button onClick={() => setCreateDialogOpen(true)}>
+        <Plus className="h-4 w-4 mr-2" />
+        Create Problem
+    </Button>
+    </motion.div>
 
       {/* Filters */}
       <motion.div
@@ -103,10 +130,28 @@ export default function AdminProblems() {
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
           <SelectContent className="border-none">
-            <SelectItem className="border-none focus:outline-none focus:ring-0 data-[highlighted]:outline-none data-[highlighted]:ring-0" value={'all'}>All Difficulties</SelectItem>
-            <SelectItem value="Easy" className="text-green-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-green-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Easy</SelectItem>
-            <SelectItem value="Medium" className="text-yellow-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-yellow-600 data-[highlighted]:outline-none data-[highlighted]:ring-0">Medium</SelectItem>
-            <SelectItem value="Hard" className="text-red-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-red-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Hard</SelectItem>
+            <SelectItem 
+            className="border-none focus:outline-none focus:ring-0 data-[highlighted]:outline-none data-[highlighted]:ring-0" 
+            value={'all'}>All Difficulties</SelectItem>
+            <SelectItem 
+            value="Easy"
+            className="text-green-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-green-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Easy</SelectItem>
+            <SelectItem
+             value="Medium" 
+             className="text-yellow-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-yellow-600 data-[highlighted]:outline-none data-[highlighted]:ring-0">Medium</SelectItem>
+            <SelectItem 
+            value="Hard" 
+            className="text-red-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-red-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Hard</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select value={sort} onValueChange={setSort} >
+          <SelectTrigger>
+            <SelectValue placeholder='Sort'/>
+          </SelectTrigger>
+          <SelectContent className="border-none">
+            <SelectItem value="latest">Latest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -117,7 +162,7 @@ export default function AdminProblems() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Card >
+        <Card>
           <CardHeader>
             <CardTitle className="font-bold text-lg sm:text-xl">
               Problems ({ProblemList.length || 0})
@@ -128,6 +173,7 @@ export default function AdminProblems() {
             <div className="space-y-3">
               {ProblemList.map((problem, index) => (
                 <motion.div
+                onClick={() => navigate(`/admin/problems/${problem.Id}`)}
                   key={problem.Id}
                   className={`
                     flex flex-col sm:flex-row sm:items-center sm:justify-between 
@@ -178,13 +224,18 @@ export default function AdminProblems() {
         </Card>
       </motion.div>
 
-      {ProblemList.length >= 10 && (
+      {data?.data.totalItems! >= 10 && (
         <AppPagination 
           page={data?.data.currentPage!}
           totalPages={data?.data.totalPage || 0}
           onPageChange={(newPage)=>setPage(newPage)}  
         />
       )}
+      <CreateProblemDialog
+        refetchProblemList={refetchProblemList}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </div>
   )
 }

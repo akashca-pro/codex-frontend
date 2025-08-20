@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { signupSchema, type SignupSchemaType } from "@/lib/validations/auth"
+import { signupSchema, type SignupSchemaType } from "@/features/auth/validations/schemas"
 import {
   Form,
   FormControl,

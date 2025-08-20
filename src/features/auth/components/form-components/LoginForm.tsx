@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { LoginSchema, type LoginSchemaType } from "@/lib/validations/auth"
+import { LoginSchema, type LoginSchemaType } from "@/features/auth/validations/schemas"
 import {
   Form,
   FormControl,
@@ -34,7 +34,7 @@ export default function LoginForm() {
   })
 
   const onSubmit = async(values: LoginSchemaType) => {
-    console.log(values)
+    console.log(values);
     const credentials = {
       ...values
     }

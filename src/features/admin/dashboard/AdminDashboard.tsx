@@ -149,7 +149,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Monitor your coding platform's performance and health</p>
+        <p className="text-muted-foreground">Monitor platform performance and health</p>
       </motion.div>
 
       {/* Top Stats Section */}

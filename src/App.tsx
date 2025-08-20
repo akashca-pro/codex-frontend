@@ -19,6 +19,7 @@ import Leaderboard from "./features/user/leaderboard/LeaderboardPage";
 import UserProfile from "./features/user/profile/UserProfile";
 import AdminProblems from "./features/admin/problems/AdminProblems";
 import AdminSettings from "./features/admin/settings/AdminSettings";
+import ProblemDetailsPage from "./features/admin/problems/AdminProblemDetails";
 
 const App = () => {
   return (
@@ -74,6 +75,7 @@ const App = () => {
   
           <Route path="dashboard" element={<AdminDashboard/>} />
           <Route path="problems" element={<AdminProblems/>}/>
+          <Route path="problems/:problemId" element={<ProblemDetailsPage/>}/>
           <Route path="settings" element={<AdminSettings/>}/>
         </Route>
 

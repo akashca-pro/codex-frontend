@@ -4,7 +4,7 @@ export interface AdminProblemDetailsResponse {
     Id : string;
     questionId : string;
     title : string;
-    decription : string;
+    description : string;
     difficulty : Difficulty;
     tags : string[];
     constraints : string[];

@@ -6,5 +6,6 @@ export interface ListProblemParams {
     tags?:string[];
     active? : boolean;
     search? : string;
-    questionId? : string
+    questionId? : string;
+    sort? : string;
 }

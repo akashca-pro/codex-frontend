@@ -12,6 +12,7 @@ import { AppPagination } from "@/components/Pagination"
 export default function Problems() {
   const [page,setPage] = useState(1);
   const [limit] = useState(10);
+  const [sort,setSort] = useState('latest');
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('all');
 
@@ -19,7 +20,8 @@ export default function Problems() {
     page,
     difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
     limit,
-    search : searchTerm
+    search : searchTerm,
+    sort,
   });
 
   const ProblemList = useMemo(()=>{
@@ -86,6 +88,16 @@ export default function Problems() {
             <SelectItem value="Easy" className="text-green-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-green-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Easy</SelectItem>
             <SelectItem value="Medium" className="text-yellow-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-yellow-600 data-[highlighted]:outline-none data-[highlighted]:ring-0">Medium</SelectItem>
             <SelectItem value="Hard" className="text-red-400 focus:outline-none focus:ring-0 data-[highlighted]:bg-red-900 data-[highlighted]:outline-none data-[highlighted]:ring-0" >Hard</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sort} onValueChange={setSort} >
+          <SelectTrigger>
+            <SelectValue placeholder='Sort'/>
+          </SelectTrigger>
+          <SelectContent className="border-none">
+            <SelectItem value="latest">Latest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
@@ -157,7 +169,7 @@ export default function Problems() {
         </Card>
       </motion.div>
 
-      {ProblemList.length >= 10 && (
+      {data?.data.totalItems! >= 10 && (
         <AppPagination 
           page={data?.data.currentPage!}
           totalPages={data?.data.totalPage || 0}

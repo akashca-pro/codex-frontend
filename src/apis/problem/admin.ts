@@ -1,6 +1,6 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import type { ApiSuccess } from "@/types/apiTypes";
-import type { AddSolutionCodeRequest, AddTestCaseRequest, BulkUploadTestCasesRequest, CreateProblemRequest, RemoveSolutionCodeRequest, RemoveTestCaseRequest, UpdateProblemRequest, UpdateSolutionCodeRequest } from "@/types/problem-api-types/payload/admin";
+import type { AddSolutionCodeRequest, AddTestCaseRequest, BulkUploadTestCasesRequest, CheckQuestionIdAvailRequest, CheckTitleAvailRequest, CreateProblemRequest, RemoveSolutionCodeRequest, RemoveTestCaseRequest, UpdateProblemRequest, UpdateSolutionCodeRequest } from "@/types/problem-api-types/payload/admin";
 import type { ListProblemParams } from "@/types/problem-api-types/payload/public";
 import type { AdminProblemDetailsResponse } from "@/types/problem-api-types/responses/admin";
 import type { ListProblemResponse } from "@/types/problem-api-types/responses/public";
@@ -25,7 +25,21 @@ const adminProblemApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags : ['admin']
         }),
-        adminCreateProblem : builder.mutation<ApiSuccess<CreateProblemRequest>,string>({
+        adminCheckQuestionId : builder.query<ApiSuccess<null>,CheckQuestionIdAvailRequest>({
+            query : ({ questionId }) => ({
+                url : `${preUrl}/checkQuestionId`,
+                method : 'GET',
+                params : { questionId }
+            })    
+        }),
+        adminCheckTitle : builder.query<ApiSuccess<null>,CheckTitleAvailRequest>({
+            query : ({title}) => ({
+                url : `${preUrl}/checkTitle`,
+                method : 'GET',
+                params : { title }
+            })
+        }),
+        adminCreateProblem : builder.mutation<ApiSuccess<null>,CreateProblemRequest>({
             query : (problemDetails) => ({
                 url : `${preUrl}/create`,
                 method : 'POST',
@@ -43,24 +57,24 @@ const adminProblemApiSlice = apiSlice.injectEndpoints({
         }),
         adminAddTestCase : builder.mutation<ApiSuccess<null>,AddTestCaseRequest>({
             query : ({problemId, testCaseData}) => ({
-                url : `${preUrl}/${problemId}/add`,
+                url : `${preUrl}/${problemId}/testCases/add`,
                 method : 'POST',
                 body : testCaseData
             }),
             invalidatesTags : ['admin']
         }),
         adminBulkUploadTestCase : builder.mutation<ApiSuccess<null>,BulkUploadTestCasesRequest>({
-            query : ({problemId, testcaseData}) => ({
+            query : ({problemId, testCases}) => ({
                 url : `${preUrl}/${problemId}/testCases/bulkUpload`,
                 method : 'POST',
-                body : testcaseData
+                body : testCases
             }),
             invalidatesTags : ['admin']
         }),
         adminRemoveTestCase : builder.mutation<ApiSuccess<null>,RemoveTestCaseRequest>({
-            query : ({problemId, testCaseId}) => ({
-                url : `${preUrl}/${problemId}/testCases/${testCaseId}/remove`,
-                method : 'DELETE'
+            query : ({problemId, testCaseId, testCaseCollectionType}) => ({
+                url : `${preUrl}/${problemId}/testCases/${testCaseId}/remove?testCaseCollectionType=${testCaseCollectionType}`,
+                method : 'DELETE',
             }),
             invalidatesTags : ['admin']
         }),
@@ -87,9 +101,6 @@ const adminProblemApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags : ['admin']
         }),
-        
-
-
     })
 })
 
@@ -104,6 +115,8 @@ export const {
     useAdminRemoveTestCaseMutation,
     useAdminAddSolutionCodeMutation,
     useAdminUpdateSolutionCodeMutation,
-    useAdminRemoveSolutionCodeMutation
+    useAdminRemoveSolutionCodeMutation,
+    useAdminCheckQuestionIdQuery,
+    useAdminCheckTitleQuery,
 
 } = adminProblemApiSlice

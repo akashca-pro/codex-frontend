@@ -143,7 +143,7 @@ export default function AdminNavbar() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10">
                 <AvatarImage
-                  src={getCloudinaryUrl(user.details?.avatar!)}
+                  src={user.details?.avatar === 'null' ? '' : getCloudinaryUrl(user.details?.avatar!)}
                   alt="User"
                 />
                 <AvatarFallback>
@@ -170,7 +170,7 @@ export default function AdminNavbar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/profile")}>
+            <DropdownMenuItem onClick={() => navigate("/admin/profile")}>
               Profile
             </DropdownMenuItem>
             <DropdownMenuSeparator />

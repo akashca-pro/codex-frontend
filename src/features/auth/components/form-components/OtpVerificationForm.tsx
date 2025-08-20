@@ -1,7 +1,7 @@
 import type React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { OtpVerificationSchema, type OtpVerificationSchemaType } from "@/lib/validations/auth"
+import { OtpVerificationSchema, type OtpVerificationSchemaType } from "@/features/auth/validations/schemas"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

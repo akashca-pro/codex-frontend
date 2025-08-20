@@ -18,8 +18,8 @@ export interface UpdateProblemRequest {
         active? : boolean;
         tags? : string[];
         constraints? : string[];
-        examples? : IExample[];
-        starterCodes? : IStarterCode[];
+        examples? : Partial<IExample>[];
+        starterCodes? : Partial<IStarterCode>[];
     }
 }
 
@@ -27,21 +27,22 @@ export interface AddTestCaseRequest {
     problemId : string;
     testCaseData : {
         testCaseCollectionType : TestCaseCollectionType;
-        testCase : ITestCase
+        testCase : Omit<ITestCase,'Id'>
     }
 }
 
 export interface BulkUploadTestCasesRequest {
     problemId : string;
-    testcaseData : {
+    testCases : {
         testCaseCollectionType : TestCaseCollectionType;
-        testCase : ITestCase[];
+        testCase : Omit<ITestCase, "Id">[];
     }
 }
 
 export interface RemoveTestCaseRequest {
     problemId : string;
     testCaseId : string;
+    testCaseCollectionType : TestCaseCollectionType
 }
 
 export interface AddSolutionCodeRequest {
@@ -58,4 +59,12 @@ export interface UpdateSolutionCodeRequest {
 export interface RemoveSolutionCodeRequest {
     problemId : string;
     solutionCodeId : string;
+}
+
+export interface CheckQuestionIdAvailRequest {
+    questionId : string;
+}
+
+export interface CheckTitleAvailRequest {
+    title : string
 }

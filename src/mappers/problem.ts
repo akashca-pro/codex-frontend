@@ -5,3 +5,8 @@ export const DifficultyMap = {
     3 : 'Hard'
 }
 
+export const LanguageMap = {
+    1 : 'javascript',
+    2 : 'python',
+    3 : 'go',
+}

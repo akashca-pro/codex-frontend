@@ -31,7 +31,6 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
           {/* Prev */}
           <PaginationItem>
             <PaginationPrevious
-              href="#"
               onClick={(e) => {
                 e.preventDefault()
                 if (page > 1) onPageChange(page - 1)
@@ -44,7 +43,6 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
             <>
               <PaginationItem>
                 <PaginationLink
-                  href="#"
                   onClick={(e) => {
                     e.preventDefault()
                     onPageChange(1)
@@ -73,7 +71,6 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
                 className={`relative z-10 px-3 py-1 rounded-md ${
                   p === page ? "text-white font-semibold hover:bg-transparent" : "hover:bg-transparent"
                 }`}
-                href="#"
                 onClick={(e) => {
                   e.preventDefault()
                   onPageChange(p)
@@ -92,7 +89,6 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
               </PaginationItem>
               <PaginationItem>
                 <PaginationLink
-                  href="#"
                   onClick={(e) => {
                     e.preventDefault()
                     onPageChange(totalPages)
@@ -107,7 +103,6 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
           {/* Next */}
           <PaginationItem>
             <PaginationNext
-              href="#"
               onClick={(e) => {
                 e.preventDefault()
                 if (page < totalPages) onPageChange(page + 1)
