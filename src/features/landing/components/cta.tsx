@@ -15,7 +15,7 @@ export default function CTA() {
             with CodeX.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/user/signup">
+            <Link to="/signup">
               <Button size="lg" className="bg-orange-600 hover:bg-orange-700 neon-glow text-lg px-8 py-3">
                 Join Now
                 <ArrowRight className="ml-2 w-5 h-5" />

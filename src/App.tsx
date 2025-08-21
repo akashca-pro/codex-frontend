@@ -12,14 +12,14 @@ import AuthGuard from "./components/protectors/auth-guard";
 import UserLayout from "./features/user/UserLayout";
 import UserDashboard from "./features/user/dashboard/DashboardPage";
 import { Toaster } from "sonner";
-import Problems from "./features/user/problems/ProblemsPage";
-import Editor from "./features/user/editor/EditorPage";
+import Problems from "./features/problems/ProblemsPage";
 import Settings from "./features/user/settings/SettingsPage";
 import Leaderboard from "./features/user/leaderboard/LeaderboardPage";
 import UserProfile from "./features/user/profile/UserProfile";
 import AdminProblems from "./features/admin/problems/AdminProblems";
 import AdminSettings from "./features/admin/settings/AdminSettings";
 import ProblemDetailsPage from "./features/admin/problems/AdminProblemDetails";
+import CodePad from "./features/CodePad/CodePad";
 
 const App = () => {
   return (
@@ -49,17 +49,21 @@ const App = () => {
           <Route path="/admin/login" element={<AdminLoginPage />} />
         </Route>
 
+        {/* Public routes */}
+
+        <Route path="/">
+          <Route path="problems" element={<Problems/>} />
+          <Route path="codepad" element={<CodePad/>}/>
+        </Route>
+
         {/* User routes */}
 
-        <Route path="/" element={
+        <Route path="/user/" element={
           <AuthGuard role="USER">
             <UserLayout/>
           </AuthGuard>
         } >
-
           <Route path="dashboard" element={<UserDashboard/>} />
-          <Route path="problems" element={<Problems/>} />
-          <Route path="editor" element={<Editor/>}/>
           <Route path="settings" element={<Settings/>}/>
           <Route path="leaderboard" element={<Leaderboard/>} />
           <Route path="profile" element={<UserProfile/>} />

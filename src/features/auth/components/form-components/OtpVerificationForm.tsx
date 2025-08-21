@@ -175,7 +175,7 @@ export default function OtpVerificationForm() {
                           }}
                           type="text"
                           maxLength={1}
-                          className="w-12 h-12 text-center text-lg font-semibold bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                          className="w-12 h-12 text-center text-lg font-semibold bg-gray-800 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                           value={otpValue[index] || ""}
                           onChange={(e) => {
                             const target = e.target as HTMLInputElement

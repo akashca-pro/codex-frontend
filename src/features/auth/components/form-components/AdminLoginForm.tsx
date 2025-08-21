@@ -88,7 +88,7 @@ export default function AdminLoginForm() {
                         id="email"
                         type="email"
                         placeholder="Enter your email"
-                        className="pl-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                     </div>
@@ -114,7 +114,7 @@ export default function AdminLoginForm() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="pl-10 pr-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                       <Button

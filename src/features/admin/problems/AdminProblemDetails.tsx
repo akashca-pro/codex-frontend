@@ -131,7 +131,7 @@ export default function ProblemDetailsPage() {
         <div className="flex items-center gap-2">
           <Badge 
           variant={'outline'}
-          className={` ${basicDetailsData.active ? "border-green-500" : "border-gray-700"} `}>
+          className={` ${basicDetailsData.active ? "border-green-500" : "border-gray-800"} `}>
             {basicDetailsData.active ? "Active" : "Inactive"}
           </Badge>
           <Badge 

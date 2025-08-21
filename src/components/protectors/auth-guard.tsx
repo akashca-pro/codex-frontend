@@ -21,7 +21,7 @@ export const AuthGuard = ({ children, role }: AuthGuardProps) => {
         const redirectPath =
           user.details?.role === "ADMIN"
             ? "/admin/dashboard"
-            : "/dashboard";
+            : "/user/dashboard";
         navigate(redirectPath, { replace: true });
       }
     } else {

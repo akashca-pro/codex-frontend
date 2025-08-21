@@ -91,7 +91,7 @@ export default function SignupForm() {
                     <FormControl>
                       <Input
                         placeholder="First Name"
-                        className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                     </FormControl>
@@ -108,7 +108,7 @@ export default function SignupForm() {
                     <FormControl>
                       <Input
                         placeholder="Last Name"
-                        className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                     </FormControl>
@@ -130,7 +130,7 @@ export default function SignupForm() {
                         <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           placeholder="Username"
-                          className="pl-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                          className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                           {...field}
                         />
                       {!watchedUsername && <Button
@@ -159,11 +159,11 @@ export default function SignupForm() {
                   <FormItem className="w-1/2">
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none">
+                        <SelectTrigger className="bg-gray-900 border border-gray-800 text-white placeholder-gray-400 focus:outline-none">
                           <SelectValue placeholder="Country" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-900 text-white border-gray-700">
+                      <SelectContent className="bg-gray-900 text-white border-gray-800">
                         <SelectItem value="India">India</SelectItem>
                         <SelectItem value="USA">USA</SelectItem>
                         <SelectItem value="UK">UK</SelectItem>
@@ -189,7 +189,7 @@ export default function SignupForm() {
                       <Input
                         placeholder="Email"
                         type="email"
-                        className="pl-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="pl-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                     </div>
@@ -210,7 +210,7 @@ export default function SignupForm() {
                       <Input
                         placeholder="Password"
                         type={showPassword ? "text" : "password"}
-                        className="pl-10 pr-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                       <Button
@@ -246,7 +246,7 @@ export default function SignupForm() {
                       <Input
                         placeholder="Confirm Password"
                         type="password"
-                        className="pl-10 pr-10 bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-orange-500"
+                        className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white placeholder-gray-400 focus:border-orange-500"
                         {...field}
                       />
                     </div>

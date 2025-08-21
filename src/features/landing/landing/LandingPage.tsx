@@ -1,7 +1,6 @@
 import Hero from "@/features/landing/components/hero";
 import Features from "@/features/landing/components/features";
 import CTA from "@/features/landing/components/cta";
-import LaptopLoader from "@/components/LaptopLoading";
 
 const LandingPage = () => {
   return (

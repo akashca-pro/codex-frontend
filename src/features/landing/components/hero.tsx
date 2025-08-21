@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
+import { useSelect } from '@/hooks/useSelect'
 
 export default function Hero(){
+  const { user } = useSelect();
+  const role = user && user.details?.role.toLowerCase();
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -24,7 +27,11 @@ export default function Hero(){
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/user/signup">
+              <Link to={
+                user.isAuthenticated 
+                ? `/problems` 
+                : '/login'
+              }>
                 <Button size="lg" className="bg-orange-600 hover:bg-orange-700 neon-glow text-lg px-8 py-3">
                   Start Coding
                   <ArrowRight className="ml-2 w-5 h-5" />

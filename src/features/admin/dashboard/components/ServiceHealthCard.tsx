@@ -62,7 +62,7 @@ export default function ServiceHealthCard({ service, onRefresh, isLoading, delay
       whileHover={{ scale: 1.02, y: -2 }}
     >
       <Card
-        className={`relative overflow-hidden border border-gray-700 bg-card/50 backdrop-blur-sm transition-all duration-300 ${
+        className={`relative overflow-hidden border border-gray-800 bg-card/50 backdrop-blur-sm transition-all duration-300 ${
           isHealthy ? "hover:border-green-500/30 hover:bg-green-500/5" : "hover:border-red-500/30 hover:bg-red-500/5"
         }`}
       >
