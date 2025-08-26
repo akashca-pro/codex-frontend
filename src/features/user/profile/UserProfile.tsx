@@ -24,8 +24,6 @@ export default function UserProfile() {
 
   const {data} = useProfileQuery()
 
-  console.log(data?.data)
-
   const [profile, setProfile] = useState<UserProfileResponse>({
   userId: "",
   username: "",

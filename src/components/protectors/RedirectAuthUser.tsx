@@ -17,7 +17,7 @@ export const RedirectAuthUser = ({ children }: Props) => {
       const protectedPath =
         user.details?.role === "ADMIN"
           ? "/admin/dashboard"
-          : "/dashboard";
+          : "/user/dashboard";
       navigate(protectedPath, { replace: true });
     } else {
       setChecked(true); // not authenticated, allow page to show

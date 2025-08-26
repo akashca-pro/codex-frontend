@@ -138,7 +138,7 @@ interface ConsoleMessage {
 
 export default function CodePad() {
   const [intelliSense, setIntelliSense] = useState(true);
-  const [fontSize, setFontSize] = useState(14);
+  const [fontSize, setFontSize] = useState(16);
   const [project, setProject] = useState<Project>(initialProject)
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([

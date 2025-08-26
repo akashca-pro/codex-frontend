@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom"
-import AdminNavbar from "./AdminNavbar";
+import Navbar from "@/components/Navbar";
 
 export const AdminLayout = () => {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <AdminNavbar/>
+      <Navbar/>
       <main className="flex-1 overflow-y-auto p-4">
         <Outlet />
       </main>

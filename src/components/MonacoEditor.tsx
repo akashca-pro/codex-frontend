@@ -62,7 +62,7 @@ export default function MonacoEditor({
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       smoothScrolling: true,
-      cursorBlinking: "smooth",
+      cursorBlinking: "expand",
       cursorSmoothCaretAnimation: "on",
       renderLineHighlight: "gutter",
       selectOnLineNumbers: true,
@@ -92,7 +92,6 @@ export default function MonacoEditor({
       autoSurround: "languageDefined",
     })
 
-    // ✅ Define the custom theme here
     monaco.editor.defineTheme("custom-dark", {
       base: "vs-dark",
       inherit: true,
@@ -114,7 +113,7 @@ export default function MonacoEditor({
       },
     });
 
-    // ✅ Apply the theme
+
     monaco.editor.setTheme("custom-dark");
 
     // Configure TypeScript/JavaScript IntelliSense

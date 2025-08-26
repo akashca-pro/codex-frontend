@@ -1,5 +1,5 @@
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' 
-export type Language = 'javascript' | 'python'
+export type Language = 'javascript' | 'python' | 'go'
 export type TestCaseCollectionType = 'run' | 'submit'
 
 export interface IStarterCode {
