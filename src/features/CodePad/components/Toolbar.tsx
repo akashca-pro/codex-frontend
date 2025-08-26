@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { Slider } from "@/components/ui/slider"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import Timer from "@/features/problems/problemDetails/components/Timer"
 
 interface Language {
   id: string
@@ -26,32 +27,25 @@ const languages: Language[] = [
 interface IDEToolbarProps {
   language: string
   onLanguageChange: (language: string) => void
-  theme: string
-  onThemeChange: (theme: string) => void
-  onRun: () => void
-  onDownload: () => void
+  onDownload?: () => void
   onCollaboration: () => void
-  isRunning?: boolean
   fontSize : number;
   onFontSizeChange: (size: number) => void;
   intelliSense : boolean
   onToggleIntelliSense : () => void
-
+  goBackLink : string;
 }
 
 export default function IDEToolbar({
   language,
   onLanguageChange,
-  theme,
-  onThemeChange,
-  onRun,
   onDownload,
   onCollaboration,
-  isRunning = false,
   fontSize,
   onFontSizeChange,
   intelliSense,
-  onToggleIntelliSense
+  onToggleIntelliSense,
+  goBackLink
 }: IDEToolbarProps) {
   const navigate = useNavigate();
   const selectedLanguage = languages.find((lang) => lang.id === language)
@@ -74,11 +68,17 @@ export default function IDEToolbar({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-2)} // navigate back
+          onClick={() => navigate(goBackLink)} 
           className="h-8 gap-2"
         >
           ← Back
         </Button>
+        <Separator orientation="vertical" className="h-6" />
+      </div>
+
+      {/* Right Section */}
+      <div className="flex items-center gap-4">
+        <Timer/>
         {/* Language Selector */}
         <Select value={language} onValueChange={onLanguageChange}>
           <SelectTrigger className="w-[140px] h-8 bg-background/50">
@@ -105,29 +105,6 @@ export default function IDEToolbar({
             ))}
           </SelectContent>
         </Select>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1">  
-          <Button variant="default" size="sm" onClick={onRun} disabled={isRunning} className="h-8 gap-2">
-            {isRunning ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-              >
-                <Zap className="h-4 w-4" />
-              </motion.div>
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-            {isRunning ? "Running..." : "Run"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Right Section */}
-      <div className="flex items-center gap-1">
           
       <Button
         variant="ghost"
@@ -165,7 +142,7 @@ export default function IDEToolbar({
           </TooltipContent>
         </Tooltip>
 
-        <Tooltip>
+        {onDownload && <Tooltip>
           <TooltipTrigger asChild >
           <Button variant="ghost" size="sm" onClick={onDownload} className="h-8 gap-2">
             <Download className="h-4 w-4" />
@@ -174,23 +151,8 @@ export default function IDEToolbar({
           <TooltipContent>
             <p>Download Project</p>
           </TooltipContent>
-        </Tooltip>
-
+        </Tooltip>}
         <Separator orientation="vertical" className="h-6" />
-
-        {/* Theme Toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onThemeChange(theme === "vs-dark" ? "vs-light" : "vs-dark")}
-          className="h-8 w-8 p-0"
-        >
-          {theme === "vs-dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <Settings className="h-4 w-4" />
-        </Button>
       </div>
     </motion.div>
   )

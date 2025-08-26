@@ -12,7 +12,7 @@ import AuthGuard from "./components/protectors/auth-guard";
 import UserLayout from "./features/user/UserLayout";
 import UserDashboard from "./features/user/dashboard/DashboardPage";
 import { Toaster } from "sonner";
-import Problems from "./features/problems/ProblemsPage";
+import Problems from "./features/problems/problemList/ProblemsPage";
 import Settings from "./features/user/settings/SettingsPage";
 import Leaderboard from "./features/user/leaderboard/LeaderboardPage";
 import UserProfile from "./features/user/profile/UserProfile";
@@ -20,6 +20,7 @@ import AdminProblems from "./features/admin/problems/AdminProblems";
 import AdminSettings from "./features/admin/settings/AdminSettings";
 import ProblemDetailsPage from "./features/admin/problems/AdminProblemDetails";
 import CodePad from "./features/CodePad/CodePad";
+import ProblemDetails from "./features/problems/problemDetails/ProblemDetailsPage";
 
 const App = () => {
   return (
@@ -52,7 +53,12 @@ const App = () => {
         {/* Public routes */}
 
         <Route path="/">
-          <Route path="problems" element={<Problems/>} />
+
+          <Route path="problems">
+            <Route index element={<Problems/>}/>
+            <Route path=":problemId" element={<ProblemDetails/>}/>
+          </Route>
+
           <Route path="codepad" element={<CodePad/>}/>
         </Route>
 

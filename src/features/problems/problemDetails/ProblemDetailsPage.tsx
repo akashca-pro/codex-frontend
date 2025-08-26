@@ -1,16 +1,15 @@
 import { useState, useCallback } from "react"
-import { motion } from "framer-motion"
 import { Allotment } from "allotment"
 import "allotment/dist/style.css"
 import { toast } from "sonner"
 
-import MonacoEditor from "../../components/MonacoEditor"
-import LanguageSelector from "../problems/problemDetails/components/LanguageSelector"
-import ProblemDetails from "../problems/problemDetails/components/ProblemDetails"
-import TestCasePanel from "../problems/problemDetails/components/TestCasePanel"
-import Timer from "../problems/problemDetails/components/Timer"
-import NotesPanel from "../problems/problemDetails/components/NotesPanel"
-import LayoutControls from "../problems/problemDetails/components/LayoutControls"
+import MonacoEditor from "@/components/MonacoEditor"
+import ProblemDetailsComponent from "./components/ProblemDetails"
+import TestCasePanel from "./components/TestCasePanel"
+import Timer from "./components/Timer"
+import NotesPanel from "./components/NotesPanel"
+import { useParams } from "react-router-dom"
+import IDEToolbar from "@/features/CodePad/components/Toolbar"
 
 // Sample problem data
 const sampleProblem = {
@@ -149,10 +148,12 @@ public:
 };`,
 }
 
-export default function CodingPlayground() {
+export default function ProblemDetails() {
+  const { problemId } = useParams()
+  const [intelliSense, setIntelliSense] = useState(true);
+  const [fontSize, setFontSize] = useState(16);
   const [language, setLanguage] = useState("javascript")
   const [code, setCode] = useState(defaultCode.javascript)
-  const [layout, setLayout] = useState<"horizontal" | "vertical" | "editor-only">("horizontal")
   const [showNotes, setShowNotes] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -202,76 +203,26 @@ export default function CodingPlayground() {
     toast.info("Code reset to default")
   }, [language])
 
-  const handleLayoutChange = useCallback((newLayout: "horizontal" | "vertical" | "editor-only") => {
-    setLayout(newLayout)
-  }, [])
-
-  const handleToggleNotes = useCallback(() => {
-    setShowNotes(!showNotes)
-  }, [showNotes])
-
-  const handleToggleCollaboration = useCallback(() => {
-    toast.info("Collaboration feature coming soon!")
-  }, [])
 
   return (
-    <div className="h-full bg-background">
-      {/* Top Toolbar */}
-      <motion.div
-        className="h-16 border-b border-gray-800 bg-card/30 backdrop-blur-sm flex items-center justify-between px-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">Coding Playground</h1>
-          <LanguageSelector value={language} onChange={handleLanguageChange} />
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Timer />
-          <LayoutControls
-            layout={layout}
-            onLayoutChange={handleLayoutChange}
-            onToggleNotes={handleToggleNotes}
-            onToggleCollaboration={handleToggleCollaboration}
-            showNotes={showNotes}
-          />
-        </div>
-      </motion.div>
-
+    <div className="h-full bg-black">
       {/* Main Content */}
-<div className="h-screen w-screen overflow-hidden">
-  {layout === "editor-only" ? (
-    // Fullscreen editor-only layout
-    <div className="h-full w-full flex flex-col">
-      <div className="flex-1 overflow-hidden">
-        <MonacoEditor
-          value={code}
-          onChange={setCode}
-          language={language === "cpp" ? "cpp" : language}
-          height="100%"
-        />
-      </div>
-      <div className="h-[40%] min-h-[200px] overflow-auto">
-        <TestCasePanel
-          testCases={sampleTestCases}
-          onRun={handleRun}
-          onSubmit={handleSubmit}
-          onReset={handleReset}
-          isRunning={isRunning}
-          isSubmitting={isSubmitting}
-          results={testResults}
-          consoleOutput={consoleOutput}
-        />
-      </div>
-    </div>
-  ) : (
-    <Allotment vertical={layout === "vertical"}>
+  <div className="h-screen w-screen overflow-hidden">
+      <IDEToolbar
+        language={language || "javascript"}
+        onLanguageChange={handleLanguageChange}
+        onCollaboration={() => {}}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        intelliSense={intelliSense}
+        onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
+        goBackLink={'/problems'}
+      />
+    <Allotment >
       {/* Problem Details */}
-      <Allotment.Pane minSize={300} preferredSize="40%">
+      <Allotment.Pane minSize={300} preferredSize="30%">
         <div className="h-full overflow-auto p-4">
-          <ProblemDetails problem={sampleProblem} />
+          <ProblemDetailsComponent problem={sampleProblem} />
         </div>
       </Allotment.Pane>
 
@@ -279,17 +230,19 @@ export default function CodingPlayground() {
       <Allotment.Pane minSize={400}>
         <Allotment vertical>
           <Allotment.Pane minSize={200}>
-            <div className="h-full overflow-hidden p-4">
+            <div className="h-full overflow-hidden">
               <MonacoEditor
                 value={code}
                 onChange={setCode}
                 language={language === "cpp" ? "cpp" : language}
                 height="100%"
+                fontSize={fontSize}
+                intelliSense={intelliSense}
               />
             </div>
           </Allotment.Pane>
 
-          <Allotment.Pane minSize={150} preferredSize="40%">
+          <Allotment.Pane minSize={100} preferredSize="40%">
             <div className="h-full overflow-auto">
               <TestCasePanel
                 testCases={sampleTestCases}
@@ -306,12 +259,9 @@ export default function CodingPlayground() {
         </Allotment>
       </Allotment.Pane>
     </Allotment>
-  )}
 </div>
-
-
-      {/* Notes Panel */}
-      <NotesPanel isOpen={showNotes} onClose={() => setShowNotes(false)} />
-    </div>
+  {/* Notes Panel */}
+  <NotesPanel isOpen={showNotes} onClose={() => setShowNotes(false)} />
+</div>
   )
 }

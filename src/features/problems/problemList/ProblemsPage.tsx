@@ -8,9 +8,11 @@ import { Search} from "lucide-react"
 import { usePublicListProblemsQuery } from '@/apis/problem/public'
 import { DifficultyMap } from "@/mappers/problem"
 import { AppPagination } from "@/components/Pagination"
-import Navbar from "@/components/navbar"
+import Navbar from "@/components/Navbar"
+import { useNavigate } from "react-router-dom"
 
 export default function Problems() {
+  const navigate = useNavigate();
   const [page,setPage] = useState(1);
   const [limit] = useState(10);
   const [sort,setSort] = useState('latest');
@@ -112,7 +114,7 @@ export default function Problems() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card >
+            <Card>
               <CardHeader>
                 <CardTitle className="font-bold text-lg sm:text-xl">
                   Problems ({ProblemList.length || 0})
@@ -123,6 +125,7 @@ export default function Problems() {
                 <div className="space-y-3">
                   {ProblemList.map((problem, index) => (
                     <motion.div
+                     onClick={()=>{navigate(`/problems/${problem.Id}`)}}
                       key={problem.Id}
                       className={`
                         flex flex-col sm:flex-row sm:items-center sm:justify-between 

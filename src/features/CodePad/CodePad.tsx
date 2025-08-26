@@ -360,24 +360,20 @@ export default function CodePad() {
 
   return (
     <div className="h-full bg-background">
+      {/* Main Content */}
+      <div className="h-screen w-screen overflow-hidden">
       {/* Toolbar */}
       <IDEToolbar
         language={activeFile?.language || "javascript"}
         onLanguageChange={handleLanguageChange}
-        theme={project.theme}
-        onThemeChange={(theme) => setProject((prev) => ({ ...prev, theme: theme as any }))}
-        onRun={handleRun}
         onDownload={handleDownload}
         onCollaboration={() => {}}
-        isRunning={isRunning}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
         intelliSense={intelliSense}
         onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
+        goBackLink={`/problems`}
       />
-
-      {/* Main Content */}
-      <div className="h-screen w-screen overflow-hidden">
         <Allotment>
           {/* Left Panel - File Explorer */}
           <Allotment.Pane minSize={200} preferredSize="25%">
@@ -446,6 +442,8 @@ export default function CodePad() {
                   {/* Console Panel */}
                   <Allotment.Pane minSize={40} preferredSize={isConsoleOpen ? 300 : 40}>
                   <ConsolePanel
+                    onRun={handleRun}
+                    isRunning={isRunning}
                     isOpen={isConsoleOpen}
                     onToggle={() => setIsConsoleOpen(!isConsoleOpen)}
                     messages={consoleMessages}

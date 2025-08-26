@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { ChevronUp, ChevronDown, Trash2, Copy, AlertCircle, CheckCircle, XCircle, Terminal } from "lucide-react"
+import { ChevronUp, ChevronDown, Trash2, Copy, AlertCircle, CheckCircle, XCircle, Terminal, Zap, Play } from "lucide-react"
 import { useRef, useEffect } from "react"
 
 interface ConsoleMessage {
@@ -13,6 +13,8 @@ interface ConsoleMessage {
 }
 
 interface ConsolePanelProps {
+  onRun: () => void
+  isRunning?: boolean
   isOpen: boolean
   onToggle: () => void
   messages: ConsoleMessage[]
@@ -21,6 +23,8 @@ interface ConsolePanelProps {
 }
 
 export default function ConsolePanel({
+  onRun,
+  isRunning = false,
   isOpen,
   onToggle,
   messages,
@@ -70,7 +74,8 @@ export default function ConsolePanel({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800">
-        <div className="flex items-center gap-2">
+        {/* Left Section: Output Toggle */}
+        <div className="flex items-start gap-2">
           <Button variant="ghost" size="sm" onClick={onToggle} className="h-6 w-6 p-0">
             {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
           </Button>
@@ -79,7 +84,23 @@ export default function ConsolePanel({
             {messages.length}
           </Badge>
         </div>
+
+        {/* Right Section: Run, Clear, Copy */}
         <div className="flex items-center gap-2">
+          <Button variant="default" size="sm" onClick={onRun} disabled={isRunning} className="h-8 gap-2">
+            {isRunning ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+              >
+                <Zap className="h-4 w-4" />
+              </motion.div>
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            {isRunning ? "Running..." : "Run"}
+          </Button>
+
           <Button variant="ghost" size="sm" onClick={onClear} className="h-6 w-6 p-0 hover:bg-red-500/10">
             <Trash2 className="h-3 w-3 text-red-400" />
           </Button>
@@ -88,7 +109,6 @@ export default function ConsolePanel({
           </Button>
         </div>
       </div>
-
       {/* Messages */}
       <AnimatePresence>
         {isOpen && (
