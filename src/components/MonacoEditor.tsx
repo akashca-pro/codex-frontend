@@ -3,6 +3,7 @@ import Editor from "@monaco-editor/react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import { MonacoThemes } from "@/utils/monacoThemes"
 
 interface MonacoEditorProps {
   value: string
@@ -53,6 +54,21 @@ export default function MonacoEditor({
     editorRef.current = editor
     setIsLoading(false)
 
+    Object.entries(MonacoThemes).forEach(([themeName, themeDef]) => {
+      monaco.editor.defineTheme(themeName, themeDef)
+    })
+
+    monaco.editor.setTheme(theme);
+
+    // Move cursor to the last line if code exists
+    if (value && value.trim() !== "") {
+      const lineCount = editor.getModel()?.getLineCount()
+      if (lineCount) {
+        editor.setPosition({ lineNumber: lineCount, column: 1 })
+        editor.revealLine(lineCount)
+      }
+    }
+
     // Configure editor options
     editor.updateOptions({
       fontSize: fontSize || 14,
@@ -92,29 +108,7 @@ export default function MonacoEditor({
       autoSurround: "languageDefined",
     })
 
-    monaco.editor.defineTheme("custom-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "comment", foreground: "6A9955", fontStyle: "italic" },
-        { token: "keyword", foreground: "C586C0" },
-        { token: "string", foreground: "CE9178" },
-        { token: "number", foreground: "B5CEA8" },
-      ],
-      colors: {
-        "editor.background": "#0d1117",
-        "editor.foreground": "#ffffff",
-        "editorCursor.foreground": "#ffcc00",
-        "editor.lineHighlightBackground": "#1e1e1e",
-        "editor.selectionBackground": "#264f78",
-        "editor.lineHighlightBorder": "#333333",
-        "editor.inactiveSelectionBackground": "#3a3d41",
-        "minimap.background": "#1e1e1e",
-      },
-    });
 
-
-    monaco.editor.setTheme("custom-dark");
 
     // Configure TypeScript/JavaScript IntelliSense
     if (language === "typescript" || language === "javascript") {
@@ -146,6 +140,7 @@ export default function MonacoEditor({
       onChange(value)
     }
   }
+
 
   return (
     <Card className="relative h-full overflow-hidden border-gray-800 bg-card/50 backdrop-blur-sm">

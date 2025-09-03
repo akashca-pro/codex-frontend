@@ -1,51 +1,17 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Allotment } from "allotment"
 import "allotment/dist/style.css"
 import { toast } from "sonner"
-
 import MonacoEditor from "@/components/MonacoEditor"
 import ProblemDetailsComponent from "./components/ProblemDetails"
 import TestCasePanel from "./components/TestCasePanel"
-import Timer from "./components/Timer"
 import NotesPanel from "./components/NotesPanel"
 import { useParams } from "react-router-dom"
 import IDEToolbar from "@/features/CodePad/components/Toolbar"
+import { usePublicGetProblemDetailsQuery } from '@/apis/problem/public'
+import { DifficultyMap, LanguageMap } from "@/mappers/problem"
+import ProblemDetailsPageSkeleton from "./components/LoadingSkeleton"
 
-// Sample problem data
-const sampleProblem = {
-  id: "1",
-  title: "Two Sum",
-  difficulty: "Easy" as const,
-  description: `
-    <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to target</em>.</p>
-    <p>You may assume that each input would have <strong>exactly one solution</strong>, and you may not use the same element twice.</p>
-    <p>You can return the answer in any order.</p>
-  `,
-  constraints: [
-    "2 ≤ nums.length ≤ 10⁴",
-    "-10⁹ ≤ nums[i] ≤ 10⁹",
-    "-10⁹ ≤ target ≤ 10⁹",
-    "Only one valid answer exists.",
-  ],
-  examples: [
-    {
-      input: "nums = [2,7,11,15], target = 9",
-      output: "[0,1]",
-      explanation: "Because nums[0] + nums[1] == 9, we return [0, 1].",
-    },
-    {
-      input: "nums = [3,2,4], target = 6",
-      output: "[1,2]",
-    },
-    {
-      input: "nums = [3,3], target = 6",
-      output: "[0,1]",
-    },
-  ],
-  acceptance: "49.1%",
-  submissions: "8.2M",
-  companies: ["Amazon", "Google", "Microsoft", "Apple", "Facebook"],
-}
 
 const sampleTestCases = [
   {
@@ -68,102 +34,86 @@ const sampleTestCases = [
   },
 ]
 
-const defaultCode = {
-  javascript: `function twoSum(nums, target) {
-    const map = new Map();
-    
-    for (let i = 0; i < nums.length; i++) {
-        const complement = target - nums[i];
-        
-        if (map.has(complement)) {
-            return [map.get(complement), i];
-        }
-        
-        map.set(nums[i], i);
-    }
-    
-    return [];
-}`,
-  typescript: `function twoSum(nums: number[], target: number): number[] {
-    const map = new Map<number, number>();
-    
-    for (let i = 0; i < nums.length; i++) {
-        const complement = target - nums[i];
-        
-        if (map.has(complement)) {
-            return [map.get(complement)!, i];
-        }
-        
-        map.set(nums[i], i);
-    }
-    
-    return [];
-}`,
-  python: `def twoSum(nums, target):
-    num_map = {}
-    
-    for i, num in enumerate(nums):
-        complement = target - num
-        
-        if complement in num_map:
-            return [num_map[complement], i]
-        
-        num_map[num] = i
-    
-    return []`,
-  java: `class Solution {
-    public int[] twoSum(int[] nums, int target) {
-        Map<Integer, Integer> map = new HashMap<>();
-        
-        for (int i = 0; i < nums.length; i++) {
-            int complement = target - nums[i];
-            
-            if (map.containsKey(complement)) {
-                return new int[] { map.get(complement), i };
-            }
-            
-            map.put(nums[i], i);
-        }
-        
-        return new int[] {};
-    }
-}`,
-  cpp: `class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        unordered_map<int, int> map;
-        
-        for (int i = 0; i < nums.size(); i++) {
-            int complement = target - nums[i];
-            
-            if (map.find(complement) != map.end()) {
-                return {map[complement], i};
-            }
-            
-            map[nums[i]] = i;
-        }
-        
-        return {};
-    }
-};`,
+const initialProblemDetails = {
+  Id : '',
+  questionId : '',
+  title : '',
+  description : '',
+  difficulty : '',
+  tags : [''],
+  constraints : [''],
+  examples : [{
+    Id : '',
+    input : '',
+    output : '',
+    explanation : '',
+  }],
+  starterCodes : [{
+    Id : '',
+    language : '',
+    code : ''
+  }],
+  run : [{
+    Id : '',
+    input : '',
+    output : '',
+  }] 
 }
+
+
 
 export default function ProblemDetails() {
   const { problemId } = useParams()
+  const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
+    skip: !problemId,
+  });
+  const [editorTheme, setEditorTheme] = useState('codexDark');
   const [intelliSense, setIntelliSense] = useState(true);
   const [fontSize, setFontSize] = useState(16);
-  const [language, setLanguage] = useState("javascript")
-  const [code, setCode] = useState(defaultCode.javascript)
+  const [problemDetails,setProblemDetails] = useState(initialProblemDetails);
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState('')
   const [showNotes, setShowNotes] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [testResults, setTestResults] = useState<any[]>([])
   const [consoleOutput, setConsoleOutput] = useState("")
 
-  const handleLanguageChange = useCallback((newLanguage: string) => {
-    setLanguage(newLanguage)
-    setCode(defaultCode[newLanguage as keyof typeof defaultCode] || "")
-  }, [])
+
+useEffect(() => {
+  if (data?.data) {
+    const mappedDetails = {
+      Id: data.data.Id,
+      questionId: data.data.questionId,
+      title: data.data.title,
+      description: data.data.description,
+      tags: data.data.tags,
+      constraints: data.data.constraints,
+      difficulty: DifficultyMap[data.data.difficulty],
+      examples: data.data.examples,
+      starterCodes: data.data.starterCodes.map(s => ({
+        Id: s.Id,
+        code: s.code,
+        language: LanguageMap[s.language]
+      })),
+      run: data.data.run
+    };
+
+    setProblemDetails(mappedDetails);
+
+    const starterCode = mappedDetails.starterCodes.find(s => s.language === language) || mappedDetails.starterCodes[0];
+    setCode(starterCode?.code || "");
+  }
+}, [data, language]);
+
+
+  console.log(problemDetails)
+
+const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    const selectedStarterCode = problemDetails.starterCodes.find(s=>s.language === newLanguage)
+    setCode(selectedStarterCode?.code || code);
+  }
 
   const handleRun = useCallback(async () => {
     setIsRunning(true)
@@ -197,19 +147,24 @@ export default function ProblemDetails() {
   }, [])
 
   const handleReset = useCallback(() => {
-    setCode(defaultCode[language as keyof typeof defaultCode] || "")
+    setCode(code)
     setTestResults([])
     setConsoleOutput("")
-    toast.info("Code reset to default")
+    toast.info("Editor code has been reset!",{
+      position : 'bottom-right'
+    })
   }, [language])
 
+  if(isLoading) return(<ProblemDetailsPageSkeleton/>)
 
   return (
     <div className="h-full bg-black">
       {/* Main Content */}
   <div className="h-screen w-screen overflow-hidden">
       <IDEToolbar
-        language={language || "javascript"}
+        editorTheme={editorTheme}
+        onThemeChange={setEditorTheme}
+        language={language}
         onLanguageChange={handleLanguageChange}
         onCollaboration={() => {}}
         fontSize={fontSize}
@@ -220,9 +175,9 @@ export default function ProblemDetails() {
       />
     <Allotment >
       {/* Problem Details */}
-      <Allotment.Pane minSize={300} preferredSize="30%">
+      <Allotment.Pane minSize={300} preferredSize="27%">
         <div className="h-full overflow-auto p-4">
-          <ProblemDetailsComponent problem={sampleProblem} />
+          <ProblemDetailsComponent problem={problemDetails} />
         </div>
       </Allotment.Pane>
 
@@ -232,9 +187,10 @@ export default function ProblemDetails() {
           <Allotment.Pane minSize={200}>
             <div className="h-full overflow-hidden">
               <MonacoEditor
+                theme={editorTheme}
                 value={code}
                 onChange={setCode}
-                language={language === "cpp" ? "cpp" : language}
+                language={language === "javascript" ? "javascript" : language}
                 height="100%"
                 fontSize={fontSize}
                 intelliSense={intelliSense}
@@ -245,7 +201,7 @@ export default function ProblemDetails() {
           <Allotment.Pane minSize={100} preferredSize="40%">
             <div className="h-full overflow-auto">
               <TestCasePanel
-                testCases={sampleTestCases}
+                testCases={problemDetails.run}
                 onRun={handleRun}
                 onSubmit={handleSubmit}
                 onReset={handleReset}

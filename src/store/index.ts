@@ -3,6 +3,7 @@ import storage from 'redux-persist/lib/storage'
 import { apiSlice } from './rtk-query/apiSlice';
 import authReducer from './slices/authSlice';
 import emailReducer from './slices/emailSlice'
+import codePadReducer from './slices/codepadSlice'
 import oAuthCheckReducer from './slices/oAuthSlice'
 import { configureStore } from '@reduxjs/toolkit';
 import { combineReducers } from 'redux'
@@ -11,14 +12,15 @@ import { combineReducers } from 'redux'
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'], 
+  whitelist: ['auth','codePad'], 
 }
 
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
   auth: authReducer,
   userEmail: emailReducer,
-  oAuthCheck: oAuthCheckReducer
+  oAuthCheck: oAuthCheckReducer,
+  codePad : codePadReducer,
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

@@ -28,14 +28,6 @@
   box-shadow: 0 0 10px #FF0000 !important;
 }
 
-.info-toast {
-  background-color: black !important;
-  color: #7DF9FF !important;
-  font-family: 'JetBrains_Mono', monospace !important;
-  border-left: 2px solid #7DF9FF !important;
-  box-shadow: 0 0 10px #7DF9FF !important;
-}
-
 .blinking-cursor {
   display: inline-block;
   animation: blink 1s step-start infinite;

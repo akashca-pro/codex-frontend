@@ -8,10 +8,16 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Play, Send, RotateCcw, ChevronUp, ChevronDown, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react"
 
 interface TestCase {
-  id: string
+  Id: string
   input: string
   output: string
-  expected: string
+}
+
+interface ResultCase {
+  Id: string
+  input: string
+  output: string
+  expected?: string
   passed?: boolean
   executionTime?: number
 }
@@ -23,7 +29,7 @@ interface TestCasePanelProps {
   onReset: () => void
   isRunning?: boolean
   isSubmitting?: boolean
-  results?: TestCase[]
+  results?: ResultCase[]
   consoleOutput?: string
 }
 
@@ -51,6 +57,7 @@ export default function TestCasePanel({
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       <Card className="h-full rounded-none border-0 border-t border-gray-800 bg-card/30 backdrop-blur-sm">
+        {/* Header Section */}
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -69,8 +76,7 @@ export default function TestCasePanel({
                 disabled={isRunning || isSubmitting}
                 className="h-8 bg-transparent"
               >
-                <RotateCcw className="h-3 w-3 mr-1" />
-                Reset
+                <RotateCcw className="h-3 w-3 mr-1" /> Reset
               </Button>
               <Button
                 variant="outline"
@@ -93,6 +99,7 @@ export default function TestCasePanel({
           </div>
         </CardHeader>
 
+        {/* Tabs Section */}
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
@@ -111,12 +118,13 @@ export default function TestCasePanel({
                     <TabsTrigger value="console">Console</TabsTrigger>
                   </TabsList>
 
+                  {/* Test Case Tab */}
                   <TabsContent value="testcase" className="mt-4">
                     <ScrollArea className="h-[180px]">
                       <div className="space-y-3">
                         {testCases.map((testCase, index) => (
                           <motion.div
-                            key={testCase.id}
+                            key={testCase.Id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
@@ -129,8 +137,8 @@ export default function TestCasePanel({
                                 <span className="text-foreground">{testCase.input}</span>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Expected:</span>{" "}
-                                <span className="text-foreground">{testCase.expected}</span>
+                                <span className="text-muted-foreground">Output:</span>{" "}
+                                <span className="text-foreground">{testCase.output}</span>
                               </div>
                             </div>
                           </motion.div>
@@ -139,13 +147,14 @@ export default function TestCasePanel({
                     </ScrollArea>
                   </TabsContent>
 
+                  {/* Result Tab */}
                   <TabsContent value="result" className="mt-4">
                     <ScrollArea className="h-[180px]">
                       {results.length > 0 ? (
                         <div className="space-y-3">
                           {results.map((result, index) => (
                             <motion.div
-                              key={result.id}
+                              key={result.Id}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
@@ -176,10 +185,12 @@ export default function TestCasePanel({
                                     {result.output}
                                   </span>
                                 </div>
-                                <div>
-                                  <span className="text-muted-foreground">Expected:</span>{" "}
-                                  <span className="text-foreground">{result.expected}</span>
-                                </div>
+                                {result.expected && (
+                                  <div>
+                                    <span className="text-muted-foreground">Expected:</span>{" "}
+                                    <span className="text-foreground">{result.expected}</span>
+                                  </div>
+                                )}
                               </div>
                             </motion.div>
                           ))}
@@ -195,6 +206,7 @@ export default function TestCasePanel({
                     </ScrollArea>
                   </TabsContent>
 
+                  {/* Console Tab */}
                   <TabsContent value="console" className="mt-4">
                     <ScrollArea className="h-[180px]">
                       <div className="p-3 bg-muted/30 rounded-lg font-mono text-sm">

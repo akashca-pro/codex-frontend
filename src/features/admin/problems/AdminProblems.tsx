@@ -24,7 +24,7 @@ export default function AdminProblems() {
   const [searchTerm, setSearchTerm] = useState('');
   const [active,setActive] = useState(true);
   const [difficultyFilter, setDifficultyFilter] = useState('all');
-  const [sort,setSort] = useState('latest');
+  const [sort,setSort] = useState('oldest');
 
   const { data, refetch : refetchProblemList} = useAdminListProblemQuery({
     page,

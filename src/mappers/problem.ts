@@ -10,3 +10,9 @@ export const LanguageMap = {
     2 : 'python',
     3 : 'go',
 }
+
+export const LanguageNumberMap = {
+    'javascript' : 1,
+    'python' : 2,
+    'go' : 3
+}

@@ -15,7 +15,7 @@ export default function Problems() {
   const navigate = useNavigate();
   const [page,setPage] = useState(1);
   const [limit] = useState(10);
-  const [sort,setSort] = useState('latest');
+  const [sort,setSort] = useState('oldest');
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('all');
 
