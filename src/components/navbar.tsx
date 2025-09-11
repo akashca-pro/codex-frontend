@@ -24,6 +24,7 @@ import TypewriterTitle from "../features/landing/components/TypewriterTitle"
 const navItems = [
   { id: "dashboard", label: "Dashboard", protected : true },
   { id: "problems", label: "Problems", protected : false },
+  { id: "users", label: "Users", protected : true },
   { id: "leaderboard", label: "Leaderboard", protected : true },
   { id : "codepad", label : "CodePad", protected : false},
   { id: "settings", label: "Settings", protected : true },
@@ -48,7 +49,7 @@ export default function Navbar() {
 
   const publicRoutes = ["problems","codepad"];
   const protectedRoutes = ["dashboard", "profile", "settings","leaderboard"];
-  const adminOnlyRoutes = ["problems"]
+  const adminOnlyRoutes = ["problems","users"]
   const logoutApi = role === 'admin' ? adminLogout : userLogout
 
   const getPath = (itemId: string) => {
