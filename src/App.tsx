@@ -21,6 +21,8 @@ import AdminSettings from "./features/admin/settings/AdminSettings";
 import ProblemDetailsPage from "./features/admin/problems/AdminProblemDetails";
 import CodePad from "./features/CodePad/CodePad";
 import ProblemDetails from "./features/problems/problemDetails/ProblemDetailsPage";
+import UsersList from "./features/admin/users/UsersList";
+import NotFoundPage from "./components/NotFound";
 
 const App = () => {
   return (
@@ -86,10 +88,14 @@ const App = () => {
           <Route path="dashboard" element={<AdminDashboard/>} />
           <Route path="problems" element={<AdminProblems/>}/>
           <Route path="problems/:problemId" element={<ProblemDetailsPage/>}/>
+          <Route path="users" element={<UsersList/>}/>
           <Route path="settings" element={<AdminSettings/>}/>
         </Route>
 
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+
     </BrowserRouter>
   )
 }

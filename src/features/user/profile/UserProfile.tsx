@@ -10,7 +10,7 @@ import EditProfileModal from "./modals/EditProfileModal"
 import ChangePasswordModal from "./modals/ChangePasswordModal"
 import ChangeEmailModal from "./modals/ChangeEmailModal"
 import DeleteAccountModal from "./modals/DeleteAccountModal"
-import { getCountryFlag } from "@/utils/countryCode"
+import { getCountryFlag } from "@/utils/countryFlag"
 import { useProfileQuery } from '@/apis/auth-user/profile/user'
 import type { UserProfileResponse } from "@/types/apiTypes"
 import { formatDate } from "@/utils/formatData"
