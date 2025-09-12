@@ -45,11 +45,20 @@ export default function Navbar() {
     : segments[segments.length - 1];
 
   const role = user && user.details?.role.toLowerCase();
-  const visibleNavitems = navItems.filter((item)=> !item.protected || user.isAuthenticated );
-
+  
   const publicRoutes = ["problems","codepad"];
   const protectedRoutes = ["dashboard", "profile", "settings","leaderboard"];
   const adminOnlyRoutes = ["problems","users"]
+
+  const visibleNavitems = navItems.filter((item) => {
+    if (!item.protected) return true;
+    if (!user.isAuthenticated) return false;
+    if (adminOnlyRoutes.includes(item.id)) {
+      return role === "admin";
+    }
+    return true;
+  });
+  
   const logoutApi = role === 'admin' ? adminLogout : userLogout
 
   const getPath = (itemId: string) => {

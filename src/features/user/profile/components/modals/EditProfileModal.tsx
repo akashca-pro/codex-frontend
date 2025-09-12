@@ -6,9 +6,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload, X } from "lucide-react"
+import { Upload } from "lucide-react"
+import { countryMap, getCountryName } from "@/utils/countryMap"
+
+import { toast } from "sonner"
+import { useUpdateProfileMutation } from "@/apis/auth-user/profile/user"
+import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 
 interface UserProfile {
   username: string
@@ -21,49 +25,21 @@ interface UserProfile {
 
 interface EditProfileModalProps {
   profile: UserProfile
+  isOpen : boolean
   onClose: () => void
-  onSave: (profile: UserProfile) => void
+  refetch : () => void
 }
 
-const countries = [
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Japan",
-  "China",
-  "India",
-  "Australia",
-  "Brazil",
-  "Mexico",
-  "Spain",
-  "Italy",
-  "Netherlands",
-  "Sweden",
-  "Norway",
-  "Denmark",
-  "Finland",
-]
-
 const languages = [
-  "JavaScript",
-  "Python",
-  "Java",
-  "C++",
-  "C#",
-  "Go",
-  "Rust",
-  "TypeScript",
-  "PHP",
-  "Ruby",
-  "Swift",
-  "Kotlin",
-  "Scala",
-  "R",
+  "javascript",
+  "python",
+  "go",
 ]
 
-export default function EditProfileModal({ profile, onClose, onSave }: EditProfileModalProps) {
+export default function EditProfileModal({ profile, isOpen, onClose, refetch }: EditProfileModalProps) {
+  const [imagePreview,setImagePreview] = useState('');
+  const [updateProfile] = useUpdateProfileMutation()
+  console.log(profile)
   const [formData, setFormData] = useState({
     username: profile.username,
     firstName: profile.firstName,
@@ -71,6 +47,7 @@ export default function EditProfileModal({ profile, onClose, onSave }: EditProfi
     country: profile.country,
     preferredLanguage: profile.preferredLanguage,
     avatar: profile.avatar,
+    avatarFile : null as File | null
   })
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
@@ -96,29 +73,71 @@ export default function EditProfileModal({ profile, onClose, onSave }: EditProfi
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = () => {
-    if (validateForm()) {
-      onSave({
-        ...profile,
-        ...formData,
-      })
-    }
+  const handleSave = async () => {
+      if (!validateForm()) return;
+      const data = new FormData();
+      if (formData.username !== profile.username) {
+        data.append("username", formData.username);
+      }
+      if (formData.firstName !== profile.firstName) {
+        data.append("firstName", formData.firstName);
+      }
+      if (formData.lastName !== profile.lastName) {
+        data.append("lastName", formData.lastName);
+      }
+      if (formData.country !== profile.country) {
+        data.append("country", formData.country);
+      }
+      if (formData.preferredLanguage !== profile.preferredLanguage) {
+        data.append("preferredLanguage", formData.preferredLanguage);
+      }
+      if (formData.avatarFile !== null) {
+        data.append("avatar", formData.avatarFile)
+      }
+      const toastId = toast.loading('Processing...');
+      try {
+        console.log(formData);
+        await updateProfile(data).unwrap();
+        toast.success('Profile update successful',{
+          className : 'success-toast',
+          id : toastId
+        })
+        refetch();
+        onClose();
+      } catch (error : any) {
+          if(error?.data?.error.length !== 0){
+              toast.dismiss(toastId);
+              error.data.error.map(e=>{
+                  toast.error(`field : ${e.field}`,{
+                  description : `Error : ${e.message}`
+                  })
+              })
+          }
+          toast.error('Error',{
+              className : 'error-toast',
+              id : toastId,
+              description : error?.data?.message
+          })
+      }
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // In a real app, you'd upload the file and get a URL
       const reader = new FileReader()
       reader.onload = (e) => {
-        setFormData((prev) => ({ ...prev, avatar: e.target?.result as string }))
+        setFormData((prev) => ({
+           ...prev, 
+           avatarFile : file 
+          }))
+        setImagePreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
     }
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open)=>{if(!open) onClose();}}>
       <DialogContent className="sm:max-w-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -129,9 +148,6 @@ export default function EditProfileModal({ profile, onClose, onSave }: EditProfi
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               Edit Profile
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
 
@@ -139,7 +155,7 @@ export default function EditProfileModal({ profile, onClose, onSave }: EditProfi
             {/* Avatar Section */}
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={formData.avatar || "/placeholder.svg"} alt="Profile" />
+                <AvatarImage src={imagePreview || getCloudinaryUrl(formData.avatar)} alt="Profile" />
                 <AvatarFallback>
                   {formData.firstName[0]}
                   {formData.lastName[0]}
@@ -202,43 +218,41 @@ export default function EditProfileModal({ profile, onClose, onSave }: EditProfi
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Select
-                  value={formData.country}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <select
+                id="country"
+                value={getCountryName(formData.country)}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, country: e.target.value }))
+                }
+                className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                {Object.values(countryMap).map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="language">Preferred Language</Label>
-                <Select
-                  value={formData.preferredLanguage}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, preferredLanguage: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((language) => (
-                      <SelectItem key={language} value={language}>
-                        {language}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="language">Preferred Language</Label>
+              <select
+                id="language"
+                value={formData.preferredLanguage}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, preferredLanguage: e.target.value }))
+                }
+                className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                {languages.map((language) => (
+                  <option key={language} value={language}>
+                    {language}
+                  </option>
+                ))}
+              </select>
+            </div>
             </div>
 
             {/* Action Buttons */}

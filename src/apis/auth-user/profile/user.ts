@@ -14,11 +14,11 @@ const userProfileApi = apiSlice.injectEndpoints({
             providesTags : ['user']
         }),
 
-        updateProfile : builder.mutation({
-            query : (updatingData) => ({
-                url : `${preUrl}/profile/update-profile`,
+        updateProfile : builder.mutation<ApiSuccess<null>,FormData>({
+            query : (formData) => ({
+                url : `${preUrl}/update`,
                 method : 'PATCH',
-                body : updatingData
+                body : formData
             }),
             invalidatesTags : ['user']
         })
