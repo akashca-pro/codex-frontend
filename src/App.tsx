@@ -24,6 +24,7 @@ import ProblemDetails from "./features/problems/problemDetails/ProblemDetailsPag
 import UsersList from "./features/admin/users/UsersList";
 import NotFoundPage from "./components/NotFound";
 import AdminProfile from "./features/admin/profile/AdminProfile";
+import ForgotPasswordPage from "./features/auth/user/forgotPassword/ForgotPasswordPage";
 
 const App = () => {
   return (
@@ -48,6 +49,7 @@ const App = () => {
 
         <Route element={<AuthLayout/>}>
           <Route path="/login" element={<UserLoginPage />} />
+          <Route path="/login/forgot-password" element={<ForgotPasswordPage/>} />
           <Route path="/signup" element={<UserSignupPage />} />
           <Route path="/signup/verify-otp" element={<OtpVerificationPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -73,7 +75,6 @@ const App = () => {
           </AuthGuard>
         } >
           <Route path="dashboard" element={<UserDashboard/>} />
-          <Route path="settings" element={<Settings/>}/>
           <Route path="leaderboard" element={<Leaderboard/>} />
           <Route path="profile" element={<UserProfile/>} />
         </Route>
@@ -91,7 +92,6 @@ const App = () => {
           <Route path="problems/:problemId" element={<ProblemDetailsPage/>}/>
           <Route path="users" element={<UsersList/>}/>
           <Route path="profile" element={<AdminProfile/>}/>
-          <Route path="settings" element={<AdminSettings/>}/>
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

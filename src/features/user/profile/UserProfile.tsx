@@ -57,35 +57,35 @@ export default function UserProfile() {
     toast.info("Username copied to clipboard")
   }
 
-  if(isError) return <ErrorPage/>
-  if(isLoading) return <UserProfileSkeleton/>
+  if (isError) return <ErrorPage />
+  if (isLoading) return <UserProfileSkeleton />
 
   return (
     <TooltipProvider>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <main className="flex-1 overflow-y-auto p-4">
-          <div className="p-6 space-y-8 max-w-7xl mx-auto">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-8 max-w-7xl mx-auto">
             {/* Header Section */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <Card>
-                <CardContent className="pt-6">
-                  <div className="flex flex-col md:flex-row gap-6">
+                <CardContent className="pt-4 sm:pt-6">
+                  <div className="flex flex-col md:flex-row gap-4 sm:gap-6 max-sm:items-center max-sm:text-center">
                     {/* Avatar and Basic Info */}
                     <div className="flex flex-col items-center md:items-start">
-                      <Avatar className="h-24 w-24 mb-4">
+                      <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-3 sm:mb-4">
                         <AvatarImage src={getCloudinaryUrl(profile.avatar)} alt={profile.username} />
-                        <AvatarFallback className="text-lg">
+                        <AvatarFallback className="text-base sm:text-lg">
                           {profile.firstName}
                           {profile.lastName}
                         </AvatarFallback>
                       </Avatar>
 
-                      <div className="text-center md:text-left space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h1 className="text-2xl font-bold">{profile.username}</h1>
+                      <div className="text-center md:text-left space-y-1 sm:space-y-2">
+                        <div className="flex items-center gap-2 max-sm:justify-center">
+                          <h1 className="text-xl sm:text-2xl font-bold">{profile.username}</h1>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="sm" onClick={copyUsername} className="h-8 w-8 p-0">
+                              <Button variant="ghost" size="sm" onClick={copyUsername} className="h-7 w-7 sm:h-8 sm:w-8 p-0">
                                 <Copy className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
@@ -95,16 +95,16 @@ export default function UserProfile() {
                           </Tooltip>
                         </div>
 
-                        <p className="text-lg text-muted-foreground">
+                        <p className="text-base sm:text-lg text-muted-foreground">
                           {profile.firstName} {profile.lastName === "null" ? "" : profile.lastName}
                         </p>
                       </div>
                     </div>
 
                     {/* Profile Details */}
-                    <div className="flex-1 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2 text-sm">
+                    <div className="flex-1 space-y-3 sm:space-y-4 w-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+                        <div className="flex items-center gap-2">
                           <Globe className="h-4 w-4 text-muted-foreground" />
                           <span>
                             {profile.country === "null" ? "" : getCountryFlag(profile.country)}
@@ -112,41 +112,41 @@ export default function UserProfile() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
                           <span>{profile.email}</span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span>Joined {formatDate(profile.createdAt)}</span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2">
                           <Code2 className="h-4 w-4 text-muted-foreground" />
                           <i className={getLanguageIcon(profile.preferredLanguage)}></i>
                         </div>
                       </div>
 
                       {/* Stats Overview */}
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">Stats Overview</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="text-center p-3 bg-muted rounded-lg">
-                            <div className="text-2xl font-bold text-green-500">{profile.easySolved}</div>
-                            <div className="text-sm text-muted-foreground">Easy</div>
+                      <div className="mt-4 sm:mt-6">
+                        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Stats Overview</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                          <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
+                            <div className="text-xl sm:text-2xl font-bold text-green-500">{profile.easySolved}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">Easy</div>
                           </div>
-                          <div className="text-center p-3 bg-muted rounded-lg">
-                            <div className="text-2xl font-bold text-yellow-500">{profile.mediumSolved}</div>
-                            <div className="text-sm text-muted-foreground">Medium</div>
+                          <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
+                            <div className="text-xl sm:text-2xl font-bold text-yellow-500">{profile.mediumSolved}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">Medium</div>
                           </div>
-                          <div className="text-center p-3 bg-muted rounded-lg">
-                            <div className="text-2xl font-bold text-red-500">{profile.hardSolved}</div>
-                            <div className="text-sm text-muted-foreground">Hard</div>
+                          <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
+                            <div className="text-xl sm:text-2xl font-bold text-red-500">{profile.hardSolved}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">Hard</div>
                           </div>
-                          <div className="text-center p-3 bg-muted rounded-lg">
-                            <div className="text-2xl font-bold text-primary">{profile.totalSubmission}</div>
-                            <div className="text-sm text-muted-foreground">Total</div>
+                          <div className="text-center p-2 sm:p-3 bg-muted rounded-lg">
+                            <div className="text-xl sm:text-2xl font-bold text-primary">{profile.totalSubmission}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground">Total</div>
                           </div>
                         </div>
                       </div>
@@ -158,8 +158,8 @@ export default function UserProfile() {
 
             {/* Tabs Section */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-              <Tabs defaultValue="profile" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2">
+              <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+                <TabsList className="grid w-full grid-cols-2 max-sm:grid-cols-1">
                   <TabsTrigger value="profile" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Profile Info
@@ -174,37 +174,35 @@ export default function UserProfile() {
                 <TabsContent value="profile">
                   <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
                     <Card>
-                      <CardHeader className="flex flex-row items-center justify-between">
+                      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                         <CardTitle>Profile Information</CardTitle>
-                        <Button onClick={() => setIsEditModalOpen(true)}>
+                        <Button onClick={() => setIsEditModalOpen(true)} className="w-full sm:w-auto">
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Profile
                         </Button>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <CardContent className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">Username</label>
+                            <label className="text-xs sm:text-sm font-medium text-muted-foreground">Username</label>
                             <p className="text-sm mt-1">{profile.username}</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">First Name</label>
+                            <label className="text-xs sm:text-sm font-medium text-muted-foreground">First Name</label>
                             <p className="text-sm mt-1">{profile.firstName}</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">Last Name</label>
-                            <p className="text-sm mt-1">
-                              {profile.country === "null" ? "not-set" : profile.lastName}
-                            </p>
+                            <label className="text-xs sm:text-sm font-medium text-muted-foreground">Last Name</label>
+                            <p className="text-sm mt-1">{profile.country === "null" ? "not-set" : profile.lastName}</p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">Country</label>
+                            <label className="text-xs sm:text-sm font-medium text-muted-foreground">Country</label>
                             <p className="text-sm mt-1">
                               {getCountryFlag(profile.country)} {profile.country}
                             </p>
                           </div>
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">Preferred Language</label>
+                            <label className="text-xs sm:text-sm font-medium text-muted-foreground">Preferred Language</label>
                             <span> {profile.preferredLanguage}</span>
                           </div>
                         </div>
@@ -215,7 +213,7 @@ export default function UserProfile() {
 
                 {/* Account Security Tab */}
                 <TabsContent value="security">
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }} className="space-y-4">
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }} className="space-y-3 sm:space-y-4">
                     {/* Change Password Card */}
                     <Card>
                       <CardHeader>
@@ -225,10 +223,12 @@ export default function UserProfile() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-sm text-muted-foreground mb-3 sm:mb-4">
                           Update your password to keep your account secure.
                         </p>
-                        <Button onClick={() => setIsPasswordModalOpen(true)}>Change Password</Button>
+                        <Button onClick={() => setIsPasswordModalOpen(true)} className="w-full sm:w-auto">
+                          Change Password
+                        </Button>
                       </CardContent>
                     </Card>
 
@@ -244,10 +244,12 @@ export default function UserProfile() {
                         <p className="text-sm text-muted-foreground mb-2">
                           Current email: <span className="font-medium">{profile.email}</span>
                         </p>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-sm text-muted-foreground mb-3 sm:mb-4">
                           Update your email address for account notifications.
                         </p>
-                        <Button onClick={() => setIsEmailModalOpen(true)}>Change Email</Button>
+                        <Button onClick={() => setIsEmailModalOpen(true)} className="w-full sm:w-auto">
+                          Change Email
+                        </Button>
                       </CardContent>
                     </Card>
 
@@ -260,10 +262,10 @@ export default function UserProfile() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-sm text-muted-foreground mb-3 sm:mb-4">
                           Permanently delete your account and all associated data. This action cannot be undone.
                         </p>
-                        <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
+                        <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)} className="w-full sm:w-auto">
                           Delete Account
                         </Button>
                       </CardContent>
@@ -294,28 +296,19 @@ export default function UserProfile() {
           )}
 
           {isPasswordModalOpen && (
-            <ChangePasswordModal onClose={() => setIsPasswordModalOpen(false)} onSave={() => setIsPasswordModalOpen(false)} />
+            <ChangePasswordModal open={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
           )}
 
           {isEmailModalOpen && (
             <ChangeEmailModal
               currentEmail={profile.email}
+              open={isEmailModalOpen}
               onClose={() => setIsEmailModalOpen(false)}
-              onSave={(newEmail) => {
-                setProfile((prev) => ({ ...prev, email: newEmail }))
-                setIsEmailModalOpen(false)
-              }}
             />
           )}
 
           {isDeleteModalOpen && (
-            <DeleteAccountModal
-              onClose={() => setIsDeleteModalOpen(false)}
-              onConfirm={() => {
-                console.log("Account deleted")
-                setIsDeleteModalOpen(false)
-              }}
-            />
+            <DeleteAccountModal open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} />
           )}
         </AnimatePresence>
       </div>

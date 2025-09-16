@@ -1,5 +1,6 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import type { ApiSuccess, UserProfileResponse } from "@/types/apiTypes";
+import type { UpdateEmailRequest, EmailRequest, VerifyEmailRequest, ChangePasswordSchema, PasswordRequest } from "@/types/profile/user/payload";
 
 const preUrl = `/user/profile`
 
@@ -21,14 +22,63 @@ const userProfileApi = apiSlice.injectEndpoints({
                 body : formData
             }),
             invalidatesTags : ['user']
-        })
+        }),
 
+        updateEmail : builder.mutation<ApiSuccess<null>,UpdateEmailRequest>({
+            query : (payload) => ({
+                url : `${preUrl}/email/change`,
+                method : 'POST',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        }),
+
+        verifyEmail : builder.mutation<ApiSuccess<null>,VerifyEmailRequest>({
+            query : (payload) => ({
+                url : `${preUrl}/email/change/verify`,
+                method : 'POST',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        }),
+
+        changeEmailresendOtp : builder.mutation<ApiSuccess<null>,EmailRequest>({
+            query : (payload) => ({
+                url : `${preUrl}/email/change/resend-otp`,
+                method : 'POST',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        }),
+
+        changePassword : builder.mutation<ApiSuccess<null>,ChangePasswordSchema>({
+            query : (payload) => ({
+                url : `${preUrl}/password/change`,
+                method : 'POST',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        }),
+
+        deleteAccount : builder.mutation<ApiSuccess<null>,PasswordRequest>({
+            query : (payload) => ({
+                url : `${preUrl}/delete`,
+                method : 'PATCH',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        })
     })
 })
 
 export const {
 
     useProfileQuery,
-    useUpdateProfileMutation
+    useUpdateProfileMutation,
+    useUpdateEmailMutation,
+    useVerifyEmailMutation,
+    useChangeEmailresendOtpMutation,
+    useChangePasswordMutation,
+    useDeleteAccountMutation
 
 } = userProfileApi

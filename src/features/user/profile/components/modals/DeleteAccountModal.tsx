@@ -1,46 +1,82 @@
-import { useState } from "react"
 import { motion } from "framer-motion"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AlertTriangle, X, Eye, EyeOff } from "lucide-react"
+import { AlertTriangle, Eye, EyeOff } from "lucide-react"
+import { deleteAccountSchema, type DeleteAccountSchemaType } from "../../schema"
+import { useState } from "react"
+import { toast } from "sonner"
+import { useDeleteAccountMutation } from '@/apis/auth-user/profile/user';
+import { useAuthActions } from "@/hooks/useDispatch"
 
 interface DeleteAccountModalProps {
+  open: boolean
   onClose: () => void
-  onConfirm: () => void
 }
 
-export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccountModalProps) {
-  const [password, setPassword] = useState("")
-  const [confirmText, setConfirmText] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+export default function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
+  const { logout } = useAuthActions();
+  const [showPassword, setShowPassword] = useState(false);
+  const [deleteAccount] = useDeleteAccountMutation();
 
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {}
+  const form = useForm<DeleteAccountSchemaType>({
+    resolver: zodResolver(deleteAccountSchema),
+    defaultValues: {
+      confirmText: "",
+      password: "",
+    },
+  })
 
-    if (!password) {
-      newErrors.password = "Password is required to confirm deletion"
+  const onSubmit = async (values: DeleteAccountSchemaType) => {
+    const payload = {
+      password : values.password
     }
-
-    if (confirmText !== "DELETE") {
-      newErrors.confirmText = "Please type DELETE to confirm"
+    const toastId = toast.loading('Processing...');
+    try {
+      const res = await deleteAccount(payload).unwrap();
+      onClose();
+      logout();
+      toast.success(res.message,{
+        className : 'success-toast',
+        id : toastId,
+      });
+    } catch (error : any) {
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          id : toastId,
+          description : error?.data?.message
+      })
     }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleConfirm = () => {
-    if (validateForm()) {
-      onConfirm()
-    }
+   
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent 
+      className="sm:max-w-md"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -53,9 +89,6 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
                 <AlertTriangle className="h-5 w-5" />
                 Delete Account
               </div>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
 
@@ -69,65 +102,78 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
                   <p className="text-sm text-muted-foreground">Deleting your account will permanently remove:</p>
                   <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                     <li>• Your profile and personal information</li>
-                    <li>• All your problem solutions and submissions</li>
-                    <li>• Your progress statistics and achievements</li>
+                    <li>• All your problem submissions</li>
+                    <li>• Your progress statistics, leaderboard and achievements</li>
                     <li>• Any saved code or notes</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              {/* Confirmation Text */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmText">
-                  Type <strong>DELETE</strong> to confirm
-                </Label>
-                <Input
-                  id="confirmText"
-                  value={confirmText}
-                  onChange={(e) => setConfirmText(e.target.value)}
-                  className={errors.confirmText ? "border-destructive" : ""}
-                  placeholder="DELETE"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Confirmation Text */}
+                <FormField
+                  control={form.control}
+                  name="confirmText"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Type <strong>DELETE</strong> to confirm
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="DELETE" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {errors.confirmText && <p className="text-sm text-destructive">{errors.confirmText}</p>}
-              </div>
 
-              {/* Password Confirmation */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Confirm with your password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={errors.password ? "border-destructive pr-10" : "pr-10"}
-                    placeholder="Enter your password"
-                  />
+                {/* Password Confirmation */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm with your password</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" type="button" onClick={onClose}>
+                    Cancel
+                  </Button>
                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
+                    type="submit"
+                    variant="destructive"
+                    disabled={form.watch("confirmText") !== "DELETE" || !form.watch("password")}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Delete Account
                   </Button>
                 </div>
-                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleConfirm} disabled={!password || confirmText !== "DELETE"}>
-                Delete Account
-              </Button>
-            </div>
+              </form>
+            </Form>
           </div>
         </motion.div>
       </DialogContent>

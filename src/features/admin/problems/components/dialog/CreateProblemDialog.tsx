@@ -13,7 +13,7 @@ import { useAdminCheckQuestionIdQuery, useAdminCheckTitleQuery, useAdminCreatePr
 import { extractApiErrorMessage } from '@/utils/parseFetchBaseQueryError'
 import { toast } from "sonner"
 
-export default function CreateProblemDialog({ open, onOpenChange, refetchProblemList }) {
+export default function CreateProblemDialog({ open, onClose, refetchProblemList }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CreateProblemSchemaType>({
@@ -69,17 +69,19 @@ export default function CreateProblemDialog({ open, onOpenChange, refetchProblem
         id : toastId
       });
       refetchProblemList();
-      onOpenChange(false)
+      onClose();
       form.reset()
     } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -91,8 +93,12 @@ export default function CreateProblemDialog({ open, onOpenChange, refetchProblem
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide ">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide "
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
           <DialogHeader>
             <DialogTitle>Create New Problem</DialogTitle>
           </DialogHeader>
@@ -168,7 +174,10 @@ export default function CreateProblemDialog({ open, onOpenChange, refetchProblem
             </FormField>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => {
+                onClose()
+                form.reset()
+                }} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

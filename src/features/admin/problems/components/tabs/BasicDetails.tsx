@@ -104,19 +104,21 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             refetchBasicDetails();
 
         } catch (error : any) {
-            if(error?.data?.error.length !== 0){
-            toast.dismiss(toastId);
-            error.data.error.map(e=>{
-                toast.error(`field : ${e.field}`,{
-                description : `Error : ${e.message}`
-                })
-            })
-            }
-            toast.error('Error',{
-                className : 'error-toast',
-                id : toastId,
-                description : error?.data?.message
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
         }
     }
 
@@ -317,7 +319,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
 
             <StarterCodeModal
             open={starterModalOpen}
-            onOpenChange={setStarterModalOpen}
+            onClose={()=>setStarterModalOpen(false)}
             initialValue={modalValue}
             onSave={(value) => {
                 if (editingIndex !== null) {

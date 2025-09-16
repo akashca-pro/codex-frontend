@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom"
 import { Slider } from "@/components/ui/slider"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import Timer from "@/features/problems/problemDetails/components/Timer"
-import { MonacoThemes } from "@/utils/monacoThemes"
+import { MonacoThemes } from "@/utils/monacoThemes/index"
 
 interface Language {
   id: string
@@ -88,7 +88,7 @@ export default function IDEToolbar({
           </SelectTrigger>
           <SelectContent className="border-none">
             {themeKeys.map((theme) => (
-              <SelectItem key={theme} value={theme}>
+              <SelectItem key={theme} value={theme} className="truncate" >
                 {theme}
               </SelectItem>
             ))}
@@ -127,7 +127,7 @@ export default function IDEToolbar({
           </SelectContent>
         </Select>
           
-      <Button
+      {/* <Button
         variant="ghost"
         size="sm"
         onClick={onToggleIntelliSense}
@@ -136,7 +136,7 @@ export default function IDEToolbar({
         }`}
       >
         IntelliSense
-      </Button>
+      </Button> */}
 
           {/* Font slider */}
         <div className="flex items-center gap-2 w-52 px-1">

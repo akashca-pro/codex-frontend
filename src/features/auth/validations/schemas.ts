@@ -45,7 +45,7 @@ export const signupSchema = z.object({
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  });
+});
 
 export const LoginSchema = z.object({
     email : z
@@ -79,7 +79,40 @@ export const UsernameSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
 })
 
+export const ForgotPasswordSchema = z.object({
+    email : z
+    .email('Invalid email address')
+    .min(5)
+    .max(255),
+})
+
+export const ResetPasswordSchema = z.object({
+    newPassword : z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100)
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[@$!%*?&#]/, 'Password must contain at least one special character'),
+
+    otp : z
+    .string()
+    .min(6, "OTP must be 6 digits")
+    .max(6, "OTP must be 6 digits")
+    .regex(/^\d+$/, "OTP must contain only numbers"),
+
+    confirmPassword : z
+      .string()
+})
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});
+
 export type SignupSchemaType = z.infer<typeof signupSchema> 
 export type LoginSchemaType = z.infer<typeof LoginSchema>
 export type OtpVerificationSchemaType = z.infer<typeof OtpVerificationSchema>
 export type UsernameSchemaType = z.infer<typeof UsernameSchema>
+export type ForgotPasswordSchemaType = z.infer<typeof ForgotPasswordSchema>
+export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>

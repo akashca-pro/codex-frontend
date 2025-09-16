@@ -10,6 +10,7 @@ import { DifficultyMap } from "@/mappers/problem"
 import { AppPagination } from "@/components/Pagination"
 import Navbar from "@/components/Navbar"
 import { useNavigate } from "react-router-dom"
+import LoadingDots from "@/components/LoadingDots"
 
 export default function Problems() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function Problems() {
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('all');
 
-  const { data } = usePublicListProblemsQuery({
+  const { data, isLoading } = usePublicListProblemsQuery({
     page,
     difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
     limit,
@@ -114,7 +115,8 @@ export default function Problems() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card>
+            {isLoading ? <LoadingDots/>
+            : <Card>
               <CardHeader>
                 <CardTitle className="font-bold text-lg sm:text-xl">
                   Problems ({ProblemList.length || 0})
@@ -173,7 +175,7 @@ export default function Problems() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card>}
           </motion.div>
 
           {data?.data.totalItems! >= 10 && (

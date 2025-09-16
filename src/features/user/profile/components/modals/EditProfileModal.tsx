@@ -105,19 +105,21 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
         refetch();
         onClose();
       } catch (error : any) {
-          if(error?.data?.error.length !== 0){
-              toast.dismiss(toastId);
-              error.data.error.map(e=>{
-                  toast.error(`field : ${e.field}`,{
-                  description : `Error : ${e.message}`
-                  })
-              })
-          }
-          toast.error('Error',{
-              className : 'error-toast',
-              id : toastId,
-              description : error?.data?.message
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
+        })
+      }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
       }
   }
 
@@ -138,7 +140,11 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={(open)=>{if(!open) onClose();}}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent 
+      className="sm:max-w-md "
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

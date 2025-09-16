@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import { useUserLogoutMutation } from '@/apis/auth-user/auth/user'
@@ -27,7 +26,6 @@ const navItems = [
   { id: "users", label: "Users", protected : true },
   { id: "leaderboard", label: "Leaderboard", protected : true },
   { id : "codepad", label : "CodePad", protected : false},
-  { id: "settings", label: "Settings", protected : true },
 ]
 
 export default function Navbar() {
@@ -47,7 +45,7 @@ export default function Navbar() {
   const role = user && user.details?.role.toLowerCase();
   
   const publicRoutes = ["problems","codepad"];
-  const protectedRoutes = ["dashboard", "profile", "settings","leaderboard"];
+  const protectedRoutes = ["dashboard", "profile","leaderboard"];
   const adminOnlyRoutes = ["problems","users"]
 
   const visibleNavitems = navItems.filter((item) => {
@@ -143,12 +141,12 @@ export default function Navbar() {
       {user.isAuthenticated ? (
         <>
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative hidden sm:flex">
+          {/* <Button variant="ghost" size="sm" className="relative hidden sm:flex">
             <Bell className="w-5 h-5" />
             <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs bg-destructive">
               3
             </Badge>
-          </Button>
+          </Button> */}
 
           {/* Theme Toggle */}
           <Button variant="ghost" size="sm" className="hidden sm:flex">
@@ -242,13 +240,13 @@ export default function Navbar() {
           {user.isAuthenticated ? (
             <div className="pt-4 pb-3 border-t border-gray-800 space-y-3">
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="w-full justify-start relative">
+              {/* <Button variant="ghost" size="sm" className="w-full justify-start relative">
                 <Bell className="w-5 h-5 mr-2" />
                 Notifications
                 <Badge className="absolute top-1 right-2 w-5 h-5 p-0 flex items-center justify-center text-xs bg-destructive">
                   3
                 </Badge>
-              </Button>
+              </Button> */}
 
               {/* Theme Toggle */}
               <Button variant="ghost" size="sm" className="w-full justify-start">

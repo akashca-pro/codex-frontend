@@ -9,21 +9,21 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
-import { useAuthActions } from '@/hooks/useDispatch'
-import { useSelect } from '@/hooks/useSelect'
-import { useUserResendOtpMutation, useUserVerifyOtpMutation} from '@/apis/auth-user/auth/user'
 
-export default function OtpVerificationForm() {
-  const [resendOtp] = useUserResendOtpMutation();
-  const [verifyOtp] = useUserVerifyOtpMutation();
-  const { login } = useAuthActions();
-  const navigate = useNavigate();
-  const { email : globalEmail } = useSelect();
+type OtpVerificationFormProps = {
+  email: string
+  onResendOtp: (email: string) => Promise<void>
+  onVerifyOtp: (values : OtpVerificationSchemaType) => Promise<void>
+}
+
+export default function OtpVerificationForm({
+  email,
+  onResendOtp,
+  onVerifyOtp,
+}: OtpVerificationFormProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const [timer, setTimer] = useState(60); // 60 seconds
+  const [timer, setTimer] = useState(120); // 120 seconds
   const [canResend, setCanResend] = useState(false);
 
   const form = useForm<OtpVerificationSchemaType>({
@@ -65,26 +65,9 @@ export default function OtpVerificationForm() {
   };
 
   const handleResendOtp = async() => {
-    const credentials = {
-        email : globalEmail.email
-    }
-    const toastId = toast.loading('New OTP generating',{
-        className : 'info-toast'
-    })
-    try {
-        await resendOtp(credentials).unwrap()
-        toast.success(`New OTP sent to ${globalEmail.email}`,{
-            id : toastId,
-            className : 'success-toast'
-        });
-        restartTimer();
-    } catch (error : any) {
-      toast.error('Error',{
-        className : 'error-toast',
-        id : toastId,
-        description : error?.data?.message
-      })
-    }
+      await onResendOtp(email)
+      form.reset();
+      restartTimer();
   }
 
   const handleOtpChange = (value: string, index: number) => {
@@ -100,49 +83,13 @@ export default function OtpVerificationForm() {
     }
   }
 
-    const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-    ) => {
-    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
-        inputRefs.current[index - 1]?.focus()
-    }
-    }
-
-  const onSubmit = async (values: OtpVerificationSchemaType) => {
-    console.log("OTP Verification:", values)
-    const credentials = {
-        email : globalEmail.email,
-        otp : values.otp
-    }
-    const toastId = toast.loading('Verifying OTP',{
-        description : 'Please wait . . . ',
-        className : 'info-toast'
-    })
-    try {
-        const res = await verifyOtp(credentials).unwrap();
-        toast.success('OTP Verified',{
-            id : toastId,
-            className : 'success-toast',
-            description : `Welcome , ${res.data.username} You're now part of the CodeX swarm.`
-        })
-        console.log(res);
-        login({
-            userId : res.data.userId,
-            username : res.data.username,
-            email : res.data.email,
-            role : res.data.role,
-            avatar : res.data.avatar
-        })
-        navigate('/dashboard');
-    } catch (error : any) {
-        console.log(error);
-      toast.error('Error',{
-        className : 'error-toast',
-        id : toastId,
-        description : error?.data?.message
-      })
-    }
+  const handleKeyDown = (
+  e: React.KeyboardEvent<HTMLInputElement>,
+  index: number
+  ) => {
+  if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
+      inputRefs.current[index - 1]?.focus()
+  }
   }
 
   const otpValue = form.watch("otp")
@@ -157,7 +104,7 @@ export default function OtpVerificationForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onVerifyOtp)} className="space-y-4">
             {/* OTP Field */}
             <FormField
               control={form.control}
@@ -204,10 +151,13 @@ export default function OtpVerificationForm() {
               {canResend ? (
                 <span className="text-green-400">You can now resend OTP</span>
               ) : (
-                <span>
-                  Resend available in{" "}
-                  <span className="text-orange-400 font-semibold">{timer}s</span>
+              <span>
+                Resend available in{" "}
+                <span className="text-orange-400 font-semibold">
+                  {String(Math.floor(timer / 60)).padStart(2, "0")}:
+                  {String(timer % 60).padStart(2, "0")}
                 </span>
+              </span>
               )}
             </div>
 

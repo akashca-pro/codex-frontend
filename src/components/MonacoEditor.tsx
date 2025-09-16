@@ -3,7 +3,9 @@ import Editor from "@monaco-editor/react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
-import { MonacoThemes } from "@/utils/monacoThemes"
+import { MonacoThemes } from "@/utils/monacoThemes/index"
+import { registerMonacoTheme } from "@/utils/monacoThemes/registerMonacoThemes"
+import { registerLanguages } from "@/utils/monacoThemes/registerLanguages"
 
 interface MonacoEditorProps {
   value: string
@@ -24,7 +26,7 @@ export default function MonacoEditor({
   height = "100%",
   readOnly = false,
   fontSize,
-  intelliSense
+  intelliSense = true
 }: MonacoEditorProps) {
   const editorRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -52,22 +54,19 @@ export default function MonacoEditor({
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor
-    setIsLoading(false)
+    setIsLoading(false)    
+    
+      Object.entries(MonacoThemes).forEach(([name, def]) => {
+        registerMonacoTheme(monaco, name, def);
+      });
+      monaco.editor.setTheme(theme);
 
-    Object.entries(MonacoThemes).forEach(([themeName, themeDef]) => {
-      monaco.editor.defineTheme(themeName, themeDef)
-    })
+        registerLanguages(monaco);
 
-    monaco.editor.setTheme(theme);
-
-    // Move cursor to the last line if code exists
-    if (value && value.trim() !== "") {
-      const lineCount = editor.getModel()?.getLineCount()
-      if (lineCount) {
-        editor.setPosition({ lineNumber: lineCount, column: 1 })
-        editor.revealLine(lineCount)
-      }
-    }
+      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        noSemanticValidation: !intelliSense,
+        noSyntaxValidation: false,
+      })
 
     // Configure editor options
     editor.updateOptions({
@@ -169,6 +168,7 @@ export default function MonacoEditor({
         options={{
           readOnly,
           contextmenu: true,
+          "semanticHighlighting.enabled" : true
         }}
       />
     </Card>

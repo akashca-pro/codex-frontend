@@ -12,11 +12,11 @@ import { BulkUploadSchema, type BulkUploadSchemaType } from "../../../validation
 
 interface BulkUploadDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void,
+  onClose: () => void,
   onSuccess : (data : BulkUploadSchemaType) => void
 }
 
-export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : BulkUploadDialogProps) {
+export default function BulkUploadDialog({ open, onClose, onSuccess } : BulkUploadDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [testType, setTestType] = useState<"run" | "submit">("run")
 
@@ -37,13 +37,17 @@ export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : Bul
       setIsSubmitting(true)
       onSuccess?.(data)
       form.reset()
-      onOpenChange(false)
+      onClose();
       setIsSubmitting(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -137,7 +141,7 @@ export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : Bul
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => onClose()} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

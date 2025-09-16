@@ -52,14 +52,16 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         id : toastId
       })
     } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -84,14 +86,16 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         id : toastId
       })
     } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -129,14 +133,16 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
           id : toastId
         })
       } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -222,13 +228,21 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         </CardContent>
         </Card>
 
-      <AddTestCaseDialog open={addTestCaseOpen} onOpenChange={setAddTestCaseOpen} onSuccess={addTestCase} />
+      <AddTestCaseDialog 
+      open={addTestCaseOpen} 
+      onClose={()=>setAddTestCaseOpen(false)} 
+      onSuccess={addTestCase} 
+      />
 
-      <BulkUploadDialog open={bulkUploadOpen} onOpenChange={setBulkUploadOpen} onSuccess={bulkAddTestCases} />
+      <BulkUploadDialog 
+      open={bulkUploadOpen} 
+      onClose={()=>setBulkUploadOpen(false)} 
+      onSuccess={bulkAddTestCases} 
+      />
 
       <ConfirmDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onClose={()=>setDeleteDialogOpen(false)}
         title="Delete Test Case"
         description={`Are you sure you want to delete test case #${(deletingTestCase?.Id ?? '')}? This action cannot be undone.`}
         confirmText="Delete"

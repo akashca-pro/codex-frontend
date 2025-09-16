@@ -15,7 +15,18 @@ export default function UserLoginPage() {
 
       <LoginForm />
 
+        {/* Forgot Password Link */}
+        <div className="mt-4 text-center">
+          <Link
+            to="/login/forgot-password"
+            className="text-sm font-medium text-orange-500 hover:text-orange-700 transition-colors"
+          >
+            Forgot your password? Click here to reset!
+          </Link>
+        </div>
+
       <div className="mt-6 text-center">
+        {/* Google login */}
         <div className="flex justify-center">
           <GoogleLoginButton />
         </div>

@@ -14,58 +14,54 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff, Lock } from "lucide-react"
 import { useState } from "react"
-import {
-  changePasswordSchema,
-  type ChangePasswordSchemaType,
-} from "../../schema"
 import { toast } from "sonner"
-import { useChangePasswordMutation } from '@/apis/auth-user/profile/user'
+import { useUserPasswordChangeMutation,
+    useForgotPassResendOtpMutation
+ } from '@/apis/auth-user/auth/user'
+import { ResetPasswordSchema, type ResetPasswordSchemaType } from "../../validations/schemas"
+import { Label } from "@/components/ui/label"
+import { useNavigate } from "react-router-dom"
+import OtpInput from "@/components/OtpInput"
 
-interface ChangePasswordModalProps {
+interface ResetPasswordModalProps {
   open: boolean
   onClose: () => void
+  email : string
 }
 
-export default function ChangePasswordModal({
+export default function ResetPasswordModal({
+  email,
   open,
   onClose,
-}: ChangePasswordModalProps) {
-  const [changePassword] = useChangePasswordMutation()
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  })
+}: ResetPasswordModalProps) {
+  const navigate = useNavigate()
+  const [resetPassword] = useUserPasswordChangeMutation();
+  const [resendOtp] = useForgotPassResendOtpMutation();
+  const [showPasswords, setShowPasswords] = useState(false)
 
-  const form = useForm<ChangePasswordSchemaType>({
-    resolver: zodResolver(changePasswordSchema),
+  const form = useForm<ResetPasswordSchemaType>({
+    resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
-      currPass: "",
-      newPass: "",
-      confirmPassword: "",
+        newPassword : "",
+        otp : "",
+        confirmPassword : ""
     },
   })
 
-  const togglePasswordVisibility = (
-    field: "current" | "new" 
-  ) => {
-    setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }))
-  }
-
-  const onSubmit = async (values: ChangePasswordSchemaType) => {
+  const onSubmit = async (values: ResetPasswordSchemaType) => {
     const payload = {
-      currPass : values.currPass,
-      newPass : values.newPass
+      email,
+      newPassword : values.newPassword,
+      otp : values.otp
     }
-    console.log(payload)
     const toastId = toast.loading('Processing...');
     try {
-      const res = await changePassword(payload).unwrap();
+      const res = await resetPassword(payload).unwrap();
       toast.success(res.message,{
         className : 'success-toast',
         id : toastId
       })
-      onClose();
+      navigate('/login')
     } catch (error : any) {
       const apiErrors = error?.data?.error
       
@@ -85,8 +81,41 @@ export default function ChangePasswordModal({
     }
   }
 
+  const onResendOtp = async () => {
+    const payload = {
+        email
+    }
+    const toastId = toast.loading('Processing...');
+    try {
+        const res = await resendOtp(payload).unwrap();
+        toast.success(res.message,{
+            id : toastId,
+            className : 'success-toast',
+        })
+    } catch (error : any) {
+        const apiErrors = error?.data?.error
+        
+        if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+                toast.dismiss(toastId);
+                apiErrors.forEach((e: any) => {
+                toast.error(`field : ${e.field}`, {
+                    description: `Error : ${e.message}`,
+                })
+            })
+        }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+    <Dialog 
+    open={open} 
+    onOpenChange={(open)=>{if(!open)onClose()}}
+    >
       <DialogContent 
       className="sm:max-w-md"
       onInteractOutside={(e) => e.preventDefault()} 
@@ -112,54 +141,40 @@ export default function ChangePasswordModal({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-6 py-4"
             >
-              {/* Current Password */}
-              <FormField
-                control={form.control}
-                name="currPass"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPasswords.current ? "text" : "password"}
-                          placeholder="Enter current password"
-                          {...field}
-                          className="pr-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() =>
-                            togglePasswordVisibility("current")
-                          }
-                        >
-                          {showPasswords.current ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
+             {/* OTP */}
+            <FormField
+            control={form.control}
+            name="otp"
+            render={({ field }) => (
+                <FormItem>
+                <Label>Enter OTP</Label>
+                <FormControl>
+                    <OtpInput 
+                    value={field.value} 
+                    onChange={field.onChange} 
+                    onResendOtp={onResendOtp}
+                    formReset={()=>{
+                        form.resetField('otp')
+                        form.clearErrors()
+                    }}
+                    />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
               {/* New Password */}
               <FormField
                 control={form.control}
-                name="newPass"
+                name="newPassword"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>New Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPasswords.new ? "text" : "password"}
+                          type={showPasswords ? "text" : "password"}
                           placeholder="Enter new password"
                           {...field}
                           className="pr-10"
@@ -169,9 +184,9 @@ export default function ChangePasswordModal({
                           variant="ghost"
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => togglePasswordVisibility("new")}
+                          onClick={() => setShowPasswords((prev)=>!prev)}
                         >
-                          {showPasswords.new ? (
+                          {showPasswords ? (
                             <EyeOff className="h-4 w-4" />
                           ) : (
                             <Eye className="h-4 w-4" />
@@ -194,7 +209,7 @@ export default function ChangePasswordModal({
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPasswords.confirm ? "text" : "password"}
+                          type={"password"}
                           placeholder="Re-enter new password"
                           {...field}
                           className="pr-10"
@@ -225,7 +240,7 @@ export default function ChangePasswordModal({
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit">Change Password</Button>
+                <Button type="submit">Reset Password</Button>
               </div>
             </form>
           </Form>

@@ -10,11 +10,11 @@ import { AddTestCaseSchema, type AddTestCaseSchemaType } from "../../../validati
 
 interface AddTestCaseDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onClose: () => void
   onSuccess?: (testCase: AddTestCaseSchemaType) => void
 }
 
-export default function AddTestCaseDialog({ open, onOpenChange, onSuccess }: AddTestCaseDialogProps) {
+export default function AddTestCaseDialog({ open, onClose, onSuccess }: AddTestCaseDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<AddTestCaseSchemaType>({
@@ -30,13 +30,17 @@ export default function AddTestCaseDialog({ open, onOpenChange, onSuccess }: Add
       setIsSubmitting(true)
       onSuccess?.(data)
       form.reset()
-      onOpenChange(false)
+      onClose();
       setIsSubmitting(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-2xl"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -79,7 +83,7 @@ export default function AddTestCaseDialog({ open, onOpenChange, onSuccess }: Add
             </FormField>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

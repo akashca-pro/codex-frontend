@@ -4,7 +4,6 @@ import type { User } from "@/store/slices/authSlice";
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 import { closeTab, createFile, deleteFile, openTab, renameFile, setActiveFile, unsetActiveFile, updateContent } from "@/store/slices/codepadSlice";
-import type { Language } from "@/types/problem-api-types/fieldTypes";
 
 export const useUserEmailActions = () => {
   const dispatch = useDispatch();
