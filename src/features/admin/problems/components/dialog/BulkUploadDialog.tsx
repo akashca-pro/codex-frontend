@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2 } from "lucide-react"
 import FormField from "../FormField"
 import { BulkUploadSchema, type BulkUploadSchemaType } from "../../../validation/schema"
@@ -18,7 +17,6 @@ interface BulkUploadDialogProps {
 
 export default function BulkUploadDialog({ open, onClose, onSuccess } : BulkUploadDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [testType, setTestType] = useState<"run" | "submit">("run")
 
   const form = useForm<BulkUploadSchemaType>({
     resolver: zodResolver(BulkUploadSchema),
@@ -60,19 +58,15 @@ export default function BulkUploadDialog({ open, onClose, onSuccess } : BulkUplo
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
             <FormField label="Test Case Type" description="All test cases will be added as this type" required>
-              <Select
-                value={testType}
-                onValueChange={(value: "run" | "submit") => setTestType(value)}
+              <select
+                value={form.watch("testCaseCollectionType")}
+                onChange={(e) => form.setValue("testCaseCollectionType", e.target.value as "run" | "submit")}
                 disabled={isSubmitting}
+                className="w-full rounded-md border border-gray-300 bg-black text-white p-2"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="run">Run</SelectItem>
-                  <SelectItem value="submit">Submit</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="run">Run</option>
+                <option value="submit">Submit</option>
+              </select>
             </FormField>
 
             <div className="space-y-4">

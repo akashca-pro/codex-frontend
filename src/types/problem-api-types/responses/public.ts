@@ -1,4 +1,4 @@
-import type { IExample, IStarterCode, ITestCase, Language } from "../fieldTypes";
+import type { IExample, IStarterCode, ITestCase } from "../fieldTypes";
 
 
 export interface ListProblemResponse {
@@ -32,10 +32,11 @@ export interface PublicProblemDetailsResponse {
     createdAt : string;
 }
 
-export interface CustomCodeRunRequest {
-    payload : {
-        tempId : string;
-        userCode : string;
-        language : Language;
-    }
+export interface CustomCodeRunResponse{
+    tempId : string;
+}
+
+export interface CustomCodeResultResponse {
+    tempId : string;
+    stdOut : string;
 }

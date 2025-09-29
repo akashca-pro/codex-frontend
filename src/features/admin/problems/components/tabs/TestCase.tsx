@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Toolbar from "../ToolBar"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Play, Plus, Trash2, Upload } from "lucide-react"
+import { Plus, Trash2, Upload } from "lucide-react"
 import DataTable from "../DataTable"
 import { useEffect, useState } from "react"
 import type { BulkUploadSchemaType, TestCaseItemSchemaType } from "../../../validation/schema"
@@ -12,6 +13,7 @@ import ConfirmDialog from "../dialog/ConfirmDialog"
 import { useAdminAddTestCaseMutation, useAdminRemoveTestCaseMutation, 
   useAdminBulkUploadTestCaseMutation } from '@/apis/problem/admin'
 import { toast } from "sonner"
+import type { BulkUploadTestCasesRequest } from "@/types/problem-api-types/payload/admin"
 
 const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
   const [addTestCaseOpen, setAddTestCaseOpen] = useState(false)
@@ -62,11 +64,11 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
           })
         })
       }
-        toast.error('Error',{
-            className : 'error-toast',
-            id : toastId,
-            description : error?.data?.message
-        })
+      toast.error('Error',{
+          className : 'error-toast',
+          id : toastId,
+          description : error?.data?.message
+      })
     }
   }
 
@@ -74,9 +76,9 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
     const toastId =  toast.loading('Adding testcase, please wait . . .',{
       className : 'info-toast',
     });
-    const payload = {
+    const payload : BulkUploadTestCasesRequest = {
       problemId,
-      testCases
+      testCases 
     }
     try {
       await bulkUploadTestCaseApi(payload).unwrap();
@@ -191,16 +193,12 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
   ]
 
   return (
-    <div>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
             <CardTitle>Test Cases</CardTitle>
             <Toolbar>
-                {/* <Button variant="outline" size="sm" onClick={validateTestCases}>
-                <Play className="h-4 w-4 mr-2" />
-                Validate
-                </Button> */}
                 <Button variant="outline" size="sm" onClick={() => setBulkUploadOpen(true)}>
                 <Upload className="h-4 w-4 mr-2" />
                 Bulk Upload
@@ -248,7 +246,7 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         confirmText="Delete"
         onConfirm={confirmDelete}
       />
-    </div>
+    </motion.div>
   )
 }
 

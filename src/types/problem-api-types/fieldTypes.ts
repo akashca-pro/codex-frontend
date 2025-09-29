@@ -21,6 +21,12 @@ export interface IExample {
     explanation : string;
 }
 
+export interface ITemplateCode {
+    Id : string;
+    language : Language,
+    wrappedCode : string;
+}
+
 export interface ITestCaseCollection {
     run : ITestCase[];
     submit : ITestCase[];

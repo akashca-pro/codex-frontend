@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Edit, RotateCcw, Save } from "lucide-react"
 import FormField from "../FormField"
+import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -123,7 +124,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
     }
 
     return (
-        <div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -133,7 +134,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             </CardHeader>
             <CardContent>
                 <form onSubmit={basicForm.handleSubmit(onBasicSubmit)} className="space-y-6">
-
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField label="Question ID" error={basicForm.formState.errors.questionId?.message} required>
                         <Input {...basicForm.register("questionId")} />
@@ -330,7 +331,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                 basicForm.trigger('starterCodes')
             }}
             />
-        </div>
+        </motion.div>
     )
 }
 

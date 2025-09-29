@@ -7,9 +7,10 @@ import SolutionCode from "./components/tabs/SolutionCode"
 import TestCase from "./components/tabs/TestCase"
 import BasicDetails from "./components/tabs/BasicDetails"
 import { useAdminGetProblemDetailsQuery } from '@/apis/problem/admin'
-import type { ISolutionCode } from "@/types/problem-api-types/fieldTypes";
+import type { ISolutionCode, ITemplateCode } from "@/types/problem-api-types/fieldTypes";
 import { DifficultyMap, LanguageMap } from "@/mappers/problem";
 import { Badge } from "@/components/ui/badge";
+import TemplateCode from "./components/tabs/TemplateCode";
 
 const initialBasicDetails = {
   Id : '',
@@ -48,6 +49,12 @@ const initialSolutionCodeData : ISolutionCode = {
   memoryTaken : 0
 } 
 
+const initialTemplateCodeDate : ITemplateCode = {
+  Id : '',
+  language : 'javascript',
+  wrappedCode : ''
+}
+
 interface ConvertedTestCase {
   Id: string;
   input: string;
@@ -55,15 +62,14 @@ interface ConvertedTestCase {
   testCaseCollectionType: "run" | "submit";
 }
 
-
 export default function ProblemDetailsPage() {
   const { problemId } = useParams();
   const [basicDetailsData,setBasicDetailsData] = useState(initialBasicDetails);
   const [testCaseData,setTestCaseData] = useState([initialTestCaseData]);
   const [solutionCodeData,setSolutionCodeData] = useState([initialSolutionCodeData]);
+  const [templateCodeData, setTemplateCodeData] = useState([initialTemplateCodeDate]);
   const { data, isLoading ,refetch : refetchBasicDetails } = useAdminGetProblemDetailsQuery(problemId!);
   const [activeTab, setActiveTab] = useState("basic");
-  
 
   useEffect(()=>{
 
@@ -106,14 +112,18 @@ export default function ProblemDetailsPage() {
           setTestCaseData(converted)
 
         setSolutionCodeData(data.data.solutionCodes);
-
+        setTemplateCodeData(data.data.templateCodes?.map(t => {
+          return {
+            Id : t.Id,
+            language : LanguageMap[t.language],
+            wrappedCode : t.wrappedCode
+          }
+        }));
       }
     }
     loadProblems();
 
   },[data]);
-
-  // console.log('solutionCode',solutionCodeData)
 
   if (isLoading) {
     return <ProblemDetailsPageSkeleton />
@@ -148,9 +158,10 @@ export default function ProblemDetailsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basic">Basic Details</TabsTrigger>
           <TabsTrigger value="testcases">Test Cases</TabsTrigger>
+          <TabsTrigger value="template">Template Code</TabsTrigger>
           <TabsTrigger value="solution">Solution Code</TabsTrigger>
         </TabsList>
 
@@ -166,19 +177,23 @@ export default function ProblemDetailsPage() {
 
             {/* Test Cases Tab */}
             <TabsContent value="testcases">
-                
                 <TestCase 
                 refetchBasicDetails={refetchBasicDetails}
                  problemId={problemId}
                  testCaseData={testCaseData}/>
+            </TabsContent>
 
+            {/* Template code */}
+            <TabsContent value="template" >
+                <TemplateCode
+                  problemId={problemId}
+                  templateCodes={templateCodeData}
+                />
             </TabsContent>
 
             {/* Solution Code Tab */}
             <TabsContent value="solution">
-
                 <SolutionCode/>
-
             </TabsContent>
           </div>
       

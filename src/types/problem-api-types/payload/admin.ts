@@ -68,3 +68,25 @@ export interface CheckQuestionIdAvailRequest {
 export interface CheckTitleAvailRequest {
     title : string
 }
+
+export interface AddTemplateCodeRequest {
+    problemId : string;
+    templateCode : {
+        language : string;
+        wrappedCode : string;
+    }
+}
+
+export interface UpdateTemplateCodeRequest {
+    problemId : string;
+    templateCodeId : string;
+    updatedData : {
+        language? : string;
+        wrappedCode? : string;
+    }
+}
+
+export interface RemoveTemplateCodeRequest {
+    problemId : string;
+    templateCodeId : string;
+}

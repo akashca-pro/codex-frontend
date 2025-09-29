@@ -37,6 +37,7 @@ export default function MonacoEditor({
     }
   },[fontSize])
 
+
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.updateOptions({
@@ -61,7 +62,7 @@ export default function MonacoEditor({
       });
       monaco.editor.setTheme(theme);
 
-        registerLanguages(monaco);
+      registerLanguages(monaco);
 
       monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: !intelliSense,
@@ -111,23 +112,26 @@ export default function MonacoEditor({
 
     // Configure TypeScript/JavaScript IntelliSense
     if (language === "typescript" || language === "javascript") {
-      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
         target: monaco.languages.typescript.ScriptTarget.ES2020,
         allowNonTsExtensions: true,
-        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-        module: monaco.languages.typescript.ModuleKind.CommonJS,
-        noEmit: true,
-        esModuleInterop: true,
-        jsx: monaco.languages.typescript.JsxEmit.React,
-        reactNamespace: "React",
         allowJs: true,
-        typeRoots: ["node_modules/@types"],
+        checkJs: false,
       })
 
-      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: !intelliSense,
         noSyntaxValidation: false,
       })
+
+      // Add global type definitions for better IntelliSense
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(`
+        declare const console: {
+          log(...args: any[]): void;
+          error(...args: any[]): void;
+          warn(...args: any[]): void;
+        };
+      `, 'ts:console.d.ts');
     }
 
     // Auto-focus the editor

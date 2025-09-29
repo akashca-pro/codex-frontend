@@ -4,7 +4,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText, Plus, Search, MoreHorizontal, Edit, Trash2, Copy } from "lucide-react"
+import { FileText, Plus, Search, Edit, Trash2, Copy } from "lucide-react"
 import type { File } from "@/store/slices/codepadSlice"
 import { getLanguageIcon } from "@/utils/languageIcon"
 
@@ -147,12 +147,6 @@ export default function FileExplorer({
                 <ContextMenuItem onClick={() => onFileDelete(file.id)} className="text-destructive">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => navigator.clipboard.writeText(file.name)}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Path
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>

@@ -19,6 +19,8 @@ import CopyToClipboard from "@/components/CopyToClipboard"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import MobileUserCard from "./components/MobileUserCard"
+import ConfirmationModal from "./components/ConfirmationModal"
+
 
 interface User {
     userId : string;
@@ -53,6 +55,8 @@ const UsersList = () => {
     const [sort, setSort] = useState<string>('latest');
     const [authProvider, setAuthProvider] = useState<string | undefined>(undefined);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [confirmUser, setConfirmUser] = useState<User | null>(null)
+
     const [toggleBlock] = useToggleBlockUsersMutation();
     const { data } = useListUsersQuery({
         page,
@@ -105,6 +109,12 @@ const UsersList = () => {
             })
         }
     }
+
+  const handleConfirmBlock = async () => {
+    if (!confirmUser) return
+    await handleBlockUser(confirmUser)
+    setConfirmUser(null)
+  }
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -268,25 +278,25 @@ const UsersList = () => {
                             <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                <Button
-                                    onClick={() => handleBlockUser(user)}
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    onClick={() => setConfirmUser(user)} // ✅ open confirmation modal
                                     className={`h-8 ${
-                                    user.isBlocked
+                                      user.isBlocked
                                         ? "bg-red-500 hover:bg-red-600 text-white"
                                         : "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
                                     }`}
-                                >
+                                  >
                                     {user.isBlocked ? (
-                                    <>
+                                      <>
                                         <Ban className="w-4 h-4 mr-1" />
                                         Blocked
-                                    </>
+                                      </>
                                     ) : (
-                                    <>
-                                        Block
-                                    </>
+                                      <>Block</>
                                     )}
-                                </Button>
+                                  </Button>
+                                </div>
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
                                 {user.isBlocked ? "Click to unblock user" : "Click to block user"}
@@ -345,7 +355,19 @@ const UsersList = () => {
           setIsModalOpen(false)
           setSelectedUser(null)
         }}
-      />      
+      />  
+
+      {/* User block confirmation modal */}
+      <ConfirmationModal
+        isOpen={!!confirmUser}
+        title={confirmUser?.isBlocked ? "Unblock User?" : "Block User?"}
+        description={`Are you sure you want to ${
+          confirmUser?.isBlocked ? "unblock" : "block"
+        } ${confirmUser?.firstName} ${confirmUser?.lastName}?`}
+        confirmLabel={confirmUser?.isBlocked ? "Unblock" : "Block"}
+        onConfirm={handleConfirmBlock}
+        onCancel={() => setConfirmUser(null)}
+      />   
 
     </div>
   )
