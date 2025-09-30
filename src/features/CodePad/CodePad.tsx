@@ -9,8 +9,7 @@ import IDEToolbar from "./components/Toolbar"
 import ConsolePanel from "./components/ConsolePanel"
 import { useSelect } from "@/hooks/useSelect"
 import { useCodePadActions } from "@/hooks/useDispatch"
-import { useCustomCodeRunMutation, useCustomCodeResultQuery } from '@/apis/codepad/public'
-import { skipToken } from "@reduxjs/toolkit/query"
+import { useCustomCodeRunMutation, useLazyCustomCodeResultQuery } from '@/apis/codepad/public'
 import { toast } from "sonner"
 export default function CodePad() {
   const { codePad } = useSelect();
@@ -34,50 +33,45 @@ export default function CodePad() {
   )
   const [isRunning, setIsRunning] = useState(false)
   const [runCode] = useCustomCodeRunMutation();
-  const { isFetching, refetch } = useCustomCodeResultQuery(
-    tempId !== '' ? { tempId } : skipToken,
-    {       
-      refetchOnMountOrArgChange: true,
-    }
-  );
+  const [triggerResultQuery, { isFetching }] = useLazyCustomCodeResultQuery();
 
-  useEffect(() => {
-    if (!tempId || !isRunning) return;
+useEffect(() => {
+  if (!tempId || !isRunning) return;
 
-    let intervalId: NodeJS.Timeout;
-    const start = Date.now();
+  let intervalId: NodeJS.Timeout;
+  const start = Date.now();
 
-    intervalId = setInterval(async () => {
-      try {
-        const result = await refetch().unwrap();
+  intervalId = setInterval(async () => {
+    try {
+      const result = await triggerResultQuery({ tempId }).unwrap();
 
-        if (result.success && result.data?.stdOut !== undefined) {
-          const output = result.data.stdOut.trim();
-          setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
-          setIsRunning(false);
-          setTempId("");
-          clearInterval(intervalId);
-        } else if (!result.success) {
-          setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
-          setIsRunning(false);
-          setTempId("");
-          clearInterval(intervalId);
-        } else if (Date.now() - start > 10000) {
-          setConsoleMessages("Execution timed out after 10 seconds.");
-          setIsRunning(false);
-          setTempId("");
-          clearInterval(intervalId);
-        }
-      } catch (err) {
-        setConsoleMessages("Error fetching result.");
+      if (result.success && result.data?.stdOut !== undefined) {
+        const output = result.data.stdOut.trim();
+        setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
+        setIsRunning(false);
+        setTempId("");
+        clearInterval(intervalId);
+      } else if (!result.success) {
+        setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
+        setIsRunning(false);
+        setTempId("");
+        clearInterval(intervalId);
+      } else if (Date.now() - start > 10000) {
+        setConsoleMessages("Execution timed out after 10 seconds.");
         setIsRunning(false);
         setTempId("");
         clearInterval(intervalId);
       }
-    }, 500); // poll every 500ms
+    } catch (err) {
+      setConsoleMessages("Error fetching result.");
+      setIsRunning(false);
+      setTempId("");
+      clearInterval(intervalId);
+    }
+  }, 500);
 
-    return () => clearInterval(intervalId);
-  }, [tempId, isRunning, refetch]);
+  return () => clearInterval(intervalId);
+}, [tempId, isRunning, triggerResultQuery]);
 
   const activeFile = codePad.files.find(f => f.id === codePad.activeFileId);
   

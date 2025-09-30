@@ -29,6 +29,6 @@ const publicCodepadApiSlice = apiSlice.injectEndpoints({
 export const {
 
     useCustomCodeRunMutation,
-    useCustomCodeResultQuery,
+    useLazyCustomCodeResultQuery
 
 } = publicCodepadApiSlice
