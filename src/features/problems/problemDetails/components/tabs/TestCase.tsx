@@ -17,7 +17,6 @@ interface TestCaseProps {
   updateActiveCase: (updates: Partial<{ input: string; output: string }>) => void;
 }
 
-
 const TestCase = (props : TestCaseProps) => {
   return (
     <div>

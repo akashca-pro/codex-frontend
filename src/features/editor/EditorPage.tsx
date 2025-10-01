@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import MonacoEditor from "../../components/MonacoEditor"
 import LanguageSelector from "../problems/problemDetails/components/LanguageSelector"
-import ProblemDetails from "../problems/problemDetails/components/ProblemDetails"
+import ProblemDetails from "../problems/problemDetails/components/tabs/ProblemDetails"
 import TestCasePanel from "../problems/problemDetails/components/TestCasePanel"
 import Timer from "../problems/problemDetails/components/Timer"
 import NotesPanel from "../problems/problemDetails/components/NotesPanel"

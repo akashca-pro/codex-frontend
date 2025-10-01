@@ -3,9 +3,9 @@ import type { ITestCase, Language } from "../fieldTypes";
 export interface SubmitProblemRequest {
     problemId : string;
     payload : {
-        country : string;
+        country : string | undefined;
         userCode : string;
-        language : Language
+        language : string;
     }
 }
 
@@ -26,4 +26,12 @@ export interface RunProblemRequest {
 export interface RunResultRequest {
     problemId : string;
     tempId : string;
+}
+
+export interface listProblemSpecificSubmissionsRequest {
+    problemId : string;
+    params : {
+        limit : number;
+        nextCursor : string | undefined
+    }
 }

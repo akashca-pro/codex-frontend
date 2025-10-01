@@ -44,7 +44,6 @@ export default function TestCasePanel({
   onSubmit,
   onReset,
   isRunning = false,
-  isSubmitting = false,
   runResult,
   onTestCasesChange,
 }: TestCasePanelProps) {
@@ -52,7 +51,7 @@ export default function TestCasePanel({
   const [activeTab, setActiveTab] = useState<"testcase" | "result">("testcase")
   const [initialized, setInitialized] = useState(false)
 
-  const { control, watch, setValue } = useForm<{ cases: TestCaseForm[] }>({
+  const { control, setValue } = useForm<{ cases: TestCaseForm[] }>({
     defaultValues: { cases: testCases || [] }, // initial parent data
   })
 
@@ -121,10 +120,11 @@ useEffect(() => {
   if (runResult) setActiveTab("result");
 }, [runResult]);
 
-  const totalCount = runResult?.stats?.totalTestCase || 0
+  const totalCount = runResult?.stats?.totalTestCase || -1
   const testResults = runResult?.testResults ?? []
   const passedCount = runResult?.stats?.passedTestCase ?? 0
   const stats = runResult?.stats
+  console.log(stats)
 
 
   return (
@@ -151,23 +151,23 @@ useEffect(() => {
                   {passedCount}/{totalCount} Passed
                 </Badge>
               )}
-
-              {(stats?.executionTimeMs || stats?.memoryMB) && (
-                <div className="flex items-center gap-2">
-                  {typeof stats.executionTimeMs === "number" && (
-                    <Badge variant="outline" className="text-[10px]">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {stats.executionTimeMs}ms
-                    </Badge>
-                  )}
-                  {typeof stats.memoryMB === "number" && (
-                    <Badge variant="outline" className="text-[10px]">
-                      <Cpu className="h-3 w-3 mr-1" />
-                      {stats.memoryMB}MB
-                    </Badge>
-                  )}
-                </div>
-              )}
+            {(stats?.executionTimeMs !== undefined && stats?.executionTimeMs !== null) || 
+            (stats?.memoryMB !== undefined && stats?.memoryMB !== null) ? (
+              <div className="flex items-center gap-2">
+                {stats?.executionTimeMs !== undefined && stats?.executionTimeMs !== null && (
+                  <Badge variant="outline" className="text-[10px]">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {stats.executionTimeMs}ms
+                  </Badge>
+                )}
+                {stats?.memoryMB !== undefined && stats?.memoryMB !== null && (
+                  <Badge variant="outline" className="text-[10px]">
+                    <Cpu className="h-3 w-3 mr-1" />
+                    {stats.memoryMB}MB
+                  </Badge>
+                )}
+              </div>
+            ) : null}
             </div>
 
             <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ useEffect(() => {
                 variant="outline"
                 size="sm"
                 onClick={onReset}
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning}
                 className="h-8 bg-transparent"
               >
                 <RotateCcw className="h-3 w-3 mr-1" />
@@ -185,7 +185,7 @@ useEffect(() => {
                 variant="outline"
                 size="sm"
                 onClick={onRun}
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning}
                 className="h-8 bg-transparent"
               >
                 {isRunning ? (
@@ -208,10 +208,10 @@ useEffect(() => {
               <Button
                 size="sm"
                 onClick={onSubmit}
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning}
                 className="h-8"
               >
-                {isSubmitting ? (
+                {isRunning ? (
                   <motion.span
                     className="inline-flex items-center"
                     initial={{ opacity: 0.6 }}
@@ -282,7 +282,8 @@ useEffect(() => {
                     <TestResult 
                     stdOut={runResult?.failedTestCase?.output ?? runResult?.stats?.stdout ?? undefined}
                     totalCount={totalCount}
-                     testResults={testResults} 
+                    passedCount={passedCount}
+                    testResults={testResults} 
                      />
                   </TabsContent>
                 </Tabs>

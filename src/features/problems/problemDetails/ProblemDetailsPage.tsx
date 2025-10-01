@@ -3,10 +3,11 @@ import { Allotment } from "allotment"
 import "allotment/dist/style.css"
 import { toast } from "sonner"
 import MonacoEditor from "@/components/MonacoEditor"
-import ProblemDetailsComponent from "./components/ProblemDetails"
+import ProblemDetailsComponent from "./components/tabs/ProblemDetails"
 import TestCasePanel from "./components/TestCasePanel"
 import NotesPanel from "./components/NotesPanel"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import IDEToolbar from "@/features/CodePad/components/Toolbar"
 import { usePublicGetProblemDetailsQuery } from '@/apis/problem/public'
 import { DifficultyMap, LanguageMap } from "@/mappers/problem"
@@ -14,7 +15,10 @@ import ProblemDetailsPageSkeleton from "./components/LoadingSkeleton"
 import { useLazyRunResultQuery } from '@/apis/problem/public'
 import { useRunProblemMutation } from '@/apis/problem/public'
 import type { ExecutionResult, ITestCase } from "@/types/problem-api-types/fieldTypes"
-
+import Submissions from "./components/tabs/Submissions"
+import { useLazySubmitResultQuery, useSubmitProblemMutation } from '@/apis/problem/user'
+import { useSelect } from '@/hooks/useSelect'
+import { usePolling } from "@/hooks/usePolling"
 
 const initialProblemDetails = {
   Id : '',
@@ -43,10 +47,9 @@ const initialProblemDetails = {
 }
 
 export default function ProblemDetails() {
-  const { problemId } = useParams()
-  const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
-    skip: !problemId,
-  });
+  const { user } = useSelect();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"problemInfo" | "submissions">("problemInfo")
   const [editorTheme, setEditorTheme] = useState('codexDark');
   const [intelliSense, setIntelliSense] = useState(true);
   const [fontSize, setFontSize] = useState(16);
@@ -55,13 +58,19 @@ export default function ProblemDetails() {
   const [code, setCode] = useState('')
   const [showNotes, setShowNotes] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [testResults, setTestResults] = useState<ExecutionResult | undefined>(undefined)
+  const [testResults, setTestResults] = useState<ExecutionResult | undefined>(undefined);
   const [tempId, setTempId] = useState('');
-  const [stdErr,setStdErr] = useState('');
+  const [submissionId, setSubmissionId] = useState('');
   const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
+
+  const [submitProblem] = useSubmitProblemMutation();
   const [runProblem] = useRunProblemMutation()
-  const [triggerResultQuery, { isFetching }] = useLazyRunResultQuery();
+  const [triggerRunResultQuery] = useLazyRunResultQuery();
+  const [triggerSubmitResultQuery] = useLazySubmitResultQuery();
+  const { problemId } = useParams()
+  const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
+    skip: !problemId,
+  });
 
 
 useEffect(() => {
@@ -91,46 +100,45 @@ useEffect(() => {
   }
 }, [data, language]);
 
-useEffect(() => {
-  if (!tempId || !isRunning) return;
+// Fetching run results
 
-  let intervalId: NodeJS.Timeout;
-  const start = Date.now();
+usePolling({
+  id: tempId,
+  isActive: isRunning && !!tempId,
+  onPoll: async (id) => {
+    const result = await triggerRunResultQuery({ tempId: id, problemId: problemDetails.Id }).unwrap()
+    return result.success && result.data ? result.data.executionResult : null
+  },
+  onSuccess: (executionResult) => {
+    setTestResults(executionResult)
+    setIsRunning(false)
+    setTempId("")
+  },
+  onError: () => {
+    setIsRunning(false)
+    setTempId("")
+  }
+})
 
-  intervalId = setInterval(async () => {
-    try {
-      const result = await triggerResultQuery({ tempId, problemId: problemDetails.Id }).unwrap();
-
-      if (result.success && result.data !== null) {
-        console.log(result)
-        setTestResults(result.data.executionResult) 
-        setIsRunning(false);
-        setTempId("");
-        clearInterval(intervalId);
-      } else if (!result.success) {
-        setIsRunning(false);
-        setTempId("");
-        clearInterval(intervalId);
-      } else if (Date.now() - start > 10000) {
-        setIsRunning(false);
-        setTempId("");
-        clearInterval(intervalId);
-      }
-    } catch (err) {
-      setIsRunning(false);
-      setTempId("");
-      clearInterval(intervalId);
-    }
-  }, 500);
-
-  return () => clearInterval(intervalId);
-}, [tempId, isRunning, triggerResultQuery, problemDetails.Id]);
-
-useEffect(() => {
-  if (!testResults) return;
-  console.log("Updated testResults:", testResults);
-  // Do anything else you need when testResults updates
-}, [testResults]);
+// Fetching submit results
+usePolling({
+  id: submissionId,
+  isActive: isRunning && !!submissionId,
+  onPoll: async (id) => {
+    const result = await triggerSubmitResultQuery({ problemId: problemDetails.Id, submissionId: id }).unwrap()
+    console.log(result);
+    return result.success && result.data ? result.data.executionResult : null
+  },
+  onSuccess: (executionResult) => {
+    setTestResults(executionResult)
+    setIsRunning(false)
+    setSubmissionId("")
+  },
+  onError: () => {
+    setIsRunning(false)
+    setSubmissionId("")
+  }
+})
 
 const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
@@ -139,14 +147,13 @@ const handleLanguageChange = (newLanguage: string) => {
   }
 
   const handleRun = async () => {
-    console.log(testCases)
     if(!code)return;
     setTestResults(undefined);
     setIsRunning(true);
     setTempId('');
     const payload = {
         language,
-        userCode : code,
+        userCode : JSON.stringify(code),
         testCases : testCases!
     }
     try {
@@ -156,7 +163,6 @@ const handleLanguageChange = (newLanguage: string) => {
       } else {
         throw new Error("Failed to get a valid execution ID.");
       }
-      setTempId(res.data.tempId);
     } catch (error : any) {
       const apiErrors = error?.data?.error
       if (Array.isArray(apiErrors) && apiErrors.length > 0) {
@@ -176,13 +182,49 @@ const handleLanguageChange = (newLanguage: string) => {
   }
 
   const handleSubmit = async () => {
-    setIsSubmitting(true)
+    if(!code) return;
+    if (!user.isAuthenticated) {
+      toast.warning("Login required", {
+        description: "Please log in or sign up to submit your solution.",
+        action: {
+          label: "Sign In",
+          onClick: () => navigate('/login')
+        },
+      });
+      return;
+    }
+    setTestResults(undefined);
+    setIsRunning(true);
+    setSubmissionId('');
+    const payload = {
+        country : user.details?.country ?? undefined,
+        userCode : JSON.stringify(code),
+        language
+    }
+    try {
+      const res = await submitProblem({ problemId : problemDetails.Id, payload }).unwrap();
+      console.log(res)
+      if (res?.data?.submissionId) {
+        setSubmissionId(res.data.submissionId); 
+      } else {
+        throw new Error("Failed to get a valid execution ID.");
+      }
+    } catch (error : any) {
+      const apiErrors = error?.data?.error
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          description : error?.data?.message
+      })
+      setIsRunning(false); 
+    }
 
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    setIsSubmitting(false)
-    toast.success("Solution submitted successfully!")
   }
 
   const handleReset = () => {
@@ -213,9 +255,31 @@ const handleLanguageChange = (newLanguage: string) => {
       />
     <Allotment >
       {/* Problem Details */}
-      <Allotment.Pane minSize={300} preferredSize="35%">
+      <Allotment.Pane minSize={300} preferredSize="43.5%">
         <div className="h-full overflow-auto p-4">
-          <ProblemDetailsComponent problem={problemDetails} />
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) =>
+              setActiveTab(v as "problemInfo" | "submissions")
+            }
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="problemInfo">
+                Problem Details
+              </TabsTrigger>
+              <TabsTrigger value="submissions">
+                Submissions
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="problemInfo">
+              <ProblemDetailsComponent problem={problemDetails} />
+            </TabsContent>
+            <TabsContent value="submissions">
+              <Submissions
+                problemId={problemDetails.Id}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </Allotment.Pane>
 
@@ -245,7 +309,6 @@ const handleLanguageChange = (newLanguage: string) => {
                 onSubmit={handleSubmit}
                 onReset={handleReset}
                 isRunning={isRunning}
-                isSubmitting={isSubmitting}
                 runResult={testResults}
               />}
             </div>

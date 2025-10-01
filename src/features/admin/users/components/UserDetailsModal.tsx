@@ -21,6 +21,7 @@ import {
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import CopyToClipboard from "@/components/CopyToClipboard"
 import { getCountryFlag } from "@/utils/countryFlag"
+import { formatDate } from "@/utils/formatData"
 
 interface UserDetailsModalProps {
   user: any
@@ -30,16 +31,6 @@ interface UserDetailsModalProps {
 
 export default function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProps) {
   if (!user) return null
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
 
   const getStatusColor = (status: boolean, type: "verified" | "blocked" | "archived") => {
     if (type === "verified") return status ? "text-green-600" : "text-gray-500"

@@ -1,7 +1,7 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import { type ApiSuccess } from '@/types/apiTypes'
-import type { SubmitProblemRequest, SubmitResultRequest } from "@/types/problem-api-types/payload/user";
-import type { SubmitProblemResponse, SubmitResultResponse } from "@/types/problem-api-types/responses/user";
+import type { listProblemSpecificSubmissionsRequest, SubmitProblemRequest, SubmitResultRequest } from "@/types/problem-api-types/payload/user";
+import type { listProblemSpecificSubmissionsResponse, SubmitProblemResponse, SubmitResultResponse } from "@/types/problem-api-types/responses/user";
 
 const preUrl = '/user/problems';
 
@@ -23,12 +23,21 @@ const userProblemApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags : ['user']
         }),
+        listProblemSpecificSubmissions : builder.query<ApiSuccess<listProblemSpecificSubmissionsResponse>,listProblemSpecificSubmissionsRequest>({
+            query : ({ params, problemId }) => ({
+                url : `${preUrl}/${problemId}/submissions`,
+                method : 'GET',
+                params
+            }),
+            providesTags : ['user']
+        }),
     })
 })
 
 export const {
 
     useSubmitProblemMutation,
-    useSubmitResultQuery
+    useLazySubmitResultQuery,
+    useListProblemSpecificSubmissionsQuery,
 
 } = userProblemApiSlice

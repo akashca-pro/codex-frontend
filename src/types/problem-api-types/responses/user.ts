@@ -1,4 +1,4 @@
-import type { ExecutionResult } from "../fieldTypes";
+import type { ExecutionResult, Language } from "../fieldTypes";
 
 export interface SubmitProblemResponse {
     submissionId : string;
@@ -17,4 +17,17 @@ export interface RunProblemResponse {
 export interface RunResultResponse {
     tempId : string;
     executionResult : ExecutionResult;
+}
+
+interface Submission {
+    Id : string;
+    status : string;
+    language : Language;
+    executionResult : ExecutionResult | null
+}
+
+export interface listProblemSpecificSubmissionsResponse {
+    submissions : Submission[];
+    nextCursor : string;
+    hasMore : boolean;
 }
