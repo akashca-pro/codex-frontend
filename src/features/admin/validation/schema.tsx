@@ -87,7 +87,8 @@ export const SolutionSchema = z.object({
 export const CodeSolutionSchema = z.object({
   templateCodeId: z.string().optional(),  
   language: LanguageEnum,
-  wrappedCode: z.string().min(1, "Wrapped code is required"),
+  submitWrapperCode: z.string().min(1, "Submit wrapper code is required"),
+  runWrapperCode : z.string().min(1, "Run Wrapper code is required"),
 })
 
 

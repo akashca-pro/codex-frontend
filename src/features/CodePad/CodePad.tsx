@@ -99,7 +99,6 @@ useEffect(() => {
     };
     try {
       const res = await runCode(payload).unwrap();
-      console.log(res);
       if (res?.data?.tempId) {
         setTempId(res.data.tempId); 
       } else {

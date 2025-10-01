@@ -37,7 +37,8 @@ export default function TemplateCode({
     resolver: zodResolver(CodeSolutionSchema),
     defaultValues: {
         language: templateCodes?.[0]?.language || "javascript",
-        wrappedCode: templateCodes?.[0]?.wrappedCode || '',
+        submitWrapperCode: templateCodes?.[0]?.submitWrapperCode || '',
+        runWrapperCode : templateCodes?.[0]?.runWrapperCode || '',
         templateCodeId: templateCodes?.[0]?.Id || ''
     },
   });
@@ -53,12 +54,14 @@ export default function TemplateCode({
     const template = templateCodes.find(t => t.language === selectedLanguage);
 
     if (template) {
-        form.setValue("wrappedCode", template.wrappedCode ? JSON.parse(template.wrappedCode) : '');
+        form.setValue("submitWrapperCode", template.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '');
+        form.setValue("runWrapperCode", template.runWrapperCode ? JSON.parse(template.runWrapperCode) : '');
         form.setValue("templateCodeId", template.Id);
         form.setValue("language", template.language);
     } else {
         // fallback if not found in backend
-        form.setValue("wrappedCode", '');
+        form.setValue("submitWrapperCode", '');
+        form.setValue("runWrapperCode", '');
         form.setValue("templateCodeId", undefined);
     }
     }, [selectedLanguage, templateCodes, form]);
@@ -70,7 +73,8 @@ export default function TemplateCode({
         templateCodeId : data.templateCodeId!,
         updatedData : {
             language : data.language,
-            wrappedCode : JSON.stringify(data.wrappedCode)
+            submitWrapperCode : JSON.stringify(data.submitWrapperCode),
+            runWrapperCode : JSON.stringify(data.runWrapperCode)
         }
     }
     const toastId = toast.loading('Processing...');
@@ -104,7 +108,8 @@ const handleReset = () => {
     const template = templateCodes.find(t => t.language === selectedLanguage);
     form.reset({
       language: template?.language || selectedLanguage,
-      wrappedCode: template?.wrappedCode ? JSON.parse(template.wrappedCode) : '',
+      submitWrapperCode: template?.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '',
+      runWrapperCode : template?.runWrapperCode ? JSON.parse(template.runWrapperCode) : '',
       templateCodeId: template?.Id || ''
     });
   }
@@ -190,36 +195,59 @@ const handleReset = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-6"
           >
-            {/* Solution Class Editor */}
+            {/* Template code Editor */}
             <Card>
               <CardHeader className="">
-                <CardTitle className="text-base font-semibold">Wrapped Code</CardTitle>
+                <CardTitle className="text-base font-semibold">Wrapper Codes</CardTitle>
               </CardHeader>
               <CardContent>
-                <FormField
-                  control={form.control}
-                  name="wrappedCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className=" rounded-lg overflow-hidden">
-                          <MonacoEditor
-                            value={field.value}
-                            onChange={field.onChange}
-                            language={selectedLanguage}
-                            height="650px"
-                            theme="vs-dark"
-                            fontSize={16}
-                          />
-                        </div>
-                      </FormControl>
-                        <FormDescription>
-                        This template provides a structured code scaffold, including the main function, helper utilities, and a class wrapper to encapsulate user-defined logic.
-                        </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex flex-col gap-6 md:flex-row">
+                  {/* Submit Wrapper */}
+                  <FormField
+                    control={form.control}
+                    name="submitWrapperCode"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Wrapper for submit code</FormLabel>
+                        <FormControl>
+                          <div className="rounded-lg overflow-hidden">
+                            <MonacoEditor
+                              value={field.value}
+                              onChange={field.onChange}
+                              language={selectedLanguage}
+                              height="650px"
+                              theme="vs-dark"
+                              fontSize={16}
+                            />
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Run Wrapper */}
+                  <FormField
+                    control={form.control}
+                    name="runWrapperCode"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Wrapper for run code</FormLabel>
+                        <FormControl>
+                          <div className="rounded-lg overflow-hidden">
+                            <MonacoEditor
+                              value={field.value}
+                              onChange={field.onChange}
+                              language={selectedLanguage}
+                              height="650px"
+                              theme="vs-dark"
+                              fontSize={16}
+                            />
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
             <Separator />

@@ -24,20 +24,13 @@ export interface IExample {
 export interface ITemplateCode {
     Id : string;
     language : Language,
-    wrappedCode : string;
+    submitWrapperCode : string;
+    runWrapperCode : string;
 }
 
 export interface ITestCaseCollection {
     run : ITestCase[];
     submit : ITestCase[];
-}
-
-export interface ISolutionCode {
-    Id : string;
-    language : Language;
-    code : string;
-    executionTime : number;
-    memoryTaken : number;
 }
 
 interface Stats {
@@ -55,7 +48,20 @@ interface FailedTestCase {
     output: any; // Can be string for error, or array for wrong answer
     expectedOutput: any;
 }
+
+interface TestResult {
+    Id?: string;
+    index : string;
+    input : string;
+    output : any;
+    expectedOutput: string;
+    passed: boolean
+    executionTimeMs: number
+    memoryMB: number
+}
+
 export interface ExecutionResult {
     stats?: Stats | undefined;
     failedTestCase?: FailedTestCase | undefined;
+    testResults? : TestResult[]
 }

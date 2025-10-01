@@ -17,7 +17,7 @@ export interface SubmitResultRequest {
 export interface RunProblemRequest {
     problemId : string;
     payload : {
-        language : Language;
+        language : string;
         userCode : string;
         testCases : ITestCase[];
     }

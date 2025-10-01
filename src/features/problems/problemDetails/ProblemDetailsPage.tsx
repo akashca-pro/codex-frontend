@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Allotment } from "allotment"
 import "allotment/dist/style.css"
 import { toast } from "sonner"
@@ -11,28 +11,10 @@ import IDEToolbar from "@/features/CodePad/components/Toolbar"
 import { usePublicGetProblemDetailsQuery } from '@/apis/problem/public'
 import { DifficultyMap, LanguageMap } from "@/mappers/problem"
 import ProblemDetailsPageSkeleton from "./components/LoadingSkeleton"
+import { useLazyRunResultQuery } from '@/apis/problem/public'
+import { useRunProblemMutation } from '@/apis/problem/public'
+import type { ExecutionResult, ITestCase } from "@/types/problem-api-types/fieldTypes"
 
-
-const sampleTestCases = [
-  {
-    id: "1",
-    input: "[2,7,11,15], 9",
-    output: "",
-    expected: "[0,1]",
-  },
-  {
-    id: "2",
-    input: "[3,2,4], 6",
-    output: "",
-    expected: "[1,2]",
-  },
-  {
-    id: "3",
-    input: "[3,3], 6",
-    output: "",
-    expected: "[0,1]",
-  },
-]
 
 const initialProblemDetails = {
   Id : '',
@@ -60,8 +42,6 @@ const initialProblemDetails = {
   }] 
 }
 
-
-
 export default function ProblemDetails() {
   const { problemId } = useParams()
   const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
@@ -76,8 +56,12 @@ export default function ProblemDetails() {
   const [showNotes, setShowNotes] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [testResults, setTestResults] = useState<any[]>([])
-  const [consoleOutput, setConsoleOutput] = useState("")
+  const [testResults, setTestResults] = useState<ExecutionResult | undefined>(undefined)
+  const [tempId, setTempId] = useState('');
+  const [stdErr,setStdErr] = useState('');
+  const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
+  const [runProblem] = useRunProblemMutation()
+  const [triggerResultQuery, { isFetching }] = useLazyRunResultQuery();
 
 
 useEffect(() => {
@@ -100,14 +84,53 @@ useEffect(() => {
     };
 
     setProblemDetails(mappedDetails);
+    setTestCases(mappedDetails.run)
 
     const starterCode = mappedDetails.starterCodes.find(s => s.language === language) || mappedDetails.starterCodes[0];
     setCode(starterCode?.code || "");
   }
 }, [data, language]);
 
+useEffect(() => {
+  if (!tempId || !isRunning) return;
 
-  console.log(problemDetails)
+  let intervalId: NodeJS.Timeout;
+  const start = Date.now();
+
+  intervalId = setInterval(async () => {
+    try {
+      const result = await triggerResultQuery({ tempId, problemId: problemDetails.Id }).unwrap();
+
+      if (result.success && result.data !== null) {
+        console.log(result)
+        setTestResults(result.data.executionResult) 
+        setIsRunning(false);
+        setTempId("");
+        clearInterval(intervalId);
+      } else if (!result.success) {
+        setIsRunning(false);
+        setTempId("");
+        clearInterval(intervalId);
+      } else if (Date.now() - start > 10000) {
+        setIsRunning(false);
+        setTempId("");
+        clearInterval(intervalId);
+      }
+    } catch (err) {
+      setIsRunning(false);
+      setTempId("");
+      clearInterval(intervalId);
+    }
+  }, 500);
+
+  return () => clearInterval(intervalId);
+}, [tempId, isRunning, triggerResultQuery, problemDetails.Id]);
+
+useEffect(() => {
+  if (!testResults) return;
+  console.log("Updated testResults:", testResults);
+  // Do anything else you need when testResults updates
+}, [testResults]);
 
 const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
@@ -115,28 +138,44 @@ const handleLanguageChange = (newLanguage: string) => {
     setCode(selectedStarterCode?.code || code);
   }
 
-  const handleRun = useCallback(async () => {
-    setIsRunning(true)
-    setConsoleOutput("Running code...")
+  const handleRun = async () => {
+    console.log(testCases)
+    if(!code)return;
+    setTestResults(undefined);
+    setIsRunning(true);
+    setTempId('');
+    const payload = {
+        language,
+        userCode : code,
+        testCases : testCases!
+    }
+    try {
+      const res = await runProblem({problemId : problemDetails.Id, payload}).unwrap();
+      if (res?.data?.tempId) {
+        setTempId(res.data.tempId); 
+      } else {
+        throw new Error("Failed to get a valid execution ID.");
+      }
+      setTempId(res.data.tempId);
+    } catch (error : any) {
+      const apiErrors = error?.data?.error
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          description : error?.data?.message
+      })
+      setIsRunning(false); 
+    }
 
-    // Simulate code execution
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
 
-    const mockResults = sampleTestCases.map((testCase, index) => ({
-      ...testCase,
-      output: index === 0 ? "[0,1]" : index === 1 ? "[1,2]" : "[0,1]",
-      passed: true,
-      executionTime: Math.floor(Math.random() * 50) + 10,
-    }))
-
-    setTestResults(mockResults)
-    setConsoleOutput("Code executed successfully!\nAll test cases passed.")
-    setIsRunning(false)
-
-    toast.success("Code executed successfully!")
-  }, [])
-
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true)
 
     // Simulate submission
@@ -144,16 +183,15 @@ const handleLanguageChange = (newLanguage: string) => {
 
     setIsSubmitting(false)
     toast.success("Solution submitted successfully!")
-  }, [])
+  }
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     setCode(code)
-    setTestResults([])
-    setConsoleOutput("")
+    setTestResults(undefined)
     toast.info("Editor code has been reset!",{
       position : 'bottom-right'
     })
-  }, [language])
+  }
 
   if(isLoading) return(<ProblemDetailsPageSkeleton/>)
 
@@ -175,7 +213,7 @@ const handleLanguageChange = (newLanguage: string) => {
       />
     <Allotment >
       {/* Problem Details */}
-      <Allotment.Pane minSize={300} preferredSize="27%">
+      <Allotment.Pane minSize={300} preferredSize="35%">
         <div className="h-full overflow-auto p-4">
           <ProblemDetailsComponent problem={problemDetails} />
         </div>
@@ -199,17 +237,17 @@ const handleLanguageChange = (newLanguage: string) => {
           </Allotment.Pane>
 
           <Allotment.Pane minSize={100} preferredSize="40%">
-            <div className="h-full overflow-auto">
-              <TestCasePanel
-                testCases={problemDetails.run}
+            <div className="h-full w-full">
+              {testCases && <TestCasePanel
+                testCases={testCases}
+                onTestCasesChange={setTestCases}
                 onRun={handleRun}
                 onSubmit={handleSubmit}
                 onReset={handleReset}
                 isRunning={isRunning}
                 isSubmitting={isSubmitting}
-                results={testResults}
-                consoleOutput={consoleOutput}
-              />
+                runResult={testResults}
+              />}
             </div>
           </Allotment.Pane>
         </Allotment>

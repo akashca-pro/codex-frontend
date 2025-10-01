@@ -170,6 +170,7 @@ export default function MonacoEditor({
         onMount={handleEditorDidMount}
         loading={null}
         options={{
+          wordWrap: "off", 
           readOnly,
           contextmenu: true,
           "semanticHighlighting.enabled" : true
