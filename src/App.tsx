@@ -23,6 +23,7 @@ import UsersList from "./features/admin/users/UsersList";
 import NotFoundPage from "./components/NotFound";
 import AdminProfile from "./features/admin/profile/AdminProfile";
 import ForgotPasswordPage from "./features/auth/user/forgotPassword/ForgotPasswordPage";
+import CollaborationPage from "./features/collaboration/CollaborationPage";
 
 const App = () => {
   return (
@@ -75,6 +76,7 @@ const App = () => {
           <Route path="dashboard" element={<UserDashboard/>} />
           <Route path="leaderboard" element={<Leaderboard/>} />
           <Route path="profile" element={<UserProfile/>} />
+          <Route path="collab" element={<CollaborationPage/>} />
         </Route>
 
         {/* Admin routes */}

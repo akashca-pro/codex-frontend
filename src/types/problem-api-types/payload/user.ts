@@ -1,4 +1,4 @@
-import type { ITestCase, Language } from "../fieldTypes";
+import type { ITestCase } from "../fieldTypes";
 
 export interface SubmitProblemRequest {
     problemId : string;

@@ -62,6 +62,7 @@ export default function ProblemDetails() {
   const [tempId, setTempId] = useState('');
   const [submissionId, setSubmissionId] = useState('');
   const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
+  const [hasSubmissionResults, setHasSubmissionResults] = useState(false);
 
   const [submitProblem] = useSubmitProblemMutation();
   const [runProblem] = useRunProblemMutation()
@@ -101,7 +102,6 @@ useEffect(() => {
 }, [data, language]);
 
 // Fetching run results
-
 usePolling({
   id: tempId,
   isActive: isRunning && !!tempId,
@@ -133,12 +133,20 @@ usePolling({
     setTestResults(executionResult)
     setIsRunning(false)
     setSubmissionId("")
+    setHasSubmissionResults(true);
   },
   onError: () => {
     setIsRunning(false)
     setSubmissionId("")
   }
 })
+
+useEffect(() => {
+  if (hasSubmissionResults) {
+    setActiveTab("submissions");   
+    setHasSubmissionResults(false); 
+  }
+}, [hasSubmissionResults]);
 
 const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);

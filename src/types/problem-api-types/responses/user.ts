@@ -19,7 +19,7 @@ export interface RunResultResponse {
     executionResult : ExecutionResult;
 }
 
-interface Submission {
+export interface Submission {
     Id : string;
     status : string;
     language : Language;
@@ -30,4 +30,8 @@ export interface listProblemSpecificSubmissionsResponse {
     submissions : Submission[];
     nextCursor : string;
     hasMore : boolean;
+}
+
+export interface CreateCollabSessionResponse {
+    inviteToken : string;
 }

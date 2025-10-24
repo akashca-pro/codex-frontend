@@ -45,8 +45,6 @@ export default function IDEToolbar({
   onCollaboration,
   fontSize,
   onFontSizeChange,
-  intelliSense,
-  onToggleIntelliSense,
   goBackLink,
   editorTheme,
   onThemeChange,

@@ -1,4 +1,4 @@
-import { Bell, Moon, Menu, X } from "lucide-react"
+import { Moon, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -17,8 +17,9 @@ import { toast } from "sonner"
 import { useAuthActions } from '@/hooks/useDispatch'
 import { useSelect } from '@/hooks/useSelect'
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
-import { useState } from "react"
+import { useState } from "react" 
 import TypewriterTitle from "../features/landing/components/TypewriterTitle"
+import CollabDialog from "@/features/collaboration/CollabDialog" 
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", protected : true },
@@ -26,6 +27,7 @@ const navItems = [
   { id: "users", label: "Users", protected : true },
   { id: "leaderboard", label: "Leaderboard", protected : true },
   { id : "codepad", label : "CodePad", protected : false},
+  { id : "collaborate", label : "Collaborate", protected : true}
 ]
 
 export default function Navbar() {
@@ -36,6 +38,7 @@ export default function Navbar() {
   const [adminLogout] = useAdminLogoutMutation();
   const { logout: reduxLogout } = useAuthActions()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isCollabDialogOpen, setIsCollabDialogOpen] = useState(false)
 
   const segments = location.pathname.split("/").filter(Boolean); 
   const currentPath = segments.length === 0 
@@ -45,7 +48,7 @@ export default function Navbar() {
   const role = user && user.details?.role.toLowerCase();
   
   const publicRoutes = ["problems","codepad"];
-  const protectedRoutes = ["dashboard", "profile","leaderboard"];
+  const protectedRoutes = ["dashboard", "profile","leaderboard"]; 
   const adminOnlyRoutes = ["problems","users"]
 
   const visibleNavitems = navItems.filter((item) => {
@@ -116,9 +119,13 @@ export default function Navbar() {
       {/* Desktop Navigation */}
     <div className="absolute left-1/2 -translate-x-1/2 hidden md:block">
       <Tabs
-        value={currentPath}
+        value={currentPath === 'collaborate' ? '' : currentPath}
         onValueChange={(val) => {
-          navigate(getPath(val));
+          if (val === 'collaborate') {
+            setIsCollabDialogOpen(true);
+          } else {
+            navigate(getPath(val));
+          }
         }}
         className="hidden md:block"
       >
@@ -141,12 +148,6 @@ export default function Navbar() {
       {user.isAuthenticated ? (
         <>
           {/* Notifications */}
-          {/* <Button variant="ghost" size="sm" className="relative hidden sm:flex">
-            <Bell className="w-5 h-5" />
-            <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs bg-destructive">
-              3
-            </Badge>
-          </Button> */}
 
           {/* Theme Toggle */}
           <Button variant="ghost" size="sm" className="hidden sm:flex">
@@ -226,27 +227,36 @@ export default function Navbar() {
     {mobileMenuOpen && (
       <div className="md:hidden absolute top-16 left-0 w-full bg-black/90 backdrop-blur-md z-50">
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {visibleNavitems.map((item) => (
-            <Link
-              key={item.id}
-              to={getPath(item.id)}
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-gray-300 hover:text-orange-500 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+          
+          {visibleNavitems.map((item) => {
+            if (item.id === 'collaborate') {
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setIsCollabDialogOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-gray-300 hover:text-orange-500 block px-3 py-2 rounded-md text-base font-medium transition-colors text-left w-full"
+                >
+                  {item.label}
+                </button>
+              );
+            }
+            return (
+              <Link
+                key={item.id}
+                to={getPath(item.id)}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-gray-300 hover:text-orange-500 block px-3 py-2 rounded-md text-base font-medium transition-colors"
+              >
+                {item.label}
+              </Link>
+            );
+          })}
 
           {user.isAuthenticated ? (
             <div className="pt-4 pb-3 border-t border-gray-800 space-y-3">
-              {/* Notifications */}
-              {/* <Button variant="ghost" size="sm" className="w-full justify-start relative">
-                <Bell className="w-5 h-5 mr-2" />
-                Notifications
-                <Badge className="absolute top-1 right-2 w-5 h-5 p-0 flex items-center justify-center text-xs bg-destructive">
-                  3
-                </Badge>
-              </Button> */}
 
               {/* Theme Toggle */}
               <Button variant="ghost" size="sm" className="w-full justify-start">
@@ -316,6 +326,11 @@ export default function Navbar() {
       </div>
     )}
     </header>
+
+    <CollabDialog 
+      isOpen={isCollabDialogOpen} 
+      onClose={() => setIsCollabDialogOpen(false)} 
+    />
     </div>
   )
 }
