@@ -7,5 +7,6 @@ export const useSelect = () => {
     email: useSelector((state: RootState) => state.userEmail),
     checkOAuth : useSelector((state : RootState) => state.oAuthCheck),
     codePad : useSelector((state : RootState) => state.codePad),
+    collabSession : useSelector((state : RootState) => state.collab),
   };
 };

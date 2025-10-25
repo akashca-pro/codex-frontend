@@ -27,32 +27,28 @@ const CollaborationContext = createContext<CollaborationContextProps>({
 // Define the props required by the provider component
 interface CollaborationProviderProps {
   children: ReactNode; // Standard React prop for component children
-  inviteToken: string; // The token obtained from the backend to join/auth the session
+  inviteToken: string; // The token obtained from Redux or URL
   currentUser: { id: string; name: string; color: string }; // Info about the local user
 }
-
 // Define your backend URL (use environment variable for flexibility)
-const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL || 'http://localhost:3001'; // Default for local dev
+const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL || 'http://localhost:5001'; // Default for local dev
 
 export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   children,
   inviteToken,
   currentUser,
 }) => {
-  // State variables managed by the provider
-  const [doc, setDoc] = useState<Y.Doc | null>(null); // The shared Yjs document
-  const [awareness, setAwareness] = useState<Awareness | null>(null); // Yjs awareness state (cursors, selections)
-  const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null); // Session metadata from backend
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
-  const [socketInstance, setSocketInstance] = useState<Socket | null>(null); // The Socket.IO instance
-
+  const [doc, setDoc] = useState<Y.Doc | null>(null);
+  const [awareness, setAwareness] = useState<Awareness | null>(null);
+  const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
+  const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   // Memoize currentUser stable parts to prevent unnecessary effect re-runs if the parent object reference changes
   const stableCurrentUser = useMemo(() => ({
-      id: currentUser.id,
-      name: currentUser.name,
-      color: currentUser.color || '#30bced', // Default color if not provided
-  }), [currentUser.id, currentUser.name, currentUser.color]);
-
+        id: currentUser.id,
+        name: currentUser.name,
+        color: currentUser.color || '#30bced',
+    }), [currentUser.id, currentUser.name, currentUser.color]);
 
   // Main effect for handling connection, Yjs setup, and listeners
   useEffect(() => {

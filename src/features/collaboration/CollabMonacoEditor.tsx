@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, memo } from "react";
 import Editor, { type Monaco, type OnMount } from "@monaco-editor/react";
-import { Card } from "@/components/ui/card"; 
+import { Card } from "@/components/ui/card";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { MonacoThemes } from "@/utils/monacoThemes/index";
 import { registerMonacoTheme } from "@/utils/monacoThemes/registerMonacoThemes";
@@ -8,7 +8,7 @@ import { registerLanguages } from "@/utils/monacoThemes/registerLanguages";
 
 import { MonacoBinding } from 'y-monaco';
 import { useCollaboration } from "@/features/collaboration/CollaborationProvider";
-import { type Language } from '@/const/language.const';
+import { type Language } from '@/const/language.const'; 
 
 interface CollabEditorProps {
   // Config props (optional, defaults provided)
@@ -256,9 +256,6 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
         height="100%"
         language={currentLanguage} // Use dynamically determined language
         theme={theme}
-        // Value/onChange are controlled by the Yjs binding in this component
-        value={undefined} 
-        onChange={undefined}
         onMount={handleEditorDidMount}
         // Use the loading prop for the initial mount indicator
         loading={<div className="flex items-center justify-center h-full"><Loader2 className="h-5 w-5 animate-spin"/> Loading Editor...</div>} 

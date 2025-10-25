@@ -5,6 +5,7 @@ import authReducer from './slices/authSlice';
 import emailReducer from './slices/emailSlice'
 import codePadReducer from './slices/codepadSlice'
 import oAuthCheckReducer from './slices/oAuthSlice'
+import collabReducer from './slices/collabSlice'
 import { configureStore } from '@reduxjs/toolkit';
 import { combineReducers } from 'redux'
 
@@ -12,7 +13,7 @@ import { combineReducers } from 'redux'
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth','codePad'], 
+  whitelist: ['auth','codePad','collab'], 
 }
 
 const rootReducer = combineReducers({
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   userEmail: emailReducer,
   oAuthCheck: oAuthCheckReducer,
   codePad : codePadReducer,
+  collab : collabReducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

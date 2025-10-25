@@ -1,9 +1,10 @@
 import { useDispatch } from "react-redux";
 import { clearUser, setUser } from '@/store/slices/authSlice'
-import type { User } from "@/store/slices/authSlice";
+import type { User } from "@/store/slices/authSlice"; 
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 import { closeTab, createFile, deleteFile, openTab, renameFile, setActiveFile, unsetActiveFile, updateContent } from "@/store/slices/codepadSlice";
+import { endSession, initSession, type CollabSessionState } from "@/store/slices/collabSlice";
 
 export const useUserEmailActions = () => {
   const dispatch = useDispatch();
@@ -40,5 +41,13 @@ export const useCodePadActions = () => {
     deleteFile : (id : string) => dispatch(deleteFile(id)),
     setActiveFile : (id : string) => dispatch(setActiveFile(id)),
     unsetActiveFile : () => dispatch(unsetActiveFile()), 
+  }
+}
+
+export const useCollabSessionActions = () => {
+  const dispatch = useDispatch();
+  return {
+    initSession : (payload : CollabSessionState) => dispatch(initSession(payload)),
+    endSession : () => dispatch(endSession())
   }
 }
