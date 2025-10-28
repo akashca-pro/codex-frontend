@@ -23,7 +23,14 @@ const adminAuthApiSlice = apiSlice.injectEndpoints({
         }),
         adminCheckAuth : builder.query<ApiSuccess<User>,void>({
             query : () => `${preUrl}check-auth`
-        })
+        }),
+        adminRefreshToken : builder.mutation({
+            query : () => ({
+                url : `${preUrl}refreshToken`,
+                method : 'POST',
+            }),
+            invalidatesTags : ['admin']
+        }),
      })
 })
 
@@ -31,7 +38,8 @@ export const {
 
     useAdminLoginMutation,
     useAdminLogoutMutation,
-    useAdminCheckAuthQuery
+    useAdminCheckAuthQuery,
+    useAdminRefreshTokenMutation
 
 } = adminAuthApiSlice
 

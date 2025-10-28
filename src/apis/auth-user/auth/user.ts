@@ -77,6 +77,13 @@ const userAuthApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags : ['user']
         }),
+        userRefreshToken : builder.mutation({
+            query : () => ({
+                url : `${preUrl}refresh-token`,
+                method : 'POST'
+            }),
+            invalidatesTags : ['user']
+        })
     })
 })
 
@@ -91,6 +98,6 @@ export const {
     useForgotPassResendOtpMutation,
     useUserPasswordChangeMutation,
     useUserLogoutMutation,
-    
+    useUserRefreshTokenMutation
 
 } = userAuthApiSlice

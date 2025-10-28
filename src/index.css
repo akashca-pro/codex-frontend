@@ -114,3 +114,23 @@
   font-size: 11px;
   z-index: 50;
 }
+
+/* Base styles for custom cursor decorations used in CollabMonacoEditor */
+.codex-remote-cursor-label {
+  background: #111827;
+  color: #fff;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 0 6px;
+}
+.codex-remote-cursor-indicator::before {
+  content: "";
+  position: absolute;
+  border-left: 2px solid currentColor;
+  top: 0;
+  bottom: 0;
+}
+.codex-remote-selection {
+  background-color: rgba(56, 189, 248, 0.2);
+}

@@ -8,8 +8,6 @@ import { registerLanguages } from "@/utils/monacoThemes/registerLanguages";
 import { MonacoBinding } from 'y-monaco';
 import { useCollaboration } from "@/features/collaboration/components/CollaborationProvider";
 import { type Language } from '@/const/language.const';
-// Note: y-monaco's CSS is not available via import in this package build.
-// We provide minimal styles in src/index.css to ensure visibility.
 
 interface CollabEditorProps {
   language?: Language | string;
@@ -17,13 +15,6 @@ interface CollabEditorProps {
   fontSize?: number;
   intelliSense?: boolean;
 }
-interface UserInfo {
-  id: string;
-  name: string;
-  color: string;
-}
-// Removed manual cursor/selection state types; y-monaco manages these internally
-// Removed AwarenessState; y-monaco tracks internal cursor/selection structures
 
 const SHARED_TEXT_KEY = 'shared-code';
 
@@ -277,6 +268,17 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
           }
         });
         decorationsRef.current = newMap;
+        // After decorations are applied, set the label text nodes explicitly
+        setTimeout(() => {
+          states.forEach((state, clientID) => {
+            if (!activeClientIDs.has(clientID)) return;
+            const name = state.user?.name || 'User';
+            try {
+              const nodes = document.querySelectorAll(`.codex-remote-cursor-label.client-${clientID}`);
+              nodes.forEach((n) => { (n as HTMLElement).textContent = ` ${name} `; });
+            } catch {}
+          });
+        }, 0);
       } catch {}
     };
 

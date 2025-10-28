@@ -4,7 +4,9 @@ import * as Y from 'yjs';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import { toast } from 'sonner';
 import { type Language } from '@/const/language.const'; // Adjust path
-
+import { useSelect } from '@/hooks/useSelect'
+import { useUserRefreshTokenMutation } from '@/apis/auth-user/auth/user'
+import { useAdminRefreshTokenMutation } from '@/apis/auth-user/auth/admin'
 
 // Define the shape of the context state
 interface CollaborationContextProps {
@@ -43,11 +45,13 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
+  const { user } = useSelect()
   const stableCurrentUser = useMemo(() => ({
         id: currentUser.id,
         name: currentUser.name,
         color: currentUser.color || '#30bced',
     }), [currentUser.id, currentUser.name, currentUser.color]);
+  const [refreshTokenApi] = user.details?.role === 'ADMIN' ? useAdminRefreshTokenMutation() : useUserRefreshTokenMutation()
 
   // Inject CSS custom properties and names for y-monaco cursors dynamically
   useEffect(() => {
@@ -70,9 +74,15 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
             .yRemoteSelection[data-yjs-client-id="${clientId}"] { --yRemoteSelectionColor: ${color}33; /* 0x33 alpha */ }
             .yRemoteSelectionHead[data-yjs-client-id="${clientId}"] { --yRemoteSelectionBorder: ${color}; }
           `;
-        }
 
-        // Try to set label text for the tag if present
+          // Apply colors for custom Monaco decorations used in CollabMonacoEditor
+          cssContent += `
+            .codex-remote-cursor.client-${clientId},
+            .codex-remote-cursor-indicator.client-${clientId},
+            .codex-remote-cursor-label.client-${clientId} { color: ${color}; }
+            .codex-remote-selection.client-${clientId} { background-color: ${color}33; }
+          `;
+        }
         try {
           const tag = document.querySelector(`.yRemoteCursorTag[data-yjs-client-id="${clientId}"]`);
           if (tag && name) {
@@ -140,22 +150,20 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     setDoc(newDoc);
     setAwareness(newAwareness);
 
-// --- AWARENESS LOGGER ---
-const awarenessChangeListener = (changes: any, origin: any) => {
-    console.log('Awareness Changed:', {
-        origin: origin,
-        // Log the *full state object* for each client
-        states: Array.from(newAwareness.getStates().entries()).map(([clientId, state]) => ({ clientId, state })),
-        added: changes.added,
-        updated: changes.updated,
-        removed: changes.removed,
-    });
-};
-    newAwareness.on('change', awarenessChangeListener); // Log ALL awareness changes
+// // --- AWARENESS LOGGER ---
+// const awarenessChangeListener = (changes: any, origin: any) => {
+//     console.log('Awareness Changed:', {
+//         origin: origin,
+//         // Log the *full state object* for each client
+//         states: Array.from(newAwareness.getStates().entries()).map(([clientId, state]) => ({ clientId, state })),
+//         added: changes.added,
+//         updated: changes.updated,
+//         removed: changes.removed,
+//     });
+// };
+    // newAwareness.on('change', awarenessChangeListener); // Log ALL awareness changes
     // --- END AWARENESS LOGGER ---
 
-    // --- WebSocket Connection ---
-    console.log(`Attempting to connect to ${SOCKET_URL} with token...`);
     const socket: Socket = io(SOCKET_URL, {
       auth: { token: inviteToken },
       withCredentials: true,
@@ -182,7 +190,22 @@ const awarenessChangeListener = (changes: any, origin: any) => {
         toast.error('Connection lost. Please check your network.');
       }
     };
-    const handleConnectError = (err: Error) => {
+    const handleConnectError = async (err: Error) => {
+      if(err.message === '409'){
+          console.log('Refreshing token....');
+          try {
+            await refreshTokenApi(null).unwrap();
+            if (typeof socket.auth === 'object') {
+              socket.auth.token = inviteToken;
+            } else {
+              socket.auth = { token: inviteToken };
+            }
+            socket.connect();
+          } catch (error) {
+            console.error("Token refresh failed:", error);
+            toast.error('Authentication failed');
+          }
+      }
       console.error('Socket connection error:', err.message, err);
       setConnectionStatus('error');
       let friendlyMessage = `Connection failed: ${err.message}`;
@@ -297,7 +320,7 @@ const awarenessChangeListener = (changes: any, origin: any) => {
       if (newDoc) newDoc.off('update', docUpdateHandler);
       if (newAwareness) {
         newAwareness.off('change', awarenessUpdateHandler);
-        newAwareness.off('change', awarenessChangeListener);
+        // newAwareness.off('change', awarenessChangeListener);
       }
       
       // Destroy Yjs objects to free memory

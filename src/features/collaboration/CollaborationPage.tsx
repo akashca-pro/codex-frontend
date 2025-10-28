@@ -99,9 +99,6 @@ const CollaborationPage: React.FC = () => {
     return <Navigate to="/login" />;
   }
 
-  // 2. Validate Token and User Object
-  // We must wait until BOTH the token is present AND we have built our
-  // currentUser object. This prevents the "unknown-user-id" bug.
   if (!finalToken || !currentUser) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -111,9 +108,6 @@ const CollaborationPage: React.FC = () => {
     );
   }
 
-  // 3. Render the Provider
-  // We are now 100% sure that finalToken exists and
-  // currentUser has a real, unique ID and a random color.
   return (
     <CollaborationProvider inviteToken={finalToken} currentUser={currentUser}>
       <CollaborationPageInternal />
