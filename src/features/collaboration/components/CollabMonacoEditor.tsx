@@ -5,10 +5,11 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { MonacoThemes } from "@/utils/monacoThemes/index";
 import { registerMonacoTheme } from "@/utils/monacoThemes/registerMonacoThemes";
 import { registerLanguages } from "@/utils/monacoThemes/registerLanguages";
-import * as monaco from "monaco-editor";
 import { MonacoBinding } from 'y-monaco';
 import { useCollaboration } from "@/features/collaboration/components/CollaborationProvider";
 import { type Language } from '@/const/language.const';
+// Note: y-monaco's CSS is not available via import in this package build.
+// We provide minimal styles in src/index.css to ensure visibility.
 
 interface CollabEditorProps {
   language?: Language | string;
@@ -21,18 +22,8 @@ interface UserInfo {
   name: string;
   color: string;
 }
-interface CursorState {
-    pos: number; // Yjs offset
-}
-interface SelectionState {
-    anchor: number; // Yjs offset
-    head: number; // Yjs offset
-}
-interface AwarenessState {
-    user?: UserInfo;
-    cursor?: CursorState;
-    selection?: SelectionState;
-}
+// Removed manual cursor/selection state types; y-monaco manages these internally
+// Removed AwarenessState; y-monaco tracks internal cursor/selection structures
 
 const SHARED_TEXT_KEY = 'shared-code';
 
@@ -46,7 +37,7 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
   const monacoRef = useRef<Monaco | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const [editorInstance, setEditorInstance] = useState<any | null>(null);
-  const decorationsRef = useRef<Map<number, string[]>>(new Map()); // Map clientID -> decoration IDs
+  const decorationsRef = useRef<Map<number, string[]>>(new Map());
 
   const { doc, awareness, connectionStatus, metadata, currentUser } = useCollaboration();
 
@@ -163,13 +154,6 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
         bindingRef.current.destroy();
         bindingRef.current = null;
       }
-      if (editorInstance) {
-          try {
-              const allDecs = Array.from(decorationsRef.current.values()).flat();
-              if (allDecs.length > 0) editorInstance.deltaDecorations(allDecs, []);
-          } catch(e) {}
-      }
-      decorationsRef.current.clear();
       return;
     }
 
@@ -183,21 +167,7 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
     console.log("Setting/Updating local user state:", currentUser);
     awareness.setLocalStateField('user', currentUser);  
 
-    const currentLocalState = awareness.getLocalState();
-        if (!currentLocalState?.cursor || !currentLocalState?.selection) {
-            const currentPosition = editor.getPosition();
-            if (currentPosition) {
-                const offset = monacoModel.getOffsetAt(currentPosition);
-                if (!currentLocalState?.cursor) {
-                    console.log("Setting initial local cursor state.");
-                    awareness.setLocalStateField('cursor', { pos: offset });
-                }
-                if (!currentLocalState?.selection) {
-                    console.log("Setting initial local selection state.");
-                    awareness.setLocalStateField('selection', { anchor: offset, head: offset });
-                }
-            }
-        }
+    // Let y-monaco manage cursor and selection awareness state
 
     if (bindingRef.current) {
       bindingRef.current.destroy();
@@ -208,182 +178,126 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
         yText,
         monacoModel,
         new Set([editor]),
-        null
+        awareness
       );
       console.log('Text Binding established.');
 
-// 3. Track Local Cursor Position -> Update Awareness
-    const cursorChangeDisposable = editor.onDidChangeCursorPosition((e) => {
-      if (awareness && currentUser && monacoModel) {
-        const offset = monacoModel.getOffsetAt(e.position);
-        awareness.setLocalStateField('cursor', { pos: offset } as CursorState);
-      }
-    });
-
-// 4. Track Local Selection -> Update Awareness
-    const selectionChangeDisposable = editor.onDidChangeCursorSelection((e) => {
-      if (awareness && currentUser && monacoModel) {
-        const anchor = monacoModel.getOffsetAt(e.selection.getStartPosition());
-        const head = monacoModel.getOffsetAt(e.selection.getEndPosition());
-        awareness.setLocalStateField('selection', { anchor, head } as SelectionState);
-      }
-    });
-
-// 5. Render Remote Cursors/Selections Function (Keep your robust version)
+    // Manual remote cursor/selection rendering for names and per-user colors
     const renderRemoteDecorations = () => {
-        if (!awareness || !editorInstance || !monacoModel) return;
+      if (!awareness || !editorInstance || !monacoRef.current) return;
+      const monaco = monacoRef.current;
+      const model = editorInstance.getModel();
+      if (!model) return;
 
-        const states = awareness.getStates() as Map<number, AwarenessState>;
-        const localClientID = awareness.clientID;
-        const decorationsToAdd: monaco.editor.IModelDeltaDecoration[] = [];
-        const clientIDsStillPresent = new Set<number>();
+      const states = awareness.getStates() as Map<number, any>;
+      const localClientID = awareness.clientID;
+      const decorationsToAdd: import('monaco-editor').editor.IModelDeltaDecoration[] = [];
+      const activeClientIDs = new Set<number>();
 
-        console.log("Rendering remote decorations. Current states:", Array.from(states.entries())); // Debug
-
-        states.forEach((state, clientID) => {
-            // Skip self and states missing essential user info OR cursor info
-            if (clientID === localClientID || !state.user?.name || !state.user?.color) { // Removed !state.cursor check here initially
-                return;
-            }
-            clientIDsStillPresent.add(clientID); // Mark client as active for cleanup logic
-
-            const user = state.user;
-            const cursorData = state.cursor; // May be undefined initially
-            const selectionData = state.selection; // May be undefined initially
-            const safeColor = user.color.startsWith('#') ? user.color.substring(1) : user.color;
-            const colorClass = `color-${safeColor || 'default'}`;
-
-            try {
-                // --- Render Cursor ---
-                // IMPORTANT: Check if cursorData and pos exist before trying to render
-                if (cursorData && typeof cursorData.pos === 'number') {
-                    if (cursorData.pos >= 0 && cursorData.pos <= monacoModel.getValueLength()) {
-                        const cursorPos = monacoModel.getPositionAt(cursorData.pos);
-                        if (cursorPos) {
-                            const cursorDecoration: monaco.editor.IModelDeltaDecoration = {
-                                range: new monaco.Range(cursorPos.lineNumber, cursorPos.column, cursorPos.lineNumber, cursorPos.column),
-                                options: {
-                                    stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                                    className: `remote-cursor client-${clientID}`,
-                                    beforeContentClassName: `remote-cursor-indicator ${colorClass}`,
-                                    afterContentClassName: `remote-cursor-label ${colorClass}`,
-                                    after: { content: ` ${user.name} ` },
-                                    isWholeLine: false,
-                                },
-                            };
-                            decorationsToAdd.push(cursorDecoration);
-                        }
-                    } else {
-                         console.warn(`Invalid cursor offset ${cursorData.pos} for client ${clientID}`);
-                    }
-                } else if (clientID !== localClientID) {
-                    // Log if a remote user's state is missing cursor data
-                    console.warn(`Cursor data missing for client ${clientID}`, state);
-                }
-
-
-                // --- Render Selection ---
-                // IMPORTANT: Check if selectionData exists before trying to render
-                if (selectionData && typeof selectionData.anchor === 'number' && typeof selectionData.head === 'number' && selectionData.anchor !== selectionData.head) {
-                   const startOffset = Math.min(selectionData.anchor, selectionData.head);
-                   const endOffset = Math.max(selectionData.anchor, selectionData.head);
-                   if (startOffset >= 0 && endOffset <= monacoModel.getValueLength()) {
-                       const startPos = monacoModel.getPositionAt(startOffset);
-                       const endPos = monacoModel.getPositionAt(endOffset);
-                       if (startPos && endPos) {
-                           const selectionDecoration: monaco.editor.IModelDeltaDecoration = {
-                               range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
-                               options: {
-                                   stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                                   className: `remote-selection ${colorClass}`,
-                                   zIndex: 5,
-                               },
-                           };
-                           decorationsToAdd.push(selectionDecoration);
-                       }
-                   } else {
-                        console.warn(`Invalid selection offsets for client ${clientID}:`, selectionData);
-                   }
-                }
-            } catch (error) {
-                console.error(`Error rendering decorations for client ${clientID}:`, error, state);
-            }
-        });
-
-        // --- Apply Decorations ---
-        const decorationIDsToRemove: string[] = [];
-        decorationsRef.current.forEach((ids, clientID) => {
-            if (!clientIDsStillPresent.has(clientID)) { // Remove if client is no longer in the current 'states' map
-                decorationIDsToRemove.push(...ids);
-            }
-        });
+      states.forEach((state, clientID) => {
+        if (clientID === localClientID) return; // skip self
+        const user = state.user;
+        const cursor = state.cursor;
+        const selection = state.selection;
+        if (!user) return;
+        activeClientIDs.add(clientID);
 
         try {
-            const newDecorationIDsMap = new Map<number, string[]>();
-            editorInstance.changeDecorations(changeAccessor => {
-                decorationIDsToRemove.forEach(id => changeAccessor.removeDecoration(id));
-                const addedIDs = changeAccessor.deltaDecorations([], decorationsToAdd);
+          if (cursor && typeof cursor.pos === 'number' && cursor.pos >= 0 && cursor.pos <= model.getValueLength()) {
+            const pos = model.getPositionAt(cursor.pos);
+            if (pos) {
+              decorationsToAdd.push({
+                range: new (monaco as any).Range(pos.lineNumber, pos.column, pos.lineNumber, pos.column),
+                options: {
+                  stickiness: (monaco as any).editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                  className: `codex-remote-cursor client-${clientID}`,
+                  beforeContentClassName: `codex-remote-cursor-indicator client-${clientID}`,
+                  afterContentClassName: `codex-remote-cursor-label client-${clientID}`,
+                  // In supported monaco versions, 'after' can set inline content
+                  // @ts-ignore
+                  after: { content: ` ${user.name || 'User'} ` },
+                  isWholeLine: false,
+                },
+              });
+            }
+          }
 
-                // Map added IDs back to client IDs
-                let addedIdIndex = 0;
-                states.forEach((state, clientID) => {
-                    if (!clientIDsStillPresent.has(clientID)) return;
-                    const clientDecorations: string[] = [];
-                    let expectedDecorations = 0;
-                    if (state.cursor && typeof state.cursor.pos === 'number') expectedDecorations++;
-                    if (state.selection && typeof state.selection.anchor === 'number' && typeof state.selection.head === 'number' && state.selection.anchor !== state.selection.head) expectedDecorations++;
-
-                    for (let i = 0; i < expectedDecorations; i++) {
-                        if (addedIdIndex < addedIDs.length) {
-                            clientDecorations.push(addedIDs[addedIdIndex++]);
-                        } else { break; }
-                    }
-                     if (clientDecorations.length > 0) {
-                        newDecorationIDsMap.set(clientID, clientDecorations);
-                     }
+          if (
+            selection &&
+            typeof selection.anchor === 'number' && typeof selection.head === 'number' &&
+            selection.anchor !== selection.head
+          ) {
+            const startOffset = Math.min(selection.anchor, selection.head);
+            const endOffset = Math.max(selection.anchor, selection.head);
+            if (startOffset >= 0 && endOffset <= model.getValueLength()) {
+              const start = model.getPositionAt(startOffset);
+              const end = model.getPositionAt(endOffset);
+              if (start && end) {
+                decorationsToAdd.push({
+                  range: new (monaco as any).Range(start.lineNumber, start.column, end.lineNumber, end.column),
+                  options: {
+                    stickiness: (monaco as any).editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                    className: `codex-remote-selection client-${clientID}`,
+                    zIndex: 5,
+                  },
                 });
-                 decorationsRef.current = newDecorationIDsMap;
-            });
-        } catch(error) {
-            console.error("Error applying decorations:", error);
-            const allOldIDs = Array.from(decorationsRef.current.values()).flat();
-            try { editorInstance.changeDecorations(acc => allOldIDs.forEach(id => acc.removeDecoration(id))); } catch (e) {}
-            decorationsRef.current.clear();
+              }
+            }
+          }
+        } catch (e) {
+          // ignore faulty state
         }
-    }; // End of renderRemoteDecorations
+      });
 
-// 6. Listen to Awareness changes -> Trigger Render
-    const awarenessChangeHandler = (changes: { added: number[], updated: number[], removed: number[] }, origin: any) => {
-        console.log("Awareness change detected, triggering renderRemoteDecorations. Origin:", origin, "Changes:", changes);
-        // Always re-render to ensure consistency, especially if initial states were incomplete
-        renderRemoteDecorations();
+      // Remove decorations for clients that disappeared
+      const removeIDs: string[] = [];
+      decorationsRef.current.forEach((ids, clientID) => {
+        if (!activeClientIDs.has(clientID)) removeIDs.push(...ids);
+      });
+
+      try {
+        const newMap = new Map<number, string[]>();
+        editorInstance.changeDecorations((accessor: any) => {
+          removeIDs.forEach(id => accessor.removeDecoration(id));
+          const added = accessor.deltaDecorations([], decorationsToAdd);
+
+          // Map back to clients in the same order
+          let idx = 0;
+          const statesArr = Array.from(states.entries());
+          for (const [clientID, state] of statesArr) {
+            if (!activeClientIDs.has(clientID)) continue;
+            const clientDecs: string[] = [];
+            let expected = 0;
+            if (state.cursor && typeof state.cursor.pos === 'number') expected++;
+            if (state.selection && typeof state.selection.anchor === 'number' && typeof state.selection.head === 'number' && state.selection.anchor !== state.selection.head) expected++;
+            for (let i = 0; i < expected; i++) {
+              if (idx < added.length) clientDecs.push(added[idx++]);
+            }
+            if (clientDecs.length) newMap.set(clientID, clientDecs);
+          }
+        });
+        decorationsRef.current = newMap;
+      } catch {}
     };
-    awareness.on('change', awarenessChangeHandler);
 
+    const onAwarenessChange = () => renderRemoteDecorations();
+    awareness.on('change', onAwarenessChange);
     // Initial render
-    console.log("Performing initial renderRemoteDecorations after setup.");
     renderRemoteDecorations();
 
 // --- Cleanup Function ---
-    return () => {
-          console.log('Cleaning up manual awareness handling...');
-          cursorChangeDisposable.dispose();
-          selectionChangeDisposable.dispose();
-          if (awareness) {
-             awareness.off('change', awarenessChangeHandler);
-          }
-          if (bindingRef.current) { bindingRef.current.destroy(); bindingRef.current = null; }
-          if (editorInstance) {
-            try { // Clear decorations
-                const allDecorationIDs = Array.from(decorationsRef.current.values()).flat();
-                if (allDecorationIDs.length > 0) {
-                   editorInstance.changeDecorations(acc => allDecorationIDs.forEach(id => acc.removeDecoration(id)));
-                }
-            } catch (error) { /* ignore */ }
-             editorInstance.updateOptions({ readOnly: true });
-          }
-          decorationsRef.current.clear();
-        };
+  return () => {
+    console.log('Cleaning up y-monaco binding...');
+    if (awareness) awareness.off('change', onAwarenessChange);
+    if (bindingRef.current) { bindingRef.current.destroy(); bindingRef.current = null; }
+    if (editorInstance) {
+      editorInstance.updateOptions({ readOnly: true });
+    }
+    try {
+      const ids = Array.from(decorationsRef.current.values()).flat();
+      if (ids.length) editorInstance?.changeDecorations((a: any) => ids.forEach(id => a.removeDecoration(id)));
+    } catch {}
+  };
   }, [doc, awareness, connectionStatus, editorInstance, currentUser]);
 
 useEffect(() => {

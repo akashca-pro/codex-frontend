@@ -93,53 +93,24 @@
   opacity: 1;
 }
 
-/* index.css - Styles for AUTOMATIC y-monaco cursors */
-
-/* Cursor head (vertical line) */
-.y-cursor-head {
-  position: absolute;
-  width: 2px !important;
-  height: 100%;
-  background-color: var(--user-color); /* Uses color from awareness */
-  opacity: 0.8;
-  pointer-events: none;
-  z-index: 1000; /* Ensure high z-index */
-  animation: cursor-blink 1s infinite;
+/* Ensure y-monaco decorations are visible above content */
+.yRemoteSelection {
+  background-color: var(--yRemoteSelectionColor, rgba(56, 189, 248, 0.20)) !important;
 }
-
-/* User name label */
-.y-cursor-name {
-  position: absolute;
-  top: -1.4em; /* Position above line */
-  left: 2px;
-  padding: 1px 5px;
-  background-color: var(--user-color); /* Uses color from awareness */
-  color: white; /* Make text visible */
-  font-size: 0.8em;
-  font-weight: 500;
-  font-family: sans-serif; /* Use a common font */
-  border-radius: 3px;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1001; /* Above cursor head */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+.yRemoteSelectionHead {
+  border-left: 2px solid var(--yRemoteSelectionBorder, #38bdf8) !important;
 }
-
-/* Text selection highlight */
-.y-selection {
-  background-color: var(--user-color); /* Uses color from awareness */
-  opacity: 0.3; /* Adjust as needed */
-  pointer-events: none;
-  z-index: -1; /* Render behind text */
+.yRemoteCursor {
+  border-left: 2px solid var(--yRemoteCursorColor, #38bdf8) !important;
+  position: relative;
+  z-index: 50;
 }
-
-/* Blinking animation */
-@keyframes cursor-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0.5; }
-}
-
-/* Ensure overlays are visible */
-.monaco-editor .view-overlays {
-    z-index: 10; /* Make sure overlays div is high enough */
+.yRemoteCursorTag {
+  background: var(--yRemoteCursorBg, #111827);
+  color: white;
+  border: 1px solid #374151;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  z-index: 50;
 }

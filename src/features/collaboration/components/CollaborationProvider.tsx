@@ -49,7 +49,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
         color: currentUser.color || '#30bced',
     }), [currentUser.id, currentUser.name, currentUser.color]);
 
-  // Inject CSS custom properties for cursor colors dynamically
+  // Inject CSS custom properties and names for y-monaco cursors dynamically
   useEffect(() => {
     if (!awareness) return;
 
@@ -60,14 +60,25 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
 
       let cssContent = '';
       states.forEach((state: any, clientId: number) => {
-        if (state.user?.color) {
+        const color: string | undefined = state.user?.color;
+        const name: string | undefined = state.user?.name;
+        if (color) {
+          // Apply per-client CSS vars for y-monaco decorations
           cssContent += `
-            .remote-cursor[data-client-id="${clientId}"] .remote-cursor-indicator::before,
-            .remote-cursor[data-client-id="${clientId}"] .remote-cursor-label {
-              --cursor-color: ${state.user.color};
-            }
+            .yRemoteCursor[data-yjs-client-id="${clientId}"] { --yRemoteCursorColor: ${color}; }
+            .yRemoteCursorTag[data-yjs-client-id="${clientId}"] { --yRemoteCursorBg: #111827; }
+            .yRemoteSelection[data-yjs-client-id="${clientId}"] { --yRemoteSelectionColor: ${color}33; /* 0x33 alpha */ }
+            .yRemoteSelectionHead[data-yjs-client-id="${clientId}"] { --yRemoteSelectionBorder: ${color}; }
           `;
         }
+
+        // Try to set label text for the tag if present
+        try {
+          const tag = document.querySelector(`.yRemoteCursorTag[data-yjs-client-id="${clientId}"]`);
+          if (tag && name) {
+            tag.textContent = name;
+          }
+        } catch {}
       });
 
       styleElement.textContent = cssContent;
@@ -252,11 +263,24 @@ const awarenessChangeListener = (changes: any, origin: any) => {
     };
     if (newAwareness) newAwareness.on('change', awarenessUpdateHandler); 
 
+    // --- Awareness heartbeat to prevent timeouts ---
+    const HEARTBEAT_MS = 15000;
+    const heartbeat = setInterval(() => {
+      try {
+        if (socket.connected && newAwareness) {
+          const update = encodeAwarenessUpdate(newAwareness, [newAwareness.clientID]);
+          socket.emit('awareness-update', update);
+        }
+      } catch {}
+    }, HEARTBEAT_MS);
+
+
     // --- Cleanup Function ---
     // This runs when the component unmounts or when dependencies change,
     // ensuring we disconnect sockets and remove listeners.
     return () => {
       console.log('Cleaning up CollaborationProvider...');
+      clearInterval(heartbeat);
       // Remove specific listeners to prevent potential memory leaks
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
