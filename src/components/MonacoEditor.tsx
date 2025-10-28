@@ -3,6 +3,9 @@ import Editor from "@monaco-editor/react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import { MonacoThemes } from "@/utils/monacoThemes/index"
+import { registerMonacoTheme } from "@/utils/monacoThemes/registerMonacoThemes"
+import { registerLanguages } from "@/utils/monacoThemes/registerLanguages"
 
 interface MonacoEditorProps {
   value: string
@@ -23,7 +26,7 @@ export default function MonacoEditor({
   height = "100%",
   readOnly = false,
   fontSize,
-  intelliSense
+  intelliSense = true
 }: MonacoEditorProps) {
   const editorRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -33,6 +36,7 @@ export default function MonacoEditor({
       editorRef.current.updateOptions({fontSize});
     }
   },[fontSize])
+
 
   useEffect(() => {
     if (editorRef.current) {
@@ -51,7 +55,19 @@ export default function MonacoEditor({
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor
-    setIsLoading(false)
+    setIsLoading(false)    
+    
+      Object.entries(MonacoThemes).forEach(([name, def]) => {
+        registerMonacoTheme(monaco, name, def);
+      });
+      monaco.editor.setTheme(theme);
+
+      registerLanguages(monaco);
+
+      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        noSemanticValidation: !intelliSense,
+        noSyntaxValidation: false,
+      })
 
     // Configure editor options
     editor.updateOptions({
@@ -92,49 +108,30 @@ export default function MonacoEditor({
       autoSurround: "languageDefined",
     })
 
-    monaco.editor.defineTheme("custom-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "comment", foreground: "6A9955", fontStyle: "italic" },
-        { token: "keyword", foreground: "C586C0" },
-        { token: "string", foreground: "CE9178" },
-        { token: "number", foreground: "B5CEA8" },
-      ],
-      colors: {
-        "editor.background": "#0d1117",
-        "editor.foreground": "#ffffff",
-        "editorCursor.foreground": "#ffcc00",
-        "editor.lineHighlightBackground": "#1e1e1e",
-        "editor.selectionBackground": "#264f78",
-        "editor.lineHighlightBorder": "#333333",
-        "editor.inactiveSelectionBackground": "#3a3d41",
-        "minimap.background": "#1e1e1e",
-      },
-    });
 
-
-    monaco.editor.setTheme("custom-dark");
 
     // Configure TypeScript/JavaScript IntelliSense
     if (language === "typescript" || language === "javascript") {
-      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
         target: monaco.languages.typescript.ScriptTarget.ES2020,
         allowNonTsExtensions: true,
-        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-        module: monaco.languages.typescript.ModuleKind.CommonJS,
-        noEmit: true,
-        esModuleInterop: true,
-        jsx: monaco.languages.typescript.JsxEmit.React,
-        reactNamespace: "React",
         allowJs: true,
-        typeRoots: ["node_modules/@types"],
+        checkJs: false,
       })
 
-      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: !intelliSense,
         noSyntaxValidation: false,
       })
+
+      // Add global type definitions for better IntelliSense
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(`
+        declare const console: {
+          log(...args: any[]): void;
+          error(...args: any[]): void;
+          warn(...args: any[]): void;
+        };
+      `, 'ts:console.d.ts');
     }
 
     // Auto-focus the editor
@@ -146,6 +143,7 @@ export default function MonacoEditor({
       onChange(value)
     }
   }
+
 
   return (
     <Card className="relative h-full overflow-hidden border-gray-800 bg-card/50 backdrop-blur-sm">
@@ -172,8 +170,10 @@ export default function MonacoEditor({
         onMount={handleEditorDidMount}
         loading={null}
         options={{
+          wordWrap: "off", 
           readOnly,
           contextmenu: true,
+          "semanticHighlighting.enabled" : true
         }}
       />
     </Card>

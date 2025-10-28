@@ -1,0 +1,60 @@
+/* cursor-styles.css */
+
+/* Vertical line for the cursor */
+.remote-cursor-indicator {
+  position: absolute;
+  width: 2px !important;
+  height: 100%; /* Matches line height */
+  background-color: currentColor; /* Inherits color via color-* class */
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 10;
+  animation: cursor-blink 1s infinite;
+}
+
+/* User name label */
+.remote-cursor-label {
+  position: absolute;
+  top: -1.4em; /* Position above the line */
+  left: 0px; /* Align with the line */
+  padding: 1px 5px;
+  background-color: currentColor; /* Inherits color via color-* class */
+  color: white; /* Text color */
+  font-size: 0.8em; /* Smaller font */
+  font-weight: 500;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 11; /* Above indicator */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  /* Crucial: Prevent label from affecting layout */
+  display: inline-block;
+  vertical-align: top;
+}
+
+/* Background highlight for selection */
+.remote-selection {
+  background-color: currentColor; /* Inherits color via color-* class */
+  opacity: 0.2; /* Lighter opacity for selection */
+  pointer-events: none;
+  z-index: 5; /* Below cursors */
+}
+
+/* --- Dynamic Color Classes --- */
+/* Add ALL colors from getRandomColor here */
+.color-30bced { color: #30bced !important; } /* Blue */
+.color-6eeb83 { color: #6eeb83 !important; } /* Green */
+.color-ffb347 { color: #ffb347 !important; } /* Orange */
+.color-a485e9 { color: #a485e9 !important; } /* Purple */
+.color-f47676 { color: #f47676 !important; } /* Red */
+.color-ff8855 { color: #ff8855 !important; } /* Dark Orange */
+.color-default { color: gray !important; }   /* Fallback color */
+
+
+/* Blinking animation */
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.5; }
+}
+
+/* Add !important to ensure styles override Monaco defaults if needed */

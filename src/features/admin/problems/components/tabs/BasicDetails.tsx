@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Edit, RotateCcw, Save } from "lucide-react"
 import FormField from "../FormField"
+import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
@@ -104,24 +105,26 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             refetchBasicDetails();
 
         } catch (error : any) {
-            if(error?.data?.error.length !== 0){
-            toast.dismiss(toastId);
-            error.data.error.map(e=>{
-                toast.error(`field : ${e.field}`,{
-                description : `Error : ${e.message}`
-                })
-            })
-            }
-            toast.error('Error',{
-                className : 'error-toast',
-                id : toastId,
-                description : error?.data?.message
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
         }
     }
 
     return (
-        <div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -131,7 +134,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             </CardHeader>
             <CardContent>
                 <form onSubmit={basicForm.handleSubmit(onBasicSubmit)} className="space-y-6">
-
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField label="Question ID" error={basicForm.formState.errors.questionId?.message} required>
                         <Input {...basicForm.register("questionId")} />
@@ -317,7 +320,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
 
             <StarterCodeModal
             open={starterModalOpen}
-            onOpenChange={setStarterModalOpen}
+            onClose={()=>setStarterModalOpen(false)}
             initialValue={modalValue}
             onSave={(value) => {
                 if (editingIndex !== null) {
@@ -328,7 +331,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                 basicForm.trigger('starterCodes')
             }}
             />
-        </div>
+        </motion.div>
     )
 }
 

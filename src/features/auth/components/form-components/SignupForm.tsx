@@ -63,12 +63,21 @@ export default function SignupForm() {
       setEmail({email : data.email})
       navigate('/signup/verify-otp')
     } catch (error : any) {
-      console.log(error);
-      toast.error('Error',{
-        className : 'error-toast',
-        id : toastId,
-        description : error?.data?.message
-      })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
     }
   }
 

@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Play, Download, Users, Settings, Moon, Sun, Zap } from "lucide-react"
+import { Download, Users, } from "lucide-react"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { Slider } from "@/components/ui/slider"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import Timer from "@/features/problems/problemDetails/components/Timer"
+import { MonacoThemes } from "@/utils/monacoThemes/index"
 
 interface Language {
   id: string
@@ -19,9 +20,8 @@ interface Language {
 
 const languages: Language[] = [
   { id: "javascript", name: "JavaScript", extension: "js", color: "bg-yellow-500" },
-  { id: "typescript", name: "TypeScript", extension: "ts", color: "bg-blue-500" },
   { id: "python", name: "Python", extension: "py", color: "bg-green-500" },
-  { id: "java", name: "Java", extension: "java", color: "bg-orange-500" },
+  { id: "go", name: "Golang", extension: "go", color: "bg-blue-500" },
 ]
 
 interface IDEToolbarProps {
@@ -34,6 +34,8 @@ interface IDEToolbarProps {
   intelliSense : boolean
   onToggleIntelliSense : () => void
   goBackLink : string;
+  editorTheme : string;
+  onThemeChange: (theme: string) => void
 }
 
 export default function IDEToolbar({
@@ -43,9 +45,9 @@ export default function IDEToolbar({
   onCollaboration,
   fontSize,
   onFontSizeChange,
-  intelliSense,
-  onToggleIntelliSense,
-  goBackLink
+  goBackLink,
+  editorTheme,
+  onThemeChange,
 }: IDEToolbarProps) {
   const navigate = useNavigate();
   const selectedLanguage = languages.find((lang) => lang.id === language)
@@ -54,6 +56,8 @@ export default function IDEToolbar({
     onCollaboration()
     toast.info("Real-time collaboration feature coming soon!")
   }
+
+  const themeKeys = Object.keys(MonacoThemes);
 
   return (
     <motion.div
@@ -74,6 +78,21 @@ export default function IDEToolbar({
           ← Back
         </Button>
         <Separator orientation="vertical" className="h-6" />
+
+        {/* Theme Selector */}
+        <Select value={editorTheme} onValueChange={onThemeChange}>
+          <SelectTrigger className="w-[160px] h-8 bg-background/50">
+            <SelectValue placeholder="Select Theme" />
+          </SelectTrigger>
+          <SelectContent className="border-none">
+            {themeKeys.map((theme) => (
+              <SelectItem key={theme} value={theme} className="truncate" >
+                {theme}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
       </div>
 
       {/* Right Section */}
@@ -91,7 +110,7 @@ export default function IDEToolbar({
               )}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-none">
             {languages.map((lang) => (
               <SelectItem key={lang.id} value={lang.id}>
                 <div className="flex items-center gap-2">
@@ -106,7 +125,7 @@ export default function IDEToolbar({
           </SelectContent>
         </Select>
           
-      <Button
+      {/* <Button
         variant="ghost"
         size="sm"
         onClick={onToggleIntelliSense}
@@ -115,7 +134,7 @@ export default function IDEToolbar({
         }`}
       >
         IntelliSense
-      </Button>
+      </Button> */}
 
           {/* Font slider */}
         <div className="flex items-center gap-2 w-52 px-1">

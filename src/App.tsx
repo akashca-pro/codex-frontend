@@ -13,14 +13,17 @@ import UserLayout from "./features/user/UserLayout";
 import UserDashboard from "./features/user/dashboard/DashboardPage";
 import { Toaster } from "sonner";
 import Problems from "./features/problems/problemList/ProblemsPage";
-import Settings from "./features/user/settings/SettingsPage";
 import Leaderboard from "./features/user/leaderboard/LeaderboardPage";
 import UserProfile from "./features/user/profile/UserProfile";
 import AdminProblems from "./features/admin/problems/AdminProblems";
-import AdminSettings from "./features/admin/settings/AdminSettings";
 import ProblemDetailsPage from "./features/admin/problems/AdminProblemDetails";
 import CodePad from "./features/CodePad/CodePad";
 import ProblemDetails from "./features/problems/problemDetails/ProblemDetailsPage";
+import UsersList from "./features/admin/users/UsersList";
+import NotFoundPage from "./components/NotFound";
+import AdminProfile from "./features/admin/profile/AdminProfile";
+import ForgotPasswordPage from "./features/auth/user/forgotPassword/ForgotPasswordPage";
+import CollaborationPage from "./features/collaboration/CollaborationPage";
 
 const App = () => {
   return (
@@ -45,6 +48,7 @@ const App = () => {
 
         <Route element={<AuthLayout/>}>
           <Route path="/login" element={<UserLoginPage />} />
+          <Route path="/login/forgot-password" element={<ForgotPasswordPage/>} />
           <Route path="/signup" element={<UserSignupPage />} />
           <Route path="/signup/verify-otp" element={<OtpVerificationPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -70,9 +74,9 @@ const App = () => {
           </AuthGuard>
         } >
           <Route path="dashboard" element={<UserDashboard/>} />
-          <Route path="settings" element={<Settings/>}/>
           <Route path="leaderboard" element={<Leaderboard/>} />
           <Route path="profile" element={<UserProfile/>} />
+          <Route path="collab" element={<CollaborationPage/>} />
         </Route>
 
         {/* Admin routes */}
@@ -86,10 +90,14 @@ const App = () => {
           <Route path="dashboard" element={<AdminDashboard/>} />
           <Route path="problems" element={<AdminProblems/>}/>
           <Route path="problems/:problemId" element={<ProblemDetailsPage/>}/>
-          <Route path="settings" element={<AdminSettings/>}/>
+          <Route path="users" element={<UsersList/>}/>
+          <Route path="profile" element={<AdminProfile/>}/>
         </Route>
 
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+
     </BrowserRouter>
   )
 }

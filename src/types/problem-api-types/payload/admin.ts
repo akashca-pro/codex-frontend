@@ -1,4 +1,4 @@
-import type { Difficulty, IExample, ISolutionCode, IStarterCode, ITestCase, TestCaseCollectionType } from "../fieldTypes";
+import type { Difficulty, IExample, IStarterCode, ITestCase, TestCaseCollectionType } from "../fieldTypes";
 
 export interface CreateProblemRequest {
     questionId : string;
@@ -45,26 +45,20 @@ export interface RemoveTestCaseRequest {
     testCaseCollectionType : TestCaseCollectionType
 }
 
-export interface AddSolutionCodeRequest {
-    problemId : string;
-    solutionCode : Omit<ISolutionCode,'Id'>
-}
-
-export interface UpdateSolutionCodeRequest {
-    problemId :string;
-    solutionCodeId : string;
-    updatedData : Omit<ISolutionCode,'Id'>
-}
-
-export interface RemoveSolutionCodeRequest {
-    problemId : string;
-    solutionCodeId : string;
-}
-
 export interface CheckQuestionIdAvailRequest {
     questionId : string;
 }
 
 export interface CheckTitleAvailRequest {
     title : string
+}
+
+export interface UpdateTemplateCodeRequest {
+    problemId : string;
+    templateCodeId : string;
+    updatedData : {
+        language? : string;
+        submitWrapperCode? : string;
+        runWrapperCode? : string;
+    }
 }

@@ -1,6 +1,6 @@
+import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
 import '@fontsource/jetbrains-mono';
 import App from './App'
 import { Provider } from 'react-redux';

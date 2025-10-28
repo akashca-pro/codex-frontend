@@ -3,7 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Activity, AlertCircle } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
+import { useAdminGrpcMetricsQuery } from '@/apis/auth-user/dashboard/admin/metrics'
 
 interface LatencyData {
   method: string
@@ -18,26 +28,27 @@ interface LatencyChartProps {
   isLoading: boolean
 }
 
-const mockLatencyData: LatencyData[] = [
-  { method: "GetUser", p50: 12, p90: 45, p99: 120, requestCount: 15420, errorRate: 0.2 },
-  { method: "CreateSubmission", p50: 89, p90: 234, p99: 567, requestCount: 8934, errorRate: 1.4 },
-  { method: "GetProblem", p50: 23, p90: 67, p99: 156, requestCount: 23456, errorRate: 0.1 },
-  { method: "StartBattle", p50: 156, p90: 345, p99: 789, requestCount: 2341, errorRate: 2.8 },
-  { method: "SubmitSolution", p50: 234, p90: 456, p99: 1234, requestCount: 12456, errorRate: 3.2 },
-]
-
-const chartData = [
-  { time: "00:00", p50: 45, p90: 120, p99: 280 },
-  { time: "04:00", p50: 52, p90: 134, p99: 310 },
-  { time: "08:00", p50: 78, p90: 189, p99: 445 },
-  { time: "12:00", p50: 123, p90: 267, p99: 567 },
-  { time: "16:00", p50: 89, p90: 234, p99: 456 },
-  { time: "20:00", p50: 67, p90: 178, p99: 389 },
-  { time: "24:00", p50: 45, p90: 120, p99: 280 },
-]
-
 export default function LatencyChart({ isLoading }: LatencyChartProps) {
-  if (isLoading) {
+  const { data: apiData, isFetching } = useAdminGrpcMetricsQuery(undefined)
+
+  const latencyData: LatencyData[] =
+    apiData?.data.map((item: any) => ({
+      method: item.method,
+      p50: parseFloat(item.p50),
+      p90: parseFloat(item.p90),
+      p99: parseFloat(item.p99),
+      requestCount: parseInt(item.requestCount, 10),
+      errorRate: parseFloat(item.errorRate),
+    })) ?? []
+
+  const chartData = latencyData.map(ld => ({
+    time: ld.method,
+    p50: ld.p50,
+    p90: ld.p90,
+    p99: ld.p99,
+  }))
+
+  if (isLoading || isFetching) {
     return (
       <Card>
         <CardHeader>
@@ -63,19 +74,25 @@ export default function LatencyChart({ isLoading }: LatencyChartProps) {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Card className="border border-gray-800 bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
             gRPC Latency Metrics
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Real-time latency monitoring across all microservices</p>
+          <p className="text-sm text-muted-foreground">
+            Real-time latency monitoring across all microservices
+          </p>
         </CardHeader>
         <CardContent>
           {/* Chart */}
           <div className="h-64 mb-6">
-            <ResponsiveContainer width="100%" height="100%" className=''>
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -100,7 +117,7 @@ export default function LatencyChart({ isLoading }: LatencyChartProps) {
 
           {/* Method Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {mockLatencyData.map((method) => (
+            {latencyData.map((method) => (
               <motion.div
                 key={method.method}
                 className="p-4 rounded-lg border border-gray-400 bg-muted/20"
@@ -108,7 +125,7 @@ export default function LatencyChart({ isLoading }: LatencyChartProps) {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">{method.method}</h4>
+                  <h4 className="font-medium text-sm truncate">{method.method}</h4>
                   {method.errorRate > 2 && <AlertCircle className="h-4 w-4 text-destructive" />}
                 </div>
 
@@ -131,7 +148,10 @@ export default function LatencyChart({ isLoading }: LatencyChartProps) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Error Rate:</span>
-                    <Badge variant={method.errorRate > 2 ? "destructive" : "secondary"} className="text-xs px-1 py-0">
+                    <Badge
+                      variant={method.errorRate > 2 ? "destructive" : "secondary"}
+                      className="text-xs px-1 py-0"
+                    >
                       {method.errorRate}%
                     </Badge>
                   </div>

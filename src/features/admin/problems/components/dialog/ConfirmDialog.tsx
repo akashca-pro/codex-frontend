@@ -12,7 +12,7 @@ import { AlertTriangle } from "lucide-react"
 
 interface ConfirmDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onClose: () => void
   title: string
   description: string
   confirmText?: string
@@ -24,7 +24,7 @@ interface ConfirmDialogProps {
 
 export default function ConfirmDialog({
   open,
-  onOpenChange,
+  onClose,
   title,
   description,
   confirmText = "Confirm",
@@ -33,8 +33,12 @@ export default function ConfirmDialog({
   isLoading = false,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md overflow-y-auto scrollbar-hide">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-md overflow-y-auto scrollbar-hide"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -49,7 +53,7 @@ export default function ConfirmDialog({
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button variant="outline" onClick={onClose} disabled={isLoading}>
               {cancelText}
             </Button>
             <Button className="bg-red-500 hover:bg-red-600" onClick={onConfirm} disabled={isLoading}>

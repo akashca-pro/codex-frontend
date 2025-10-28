@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const LanguageEnum = z.enum(["python", "javascript"])
+export const LanguageEnum = z.enum(["python", "javascript","go"])
 
 export interface TestCaseCollection {
   Run: { input: string; output: string }[]
@@ -84,6 +84,13 @@ export const SolutionSchema = z.object({
   memoryTaken: z.number().nonnegative(),
 })
 
+export const CodeSolutionSchema = z.object({
+  templateCodeId: z.string().optional(),  
+  language: LanguageEnum,
+  submitWrapperCode: z.string().min(1, "Submit wrapper code is required"),
+  runWrapperCode : z.string().min(1, "Run Wrapper code is required"),
+})
+
 
 export type CreateProblemSchemaType = z.infer<typeof CreateProblemSchema>
 export type BasicDetailsSchemaType = z.infer<typeof BasicDetailsSchema>
@@ -92,6 +99,5 @@ export type AddTestCaseSchemaType = z.infer<typeof AddTestCaseSchema>
 export type BulkUploadSchemaType = z.infer<typeof BulkUploadSchema>
 export type SolutionSchemaType = z.infer<typeof SolutionSchema>
 export type LanguageType = z.infer<typeof LanguageEnum>
-
-
+export type CodeSolutionFormData = z.infer<typeof CodeSolutionSchema>
 export type StarterCodeType = z.infer<typeof StarterCodeSchema>

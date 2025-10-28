@@ -34,7 +34,6 @@ export default function LoginForm() {
   })
 
   const onSubmit = async(values: LoginSchemaType) => {
-    console.log(values);
     const credentials = {
       ...values
     }
@@ -67,11 +66,21 @@ export default function LoginForm() {
         })
       }
     } catch (error : any) {
-      toast.error('Access Denied',{
-        className : 'error-toast',
-        id : toastId,
-        description : error?.data?.message
-      });
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+        toast.error('Error',{
+            className : 'error-toast',
+            id : toastId,
+            description : error?.data?.message
+        })
     }
   }
 

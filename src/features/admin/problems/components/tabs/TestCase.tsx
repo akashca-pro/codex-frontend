@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Toolbar from "../ToolBar"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Play, Plus, Trash2, Upload } from "lucide-react"
+import { Plus, Trash2, Upload } from "lucide-react"
 import DataTable from "../DataTable"
 import { useEffect, useState } from "react"
 import type { BulkUploadSchemaType, TestCaseItemSchemaType } from "../../../validation/schema"
@@ -12,6 +13,7 @@ import ConfirmDialog from "../dialog/ConfirmDialog"
 import { useAdminAddTestCaseMutation, useAdminRemoveTestCaseMutation, 
   useAdminBulkUploadTestCaseMutation } from '@/apis/problem/admin'
 import { toast } from "sonner"
+import type { BulkUploadTestCasesRequest } from "@/types/problem-api-types/payload/admin"
 
 const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
   const [addTestCaseOpen, setAddTestCaseOpen] = useState(false)
@@ -52,19 +54,21 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         id : toastId
       })
     } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
-        toast.error('Error',{
-            className : 'error-toast',
-            id : toastId,
-            description : error?.data?.message
         })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          id : toastId,
+          description : error?.data?.message
+      })
     }
   }
 
@@ -72,9 +76,9 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
     const toastId =  toast.loading('Adding testcase, please wait . . .',{
       className : 'info-toast',
     });
-    const payload = {
+    const payload : BulkUploadTestCasesRequest = {
       problemId,
-      testCases
+      testCases 
     }
     try {
       await bulkUploadTestCaseApi(payload).unwrap();
@@ -84,14 +88,16 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         id : toastId
       })
     } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -129,14 +135,16 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
           id : toastId
         })
       } catch (error : any) {
-        if(error?.data?.error.length !== 0){
-          toast.dismiss(toastId);
-          error.data.error.map(e=>{
-            toast.error(`field : ${e.field}`,{
-              description : `Error : ${e.message}`
-            })
+      const apiErrors = error?.data?.error
+      
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        toast.dismiss(toastId);
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
           })
-        }
+        })
+      }
         toast.error('Error',{
             className : 'error-toast',
             id : toastId,
@@ -185,16 +193,12 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
   ]
 
   return (
-    <div>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
             <CardTitle>Test Cases</CardTitle>
             <Toolbar>
-                {/* <Button variant="outline" size="sm" onClick={validateTestCases}>
-                <Play className="h-4 w-4 mr-2" />
-                Validate
-                </Button> */}
                 <Button variant="outline" size="sm" onClick={() => setBulkUploadOpen(true)}>
                 <Upload className="h-4 w-4 mr-2" />
                 Bulk Upload
@@ -222,19 +226,27 @@ const TestCase = ({ testCaseData, problemId, refetchBasicDetails }) => {
         </CardContent>
         </Card>
 
-      <AddTestCaseDialog open={addTestCaseOpen} onOpenChange={setAddTestCaseOpen} onSuccess={addTestCase} />
+      <AddTestCaseDialog 
+      open={addTestCaseOpen} 
+      onClose={()=>setAddTestCaseOpen(false)} 
+      onSuccess={addTestCase} 
+      />
 
-      <BulkUploadDialog open={bulkUploadOpen} onOpenChange={setBulkUploadOpen} onSuccess={bulkAddTestCases} />
+      <BulkUploadDialog 
+      open={bulkUploadOpen} 
+      onClose={()=>setBulkUploadOpen(false)} 
+      onSuccess={bulkAddTestCases} 
+      />
 
       <ConfirmDialog
         open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        onClose={()=>setDeleteDialogOpen(false)}
         title="Delete Test Case"
         description={`Are you sure you want to delete test case #${(deletingTestCase?.Id ?? '')}? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={confirmDelete}
       />
-    </div>
+    </motion.div>
   )
 }
 

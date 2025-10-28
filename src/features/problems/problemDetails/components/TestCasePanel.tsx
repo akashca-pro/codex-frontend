@@ -1,30 +1,41 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Play, Send, RotateCcw, ChevronUp, ChevronDown, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react"
+import {
+  Play,
+  Send,
+  RotateCcw,
+  Clock,
+  Cpu,
+} from "lucide-react"
+import TestCase from "./tabs/TestCase"
+import TestResult from "./tabs/TestResult"
+import type { ExecutionResult } from "@/types/problem-api-types/fieldTypes"
+import { z } from "zod"
+import { useForm, useFieldArray } from "react-hook-form"
+import type { ITestCase } from "@/types/problem-api-types/fieldTypes"
 
-interface TestCase {
-  id: string
-  input: string
-  output: string
-  expected: string
-  passed?: boolean
-  executionTime?: number
-}
+const testCaseSchema = z.object({
+  Id: z.string(),
+  input: z.string(),
+  output: z.string(),
+})
+
+type TestCaseForm = z.infer<typeof testCaseSchema>
+
 
 interface TestCasePanelProps {
-  testCases: TestCase[]
+  testCases: ITestCase[]
   onRun: () => void
   onSubmit: () => void
   onReset: () => void
   isRunning?: boolean
   isSubmitting?: boolean
-  results?: TestCase[]
-  consoleOutput?: string
+  runResult?: ExecutionResult
+  onTestCasesChange?: (cases: TestCaseForm[]) => void
 }
 
 export default function TestCasePanel({
@@ -33,40 +44,138 @@ export default function TestCasePanel({
   onSubmit,
   onReset,
   isRunning = false,
-  isSubmitting = false,
-  results = [],
-  consoleOutput = "",
+  runResult,
+  onTestCasesChange,
 }: TestCasePanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [activeTab, setActiveTab] = useState("testcase")
+  const [activeTab, setActiveTab] = useState<"testcase" | "result">("testcase")
+  const [initialized, setInitialized] = useState(false)
 
-  const passedTests = results.filter((test) => test.passed).length
-  const totalTests = results.length
+  const { control, setValue } = useForm<{ cases: TestCaseForm[] }>({
+    defaultValues: { cases: testCases || [] }, // initial parent data
+  })
+
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: "cases",
+  })
+
+useEffect(() => {
+  if (!initialized && testCases) {
+    setValue("cases", testCases)
+    setActiveCaseIndex(0)
+    setInitialized(true)
+  }
+}, [testCases, initialized, setValue])
+
+
+
+  const [activeCaseIndex, setActiveCaseIndex] = useState(0)
+
+  const handleAddCase = () => {
+    const newCase: TestCaseForm = {
+      Id: `case-${Date.now()}`,
+      input: "",
+      output: "",
+    }
+    append(newCase)
+    setActiveCaseIndex(fields.length)
+    if (onTestCasesChange) {
+    onTestCasesChange([...fields, newCase])
+  }
+  }
+
+const handleRemoveCase = (index: number) => {
+  if (fields.length === 1) return
+  const newCases = fields.filter((_, i) => i !== index)
+  remove(index)
+
+  // parent update
+  if (onTestCasesChange) {
+    onTestCasesChange(newCases)
+  }
+
+  if (activeCaseIndex >= fields.length - 1) {
+    setActiveCaseIndex(fields.length - 2)
+  }
+}
+
+const updateActiveCase = (patch: Partial<TestCaseForm>) => {
+  const updated = {
+    ...fields[activeCaseIndex],
+    ...patch,
+  }
+  update(activeCaseIndex, updated)
+
+  // parent update
+  if (onTestCasesChange) {
+    const newCases = fields.map((c, i) =>
+      i === activeCaseIndex ? updated : c
+    )
+    onTestCasesChange(newCases)
+  }
+}
+
+useEffect(() => {
+  if (runResult) setActiveTab("result");
+}, [runResult]);
+
+  const totalCount = runResult?.stats?.totalTestCase || -1
+  const testResults = runResult?.testResults ?? []
+  const passedCount = runResult?.stats?.passedTestCase ?? 0
+  const stats = runResult?.stats
+  console.log(stats)
+
 
   return (
     <motion.div
-      className="border-t border-gray-800"
-      initial={{ height: 300 }}
-      animate={{ height: isCollapsed ? 60 : 300 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="border-top border-border/50 h-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
     >
-      <Card className="h-full rounded-none border-0 border-t border-gray-800 bg-card/30 backdrop-blur-sm">
+      <Card className="h-full rounded-none border-0 border-t border-border/50 bg-card/30 backdrop-blur-sm">
+        {/* Header */}
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <CardTitle className="text-sm font-medium">Test Cases</CardTitle>
-              {results.length > 0 && (
-                <Badge variant={passedTests === totalTests ? "default" : "destructive"} className="text-xs">
-                  {passedTests}/{totalTests} Passed
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-sm font-semibold">Testcases</CardTitle>
+
+              {stats && stats?.passedTestCase > 0 && (
+                <Badge
+                  variant={
+                    passedCount === totalCount ? "default" : "destructive"
+                  }
+                  className="text-xs"
+                >
+                  {passedCount}/{totalCount} Passed
                 </Badge>
               )}
+            {(stats?.executionTimeMs !== undefined && stats?.executionTimeMs !== null) || 
+            (stats?.memoryMB !== undefined && stats?.memoryMB !== null) ? (
+              <div className="flex items-center gap-2">
+                {stats?.executionTimeMs !== undefined && stats?.executionTimeMs !== null && (
+                  <Badge variant="outline" className="text-[10px]">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {stats.executionTimeMs}ms
+                  </Badge>
+                )}
+                {stats?.memoryMB !== undefined && stats?.memoryMB !== null && (
+                  <Badge variant="outline" className="text-[10px]">
+                    <Cpu className="h-3 w-3 mr-1" />
+                    {stats.memoryMB}MB
+                  </Badge>
+                )}
+              </div>
+            ) : null}
             </div>
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onReset}
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning}
                 className="h-8 bg-transparent"
               >
                 <RotateCcw className="h-3 w-3 mr-1" />
@@ -76,142 +185,110 @@ export default function TestCasePanel({
                 variant="outline"
                 size="sm"
                 onClick={onRun}
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning}
                 className="h-8 bg-transparent"
               >
-                {isRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
+                {isRunning ? (
+                  <motion.span
+                    className="inline-flex items-center"
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                  </motion.span>
+                ) : (
+                  <Play className="h-3 w-3 mr-1" />
+                )}
                 Run
               </Button>
-              <Button size="sm" onClick={onSubmit} disabled={isRunning || isSubmitting} className="h-8">
-                {isSubmitting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
+              <Button
+                size="sm"
+                onClick={onSubmit}
+                disabled={isRunning}
+                className="h-8"
+              >
+                {isRunning ? (
+                  <motion.span
+                    className="inline-flex items-center"
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                  </motion.span>
+                ) : (
+                  <Send className="h-3 w-3 mr-1" />
+                )}
                 Submit
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)} className="h-8 w-8 p-0">
-                {isCollapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsCollapsed((c) => !c)}
+                className="h-8 w-8 p-0"
+                aria-label={isCollapsed ? "Expand panel" : "Collapse panel"}
+              >
               </Button>
             </div>
           </div>
         </CardHeader>
 
-        <AnimatePresence>
-          {!isCollapsed && (
+        {/* Body */}
+        <AnimatePresence initial={false}>
             <motion.div
+              key="panel-body"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
             >
               <CardContent className="pt-0">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="testcase">Test Case</TabsTrigger>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(v) =>
+                    setActiveTab(v as "testcase" | "result")
+                  }
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="testcase">Testcase</TabsTrigger>
                     <TabsTrigger value="result">
-                      Result {results.length > 0 && `(${passedTests}/${totalTests})`}
+                      TestResult
+                      {totalCount > 0 ? ` (${passedCount}/${totalCount})` : ""}
                     </TabsTrigger>
-                    <TabsTrigger value="console">Console</TabsTrigger>
                   </TabsList>
 
+                  {/* Testcase tab */}
                   <TabsContent value="testcase" className="mt-4">
-                    <ScrollArea className="h-[180px]">
-                      <div className="space-y-3">
-                        {testCases.map((testCase, index) => (
-                          <motion.div
-                            key={testCase.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="p-3 bg-muted/30 rounded-lg"
-                          >
-                            <div className="text-sm font-medium mb-2">Test Case {index + 1}</div>
-                            <div className="space-y-2 text-sm font-mono">
-                              <div>
-                                <span className="text-muted-foreground">Input:</span>{" "}
-                                <span className="text-foreground">{testCase.input}</span>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Expected:</span>{" "}
-                                <span className="text-foreground">{testCase.expected}</span>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </ScrollArea>
+                    <TestCase
+                      cases={fields}
+                      activeCaseIndex={activeCaseIndex}
+                      handleAddCase={handleAddCase}
+                      handleRemoveCase={handleRemoveCase}
+                      setActiveCaseIndex={setActiveCaseIndex}
+                      updateActiveCase={updateActiveCase}
+                    />
                   </TabsContent>
 
+                  {/* Results tab */}
                   <TabsContent value="result" className="mt-4">
-                    <ScrollArea className="h-[180px]">
-                      {results.length > 0 ? (
-                        <div className="space-y-3">
-                          {results.map((result, index) => (
-                            <motion.div
-                              key={result.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className="p-3 bg-muted/30 rounded-lg"
-                            >
-                              <div className="flex items-center gap-2 mb-2">
-                                {result.passed ? (
-                                  <CheckCircle className="h-4 w-4 text-green-500" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-red-500" />
-                                )}
-                                <span className="text-sm font-medium">Test Case {index + 1}</span>
-                                {result.executionTime && (
-                                  <Badge variant="outline" className="ml-auto text-xs">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {result.executionTime}ms
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="space-y-2 text-sm font-mono">
-                                <div>
-                                  <span className="text-muted-foreground">Input:</span>{" "}
-                                  <span className="text-foreground">{result.input}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Output:</span>{" "}
-                                  <span className={result.passed ? "text-green-400" : "text-red-400"}>
-                                    {result.output}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Expected:</span>{" "}
-                                  <span className="text-foreground">{result.expected}</span>
-                                </div>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground">
-                          <div className="text-center">
-                            <Play className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">Run your code to see results</p>
-                          </div>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </TabsContent>
-
-                  <TabsContent value="console" className="mt-4">
-                    <ScrollArea className="h-[180px]">
-                      <div className="p-3 bg-muted/30 rounded-lg font-mono text-sm">
-                        {consoleOutput ? (
-                          <pre className="whitespace-pre-wrap text-foreground">{consoleOutput}</pre>
-                        ) : (
-                          <div className="text-muted-foreground text-center py-8">
-                            Console output will appear here...
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
+                    <TestResult 
+                    stdOut={runResult?.failedTestCase?.output ?? runResult?.stats?.stdout ?? undefined}
+                    totalCount={totalCount}
+                    passedCount={passedCount}
+                    testResults={testResults} 
+                     />
                   </TabsContent>
                 </Tabs>
               </CardContent>
             </motion.div>
-          )}
         </AnimatePresence>
       </Card>
     </motion.div>

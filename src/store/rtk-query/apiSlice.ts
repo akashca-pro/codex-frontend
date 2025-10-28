@@ -10,6 +10,7 @@ import { clearUser } from '../slices/authSlice';
 import type { RootState } from '../';
 import { Mutex } from 'async-mutex';
 import nookies from 'nookies';
+import { toast } from 'sonner';
 
 const mutex = new Mutex();
 
@@ -26,6 +27,18 @@ const baseQueryWithReauth: BaseQueryFn<
   await mutex.waitForUnlock(); // Wait if another refresh is happening
 
   let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 403) {
+    toast.error("Your account has been blocked.")
+    api.dispatch(clearUser())
+
+    // Optionally clear cookies
+    nookies.destroy(null, "accessToken")
+    nookies.destroy(null, "refreshToken")
+    nookies.destroy(null, "role");
+    return result
+  }
+
 
   if (result.error && result.error.status === 401) {
     // Acquire the mutex to prevent multiple refresh calls

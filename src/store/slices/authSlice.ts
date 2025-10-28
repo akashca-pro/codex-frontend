@@ -1,5 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
+import { destroyCookie } from "nookies";
 
 export interface User {
     userId : string;
@@ -7,6 +8,7 @@ export interface User {
     email : string;
     role : 'ADMIN' | 'USER';
     avatar : string | null;
+    country : string | null;
 }
 
 export interface AuthState {
@@ -26,11 +28,13 @@ export const authSlice = createSlice({
         setUser : (state,action : PayloadAction<User>) => {
             state.details = action.payload;
             state.isAuthenticated = true;
-
         },
         clearUser : (state) => {
             state.details = null;
-            state.isAuthenticated = false;                                                                                                                                                                                                                         
+            state.isAuthenticated = false;
+            destroyCookie(null,'accessToken');                                                                                                                                                                                                                         
+            destroyCookie(null,'refreshToken');                                                                                                                                                                                                                         
+            destroyCookie(null,'role');                                                                                                                                                                                                                         
         },
     }
 })

@@ -1,5 +1,6 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import { type ApiSuccess } from "@/types/apiTypes";
+import type { EmailRequest } from "@/types/profile/user/payload";
 
 const preUrl = '/user/auth/'
 
@@ -53,9 +54,17 @@ const userAuthApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags : ['user']
         }),
+        forgotPassResendOtp : builder.mutation<ApiSuccess<null>,EmailRequest>({
+            query : (payload) => ({
+                url : `${preUrl}password/forgot/request/resend-otp`,
+                method : 'POST',
+                body : payload
+            }),
+            invalidatesTags : ['user']
+        }),
         userPasswordChange : builder.mutation({
             query : (credentials) => ({
-                url : `${preUrl}password/change`,
+                url : `${preUrl}password/forgot/change`,
                 method : 'POST',
                 body : credentials
             }),
@@ -79,6 +88,7 @@ export const {
     useUserLoginMutation,
     useUserGoogleLoginMutation,
     useUserForgotPasswordMutation,
+    useForgotPassResendOtpMutation,
     useUserPasswordChangeMutation,
     useUserLogoutMutation,
     

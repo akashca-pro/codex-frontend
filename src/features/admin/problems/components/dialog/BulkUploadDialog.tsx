@@ -5,20 +5,18 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2 } from "lucide-react"
 import FormField from "../FormField"
 import { BulkUploadSchema, type BulkUploadSchemaType } from "../../../validation/schema"
 
 interface BulkUploadDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void,
+  onClose: () => void,
   onSuccess : (data : BulkUploadSchemaType) => void
 }
 
-export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : BulkUploadDialogProps) {
+export default function BulkUploadDialog({ open, onClose, onSuccess } : BulkUploadDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [testType, setTestType] = useState<"run" | "submit">("run")
 
   const form = useForm<BulkUploadSchemaType>({
     resolver: zodResolver(BulkUploadSchema),
@@ -37,13 +35,17 @@ export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : Bul
       setIsSubmitting(true)
       onSuccess?.(data)
       form.reset()
-      onOpenChange(false)
+      onClose();
       setIsSubmitting(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -56,19 +58,15 @@ export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : Bul
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
             <FormField label="Test Case Type" description="All test cases will be added as this type" required>
-              <Select
-                value={testType}
-                onValueChange={(value: "run" | "submit") => setTestType(value)}
+              <select
+                value={form.watch("testCaseCollectionType")}
+                onChange={(e) => form.setValue("testCaseCollectionType", e.target.value as "run" | "submit")}
                 disabled={isSubmitting}
+                className="w-full rounded-md border border-gray-300 bg-black text-white p-2"
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="run">Run</SelectItem>
-                  <SelectItem value="submit">Submit</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="run">Run</option>
+                <option value="submit">Submit</option>
+              </select>
             </FormField>
 
             <div className="space-y-4">
@@ -137,7 +135,7 @@ export default function BulkUploadDialog({ open, onOpenChange, onSuccess } : Bul
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => onClose()} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

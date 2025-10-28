@@ -1,21 +1,37 @@
-import type { ITestCase, Language } from "../fieldTypes";
+import type { ITestCase } from "../fieldTypes";
 
 export interface SubmitProblemRequest {
     problemId : string;
     payload : {
-        userId : string;
-        country : string;
+        country : string | undefined;
         userCode : string;
-        language : Language
+        language : string;
     }
+}
+
+export interface SubmitResultRequest {
+    problemId : string;
+    submissionId : string;
 }
 
 export interface RunProblemRequest {
     problemId : string;
     payload : {
-        userId : string;
-        language : Language;
+        language : string;
         userCode : string;
         testCases : ITestCase[];
+    }
+}
+
+export interface RunResultRequest {
+    problemId : string;
+    tempId : string;
+}
+
+export interface listProblemSpecificSubmissionsRequest {
+    problemId : string;
+    params : {
+        limit : number;
+        nextCursor : string | undefined
     }
 }

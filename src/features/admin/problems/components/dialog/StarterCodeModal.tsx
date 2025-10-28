@@ -7,12 +7,12 @@ import type { LanguageType, StarterCodeType } from "../../../validation/schema"
 
 interface StarterCodeModalProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onClose: () => void
   initialValue?: StarterCodeType
   onSave: (value: StarterCodeType) => void
 }
 
-export function StarterCodeModal({ open, onOpenChange, initialValue, onSave }: StarterCodeModalProps) {
+export function StarterCodeModal({ open, onClose, initialValue, onSave }: StarterCodeModalProps) {
   const [language, setLanguage] = useState<LanguageType>("javascript")
   const [code, setCode] = useState("")
 
@@ -28,7 +28,7 @@ export function StarterCodeModal({ open, onOpenChange, initialValue, onSave }: S
 
   const handleSave = () => {
     onSave({ language, code })
-    onOpenChange(false)
+    onClose();
   }
 
   const handleCancel = () => {
@@ -40,12 +40,16 @@ export function StarterCodeModal({ open, onOpenChange, initialValue, onSave }: S
       setLanguage("javascript")
       setCode("")
     }
-    onOpenChange(false)
+    onClose();
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl overflow-y-auto scrollbar-hide ">
+    <Dialog open={open} onOpenChange={(open)=>{if(!open)onClose()}}>
+      <DialogContent 
+      className="sm:max-w-xl overflow-y-auto scrollbar-hide"
+      onInteractOutside={(e) => e.preventDefault()} 
+      onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{initialValue ? "Edit Starter Code" : "Add Starter Code"}</DialogTitle>
         </DialogHeader>

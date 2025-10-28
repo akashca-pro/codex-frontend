@@ -30,7 +30,7 @@ export const ProjectSchema = z.object({
   folders: z.array(FolderSchema),
   activeFileId: z.string().nullable(),
   openTabs: z.array(z.string()),
-  theme: z.enum(["vs-dark", "vs-light", "hc-black"]),
+  theme: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

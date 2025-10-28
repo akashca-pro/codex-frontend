@@ -5,6 +5,11 @@ module.exports = {
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
+  safelist: [
+      'y-cursor-head',
+      'y-cursor-name',
+      'y-selection',
+    ],
   theme: {
     extend: {
       fontFamily: {

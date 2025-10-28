@@ -1,11 +1,11 @@
-import type React from "react"
-
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { X, Plus } from "lucide-react"
-import type { File } from '../validation/schemas'
+import type { File } from "@/store/slices/codepadSlice"
+import { getLanguageIcon } from "@/utils/languageIcon"
+
 
 interface IDETabsProps {
   files: File[]
@@ -13,26 +13,9 @@ interface IDETabsProps {
   activeFileId: string | null
   onTabSelect: (fileId: string) => void
   onTabClose: (fileId: string) => void
-  onNewTab: () => void
 }
 
-const getFileIcon = (filename: string) => {
-  const ext = filename.split(".").pop()?.toLowerCase()
-  switch (ext) {
-    case "js":
-    case "jsx":
-      return "🟨"
-    case "ts":
-    case "tsx":
-      return "🔷"
-    case "py":
-      return "🐍"
-    default:
-      return "📄"
-  }
-}
-
-export default function IDETabs({ files, openTabs, activeFileId, onTabSelect, onTabClose, onNewTab }: IDETabsProps) {
+export default function IDETabs({ files, openTabs, activeFileId, onTabSelect, onTabClose }: IDETabsProps) {
   const [draggedTab, setDraggedTab] = useState<string | null>(null)
 
   const openFiles = files.filter((file) => openTabs.includes(file.id))
@@ -67,7 +50,9 @@ export default function IDETabs({ files, openTabs, activeFileId, onTabSelect, on
                 } ${draggedTab === file.id ? "opacity-70" : ""}`}
                 onClick={() => onTabSelect(file.id)}
               >
-                <span className="text-xs">{getFileIcon(file.name)}</span>
+                <span className="text-sm">
+                  <i className={getLanguageIcon(file.language)} ></i>
+                </span>
                 <span className="text-sm font-medium truncate max-w-[120px]">{file.name}</span>
                 <Button
                   variant="ghost"
@@ -91,11 +76,6 @@ export default function IDETabs({ files, openTabs, activeFileId, onTabSelect, on
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-
-      {/* New Tab Button */}
-      <Button variant="ghost" size="sm" onClick={onNewTab} className="h-8 w-8 p-0 border-l border-border/30">
-        <Plus className="h-4 w-4" />
-      </Button>
     </div>
   )
 }

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import CreateProblemDialog from "./components/dialog/CreateProblemDialog"
 import { useNavigate } from "react-router-dom"
+import LoadingDots from "@/components/LoadingDots"
 
 
 
@@ -24,9 +25,9 @@ export default function AdminProblems() {
   const [searchTerm, setSearchTerm] = useState('');
   const [active,setActive] = useState(true);
   const [difficultyFilter, setDifficultyFilter] = useState('all');
-  const [sort,setSort] = useState('latest');
+  const [sort,setSort] = useState('oldest');
 
-  const { data, refetch : refetchProblemList} = useAdminListProblemQuery({
+  const { data, refetch : refetchProblemList, isLoading} = useAdminListProblemQuery({
     page,
     difficulty : difficultyFilter === 'all' ? undefined : difficultyFilter,
     limit,
@@ -162,7 +163,8 @@ export default function AdminProblems() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Card>
+        {isLoading ? <LoadingDots/>
+        : <Card>
           <CardHeader>
             <CardTitle className="font-bold text-lg sm:text-xl">
               Problems ({ProblemList.length || 0})
@@ -221,7 +223,7 @@ export default function AdminProblems() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </Card>}
       </motion.div>
 
       {data?.data.totalItems! >= 10 && (
@@ -234,7 +236,7 @@ export default function AdminProblems() {
       <CreateProblemDialog
         refetchProblemList={refetchProblemList}
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onClose={()=>setCreateDialogOpen(false)}
       />
     </div>
   )
