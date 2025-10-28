@@ -19,7 +19,7 @@ import { useSelect } from '@/hooks/useSelect'
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { useState } from "react" 
 import TypewriterTitle from "../features/landing/components/TypewriterTitle"
-import CollabDialog from "@/features/collaboration/CollabDialog" 
+import CollabDialog from "@/features/collaboration/components/CollabDialog" 
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", protected : true },

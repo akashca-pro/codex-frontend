@@ -108,7 +108,7 @@ export default function UserProfile() {
                           <Globe className="h-4 w-4 text-muted-foreground" />
                           <span>
                             {profile.country === "null" ? "" : getCountryFlag(profile.country)}
-                            {profile.country === "null" ? "not-set" : profile.country.toUpperCase()}
+                            {profile.country === "null" ? "not-set" : profile.country?.toUpperCase()}
                           </span>
                         </div>
 

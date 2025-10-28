@@ -2,9 +2,9 @@ import React, { createContext, useContext, useEffect, useState, useMemo, type Re
 import { io, Socket } from 'socket.io-client';
 import * as Y from 'yjs';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
-import { ControlMsgType } from '@/const/events.const'; // Adjust path as needed
 import { toast } from 'sonner';
 import { type Language } from '@/const/language.const'; // Adjust path
+
 
 // Define the shape of the context state
 interface CollaborationContextProps {
@@ -13,6 +13,7 @@ interface CollaborationContextProps {
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   metadata: { language: Language; ownerId: string } | null; // Shared session metadata
   socket: Socket | null; // WebSocket instance
+  currentUser : { id : string, name : string, color : string } | null
 }
 
 // Create the context with default values
@@ -22,16 +23,15 @@ const CollaborationContext = createContext<CollaborationContextProps>({
   connectionStatus: 'disconnected',
   metadata: null,
   socket: null,
+  currentUser : null
 });
 
-// Define the props required by the provider component
 interface CollaborationProviderProps {
-  children: ReactNode; // Standard React prop for component children
-  inviteToken: string; // The token obtained from Redux or URL
-  currentUser: { id: string; name: string; color: string }; // Info about the local user
+  children: ReactNode; 
+  inviteToken: string;
+  currentUser: { id: string; name: string; color: string };
 }
-// Define your backend URL (use environment variable for flexibility)
-const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL || 'http://localhost:5001'; // Default for local dev
+const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL || 'http://localhost:5001';
 
 export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   children,
@@ -43,12 +43,51 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
-  // Memoize currentUser stable parts to prevent unnecessary effect re-runs if the parent object reference changes
   const stableCurrentUser = useMemo(() => ({
         id: currentUser.id,
         name: currentUser.name,
         color: currentUser.color || '#30bced',
     }), [currentUser.id, currentUser.name, currentUser.color]);
+
+  // Inject CSS custom properties for cursor colors dynamically
+  useEffect(() => {
+    if (!awareness) return;
+
+    const updateCursorStyles = () => {
+      const states = awareness.getStates();
+      const styleElement = document.getElementById('collab-cursor-styles') || document.createElement('style');
+      styleElement.id = 'collab-cursor-styles';
+
+      let cssContent = '';
+      states.forEach((state: any, clientId: number) => {
+        if (state.user?.color) {
+          cssContent += `
+            .remote-cursor[data-client-id="${clientId}"] .remote-cursor-indicator::before,
+            .remote-cursor[data-client-id="${clientId}"] .remote-cursor-label {
+              --cursor-color: ${state.user.color};
+            }
+          `;
+        }
+      });
+
+      styleElement.textContent = cssContent;
+      if (!document.head.contains(styleElement)) {
+        document.head.appendChild(styleElement);
+      }
+    };
+
+    const awarenessListener = () => updateCursorStyles();
+    awareness.on('change', awarenessListener);
+    updateCursorStyles(); // Initial update
+
+    return () => {
+      awareness.off('change', awarenessListener);
+      const styleElement = document.getElementById('collab-cursor-styles');
+      if (styleElement) {
+        document.head.removeChild(styleElement);
+      }
+    };
+  }, [awareness]);
 
   // Main effect for handling connection, Yjs setup, and listeners
   useEffect(() => {
@@ -67,7 +106,6 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     }
 
     // --- Prevent Re-Initialization ---
-    // If a socket instance already exists or a doc is already set up, don't run again.
     if (socketInstance || doc) {
         console.log("CollaborationProvider: Skipping re-initialization.");
         return;
@@ -91,6 +129,20 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     setDoc(newDoc);
     setAwareness(newAwareness);
 
+// --- AWARENESS LOGGER ---
+const awarenessChangeListener = (changes: any, origin: any) => {
+    console.log('Awareness Changed:', {
+        origin: origin,
+        // Log the *full state object* for each client
+        states: Array.from(newAwareness.getStates().entries()).map(([clientId, state]) => ({ clientId, state })),
+        added: changes.added,
+        updated: changes.updated,
+        removed: changes.removed,
+    });
+};
+    newAwareness.on('change', awarenessChangeListener); // Log ALL awareness changes
+    // --- END AWARENESS LOGGER ---
+
     // --- WebSocket Connection ---
     console.log(`Attempting to connect to ${SOCKET_URL} with token...`);
     const socket: Socket = io(SOCKET_URL, {
@@ -98,6 +150,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       withCredentials: true,
       reconnectionAttempts: 3,  
       timeout: 10000,
+      transports: ['websocket']
     });
     setSocketInstance(socket); // Store the socket instance in state
 
@@ -143,26 +196,24 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     // --- Yjs Synchronization Event Handlers (Server -> Client) ---
     const handleInitialState = (initialState: { docUpdate: Uint8Array; awarenessUpdate: Uint8Array }) => {
       console.log('Received initial state from server.');
-      // Apply the full document state received from the server
-      if (newDoc) Y.applyUpdate(newDoc, initialState.docUpdate, 'server');
-      // Apply the full awareness state (cursors of others)
-      if (newAwareness) applyAwarenessUpdate(newAwareness, initialState.awarenessUpdate, 'server');
+      if (newDoc) Y.applyUpdate(newDoc, new Uint8Array(initialState.docUpdate), 'server');
+      if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(initialState.awarenessUpdate), 'server');
     };
     const handleDocUpdate = (update: Uint8Array) => {
-      // Apply incremental document changes from others
-      if (newDoc) Y.applyUpdate(newDoc, update, 'server');
+      if (newDoc) Y.applyUpdate(newDoc, new Uint8Array(update), 'server');
     };
     const handleAwarenessUpdate = (update: Uint8Array) => {
-      // Apply incremental awareness changes (cursor movements, etc.)
-      if (newAwareness) applyAwarenessUpdate(newAwareness, update, 'server');
+      if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(update), 'server');
     };
     const handleMetadataChanged = (newMetadata: { language: Language; ownerId: string }) => {
        console.log('Received session metadata update:', newMetadata);
-       setMetadata(newMetadata); // Update the metadata state
-       // You could trigger side effects here, like updating the editor's language mode
+       setMetadata(newMetadata);
     };
+    const handleCloseSession = () => {
+      console.log('Close session event occured');
+      socket.close();
+    }
     const handleServerError = (error: { message: string; code?: number }) => {
-       // Handle custom error events sent from the backend
        console.error('Received server error event:', error);
        toast.error(`Server error: ${error.message}`);
     };
@@ -171,43 +222,35 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     socket.on('doc-update', handleDocUpdate);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);
-    socket.on('error', handleServerError); // Listen for specific 'error' events
+    socket.on('close-session',handleCloseSession);
+    socket.on('error', handleServerError);
 
     // --- Yjs Synchronization Event Handlers (Client -> Server) ---
-    // Listen for local changes to the Y.Doc
-    const docUpdateHandler = (update: Uint8Array, origin: any) => {
-      // If the change wasn't from the server (i.e., it was local) and we're connected
-      if (origin !== 'server' && socket.connected) {
-        // Send the binary update data to the server via the 'control-message' event
-        socket.emit('control-message', {
-          type: ControlMsgType.DOC_UPDATE,
-          payload: update,
-        });
-      }
-    };
-    if (newDoc) newDoc.on('update', docUpdateHandler); // Attach listener
 
-    // Listen for local changes to awareness state (e.g., cursor movement)
+    // Listen for local changes to the Y.Doc
+  const docUpdateHandler = (update: Uint8Array, origin: any) => {
+    if (origin !== 'server' && socket.connected) {
+      socket.emit('doc-update', update);
+    }
+  };
+
+    if (newDoc) newDoc.on('update', docUpdateHandler); 
+
     const awarenessUpdateHandler = (changes: any, origin: any) => {
       // Get IDs of clients whose states were added, updated, or removed
-      const updatedClients = [
-        ...Object.keys(changes.added),
-        ...Object.keys(changes.updated),
-        ...Object.keys(changes.removed)
-      ].map(Number);
-      
+    const updatedClients = [
+            ...changes.added,
+            ...changes.updated,
+            ...changes.removed
+          ];
       // If the change originated locally, there were changes, and we're connected
       if (origin === 'local' && updatedClients.length > 0 && socket.connected) {
         // Encode the relevant awareness changes into binary data
         const update = encodeAwarenessUpdate(newAwareness, updatedClients);
-        // Send the update to the server
-        socket.emit('control-message', {
-          type: ControlMsgType.AWARENESS_UPDATE,
-          payload: update,
-        });
+        socket.emit('awareness-update', update);
       }
     };
-    if (newAwareness) newAwareness.on('update', awarenessUpdateHandler); // Attach listener
+    if (newAwareness) newAwareness.on('change', awarenessUpdateHandler); 
 
     // --- Cleanup Function ---
     // This runs when the component unmounts or when dependencies change,
@@ -228,7 +271,10 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
 
       // Remove Yjs listeners
       if (newDoc) newDoc.off('update', docUpdateHandler);
-      if (newAwareness) newAwareness.off('update', awarenessUpdateHandler);
+      if (newAwareness) {
+        newAwareness.off('change', awarenessUpdateHandler);
+        newAwareness.off('change', awarenessChangeListener);
+      }
       
       // Destroy Yjs objects to free memory
       newDoc?.destroy();
@@ -251,7 +297,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     connectionStatus,
     metadata,
     socket: socketInstance,
-  }), [doc, awareness, connectionStatus, metadata, socketInstance]);
+    currentUser : stableCurrentUser
+  }), [doc, awareness, connectionStatus, metadata, socketInstance, stableCurrentUser]);
 
   return (
     <CollaborationContext.Provider value={contextValue}>

@@ -30,7 +30,6 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
         const token = result.data.inviteToken;
         toast.success('Session created! Redirecting...', { id: toastId, duration: 2000 });
 
-        // ✨ Dispatch to Redux BEFORE navigating
         console.log("Dispatching initSession with token:", token);
         initSession({ inviteToken: token });
 
