@@ -7,6 +7,9 @@ import { type Language } from '@/const/language.const'; // Adjust path
 import { useSelect } from '@/hooks/useSelect'
 import { useUserRefreshTokenMutation } from '@/apis/auth-user/auth/user'
 import { useAdminRefreshTokenMutation } from '@/apis/auth-user/auth/admin'
+import type { CollabUserInfo } from '../CollaborationPage';
+import { useCollabSessionActions } from '@/hooks/useDispatch';
+import { useNavigate } from 'react-router-dom';
 
 // Define the shape of the context state
 interface CollaborationContextProps {
@@ -15,7 +18,7 @@ interface CollaborationContextProps {
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   metadata: { language: Language; ownerId: string } | null; // Shared session metadata
   socket: Socket | null; // WebSocket instance
-  currentUser : { id : string, name : string, color : string } | null
+  currentUser : CollabUserInfo | null
 }
 
 // Create the context with default values
@@ -31,84 +34,32 @@ const CollaborationContext = createContext<CollaborationContextProps>({
 interface CollaborationProviderProps {
   children: ReactNode; 
   inviteToken: string;
-  currentUser: { id: string; name: string; color: string };
+  currentUser: CollabUserInfo;
 }
-const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL || 'http://localhost:5001';
+const SOCKET_URL = import.meta.env.VITE_COLLAB_SERVICE_URL;
 
 export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   children,
   inviteToken,
   currentUser,
 }) => {
+  const navigate = useNavigate();
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
-  const { user } = useSelect()
+  const { user, collabSession } = useSelect()
+  const {setParticipants} = useCollabSessionActions()
   const stableCurrentUser = useMemo(() => ({
         id: currentUser.id,
-        name: currentUser.name,
-        color: currentUser.color || '#30bced',
-    }), [currentUser.id, currentUser.name, currentUser.color]);
+        username: currentUser.username,
+        firstName : currentUser.firstName,
+        avatar : currentUser.avatar
+    }), [currentUser.id, currentUser.username, currentUser.firstName, currentUser.avatar]);
   const [refreshTokenApi] = user.details?.role === 'ADMIN' ? useAdminRefreshTokenMutation() : useUserRefreshTokenMutation()
 
-  // Inject CSS custom properties and names for y-monaco cursors dynamically
-  useEffect(() => {
-    if (!awareness) return;
-
-    const updateCursorStyles = () => {
-      const states = awareness.getStates();
-      const styleElement = document.getElementById('collab-cursor-styles') || document.createElement('style');
-      styleElement.id = 'collab-cursor-styles';
-
-      let cssContent = '';
-      states.forEach((state: any, clientId: number) => {
-        const color: string | undefined = state.user?.color;
-        const name: string | undefined = state.user?.name;
-        if (color) {
-          // Apply per-client CSS vars for y-monaco decorations
-          cssContent += `
-            .yRemoteCursor[data-yjs-client-id="${clientId}"] { --yRemoteCursorColor: ${color}; }
-            .yRemoteCursorTag[data-yjs-client-id="${clientId}"] { --yRemoteCursorBg: #111827; }
-            .yRemoteSelection[data-yjs-client-id="${clientId}"] { --yRemoteSelectionColor: ${color}33; /* 0x33 alpha */ }
-            .yRemoteSelectionHead[data-yjs-client-id="${clientId}"] { --yRemoteSelectionBorder: ${color}; }
-          `;
-
-          // Apply colors for custom Monaco decorations used in CollabMonacoEditor
-          cssContent += `
-            .codex-remote-cursor.client-${clientId},
-            .codex-remote-cursor-indicator.client-${clientId},
-            .codex-remote-cursor-label.client-${clientId} { color: ${color}; }
-            .codex-remote-selection.client-${clientId} { background-color: ${color}33; }
-          `;
-        }
-        try {
-          const tag = document.querySelector(`.yRemoteCursorTag[data-yjs-client-id="${clientId}"]`);
-          if (tag && name) {
-            tag.textContent = name;
-          }
-        } catch {}
-      });
-
-      styleElement.textContent = cssContent;
-      if (!document.head.contains(styleElement)) {
-        document.head.appendChild(styleElement);
-      }
-    };
-
-    const awarenessListener = () => updateCursorStyles();
-    awareness.on('change', awarenessListener);
-    updateCursorStyles(); // Initial update
-
-    return () => {
-      awareness.off('change', awarenessListener);
-      const styleElement = document.getElementById('collab-cursor-styles');
-      if (styleElement) {
-        document.head.removeChild(styleElement);
-      }
-    };
-  }, [awareness]);
+  // Removed custom CSS/DOM patching; rely on y-monaco defaults
 
   // Main effect for handling connection, Yjs setup, and listeners
   useEffect(() => {
@@ -116,13 +67,13 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     if (!inviteToken) {
       console.error("CollaborationProvider: inviteToken is missing.");
       setConnectionStatus('error');
-      toast.error("Collaboration token is missing.");
+      toast.error("Collaboration token is missing.",{ className : 'error-toast' });
       return;
     }
     if (!stableCurrentUser.id) {
        console.error("CollaborationProvider: currentUser ID is missing.");
        setConnectionStatus('error');
-       toast.error("User information is missing for collaboration.");
+       toast.error("User information is missing for collaboration.",{ className : 'error-toast' });
        return;
     }
 
@@ -142,8 +93,9 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     // Set local user's presence state (name, color, ID) *before* connecting
     newAwareness.setLocalStateField('user', {
       id: stableCurrentUser.id,
-      name: stableCurrentUser.name,
-      color: stableCurrentUser.color,
+      username: stableCurrentUser.username,
+      firstName: stableCurrentUser.firstName,
+      avatar : stableCurrentUser.avatar
     });
 
     // Update React state with the new Yjs instances
@@ -177,21 +129,22 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     const handleConnect = () => {
       console.log('Socket connected successfully. ID:', socket.id);
       setConnectionStatus('connected');
-      toast.success('Collaboration connected!');
+      toast.success('Collaboration connected!', { className : 'success-toast' });
     };
     const handleDisconnect = (reason: Socket.DisconnectReason) => {
       console.log('Socket disconnected:', reason);
       setConnectionStatus('disconnected');
        if (reason === 'io server disconnect') { // Server explicitly disconnected client
-        toast.error('Disconnected by server (session may have ended or token revoked).');
+        navigate(-1);
+        toast.error('Disconnected by server (session may have ended or token revoked).',{ className : 'error-toast' });
       } else if (reason === 'io client disconnect') { // Client called socket.disconnect()
          toast.info('You disconnected from the session.');
       } else { // Transport error, reconnection attempts failed, etc.
-        toast.error('Connection lost. Please check your network.');
+        toast.error('Connection lost. Please check your network.',{ className : 'error-toast' });
       }
     };
     const handleConnectError = async (err: Error) => {
-      if(err.message === '409'){
+      if(err.message === '401'){
           console.log('Refreshing token....');
           try {
             await refreshTokenApi(null).unwrap();
@@ -201,11 +154,13 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
               socket.auth = { token: inviteToken };
             }
             socket.connect();
+            return;
           } catch (error) {
             console.error("Token refresh failed:", error);
-            toast.error('Authentication failed');
+            toast.error('Authentication failed',{ className : 'error-toast' });
           }
       }
+      if(err.message === 'Authentication error: Invalid or expired token.')navigate(-1)
       console.error('Socket connection error:', err.message, err);
       setConnectionStatus('error');
       let friendlyMessage = `Connection failed: ${err.message}`;
@@ -216,7 +171,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       } else if (err.message === 'timeout') {
           friendlyMessage = 'Connection timed out. The server might be unavailable.';
       }
-      toast.error(friendlyMessage);
+      toast.error(friendlyMessage,{ className : 'error-toast' });
       // Clean up partially initialized state if connection fails early
       setDoc(null);
       setAwareness(null);
@@ -229,7 +184,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
 
     // --- Yjs Synchronization Event Handlers (Server -> Client) ---
     const handleInitialState = (initialState: { docUpdate: Uint8Array; awarenessUpdate: Uint8Array }) => {
-      console.log('Received initial state from server.');
+      console.log('Received initial state from server.', initialState);
       if (newDoc) Y.applyUpdate(newDoc, new Uint8Array(initialState.docUpdate), 'server');
       if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(initialState.awarenessUpdate), 'server');
     };
@@ -245,18 +200,18 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     };
     const handleCloseSession = () => {
       console.log('Close session event occured');
+      if(collabSession.isOwner)return
       socket.close();
     }
     const handleServerError = (error: { message: string; code?: number }) => {
        console.error('Received server error event:', error);
-       toast.error(`Server error: ${error.message}`);
+       toast.error(`Server error: ${error.message}`,{ className : 'error-toast' });
     };
 
     socket.on('initial-state', handleInitialState);
     socket.on('doc-update', handleDocUpdate);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);
-    socket.on('close-session',handleCloseSession);
     socket.on('error', handleServerError);
 
     // --- Yjs Synchronization Event Handlers (Client -> Server) ---
@@ -285,6 +240,16 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       }
     };
     if (newAwareness) newAwareness.on('change', awarenessUpdateHandler); 
+
+    const syncParticipants = () => {
+      const states = newAwareness.getStates();
+      const participants = Array.from(states.values())
+        .map((session)=> session?.user)
+        .filter((user)=> user && user.username && user.firstName && user.avatar && user.id)
+
+      setParticipants(participants)
+    };
+    newAwareness.on('change', syncParticipants);
 
     // --- Awareness heartbeat to prevent timeouts ---
     const HEARTBEAT_MS = 15000;
@@ -320,6 +285,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       if (newDoc) newDoc.off('update', docUpdateHandler);
       if (newAwareness) {
         newAwareness.off('change', awarenessUpdateHandler);
+        newAwareness.off('change',syncParticipants);
         // newAwareness.off('change', awarenessChangeListener);
       }
       

@@ -13,16 +13,16 @@ import { combineReducers } from 'redux'
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth','codePad','collab'], 
+  whitelist: ['auth','codePad'], 
 }
 
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
-  auth: authReducer,
-  userEmail: emailReducer,
-  oAuthCheck: oAuthCheckReducer,
-  codePad : codePadReducer,
-  collab : collabReducer
+    auth: authReducer,
+    userEmail: emailReducer,
+    oAuthCheck: oAuthCheckReducer,
+    codePad : codePadReducer,
+    collab : collabReducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

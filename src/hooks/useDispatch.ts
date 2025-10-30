@@ -4,7 +4,8 @@ import type { User } from "@/store/slices/authSlice";
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 import { closeTab, createFile, deleteFile, openTab, renameFile, setActiveFile, unsetActiveFile, updateContent } from "@/store/slices/codepadSlice";
-import { endSession, initSession, type CollabSessionState } from "@/store/slices/collabSlice";
+import { endSession, initSession, joinSession, leaveSession, setParticipants, type CollabSessionState } from "@/store/slices/collabSlice";
+import type { CollabUserInfo } from "@/features/collaboration/CollaborationPage";
 
 export const useUserEmailActions = () => {
   const dispatch = useDispatch();
@@ -47,7 +48,10 @@ export const useCodePadActions = () => {
 export const useCollabSessionActions = () => {
   const dispatch = useDispatch();
   return {
-    initSession : (payload : CollabSessionState) => dispatch(initSession(payload)),
-    endSession : () => dispatch(endSession())
+    initSession : (payload : { inviteToken : string }) => dispatch(initSession(payload)),
+    endSession : () => dispatch(endSession()),
+    joinSession : (payload : { inviteToken : string }) => dispatch(joinSession(payload)),
+    setParticipants : (payload : CollabUserInfo[]) => dispatch(setParticipants(payload)),
+    leaveSession : () => dispatch(leaveSession())
   }
 }

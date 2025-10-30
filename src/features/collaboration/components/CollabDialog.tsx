@@ -7,7 +7,8 @@ import { useCreateSessionMutation } from '@/apis/collab/user'; // Ensure this pa
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { useCollabSessionActions } from '@/hooks/useDispatch'; // 👈 Import Redux actions hook
+import { useCollabSessionActions } from '@/hooks/useDispatch';
+import { useSelect } from '@/hooks/useSelect'
 
 interface CollabDialogProps {
   isOpen: boolean;
@@ -19,7 +20,8 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
   const [joinToken, setJoinToken] = useState('');
   const [createSession, { isLoading }] = useCreateSessionMutation();
   const navigate = useNavigate();
-  const { initSession } = useCollabSessionActions(); // 👈 Get Redux action dispatcher
+  const { initSession, joinSession } = useCollabSessionActions(); 
+  const { collabSession } = useSelect();
 
   const handleStart = async () => {
     const toastId = toast.loading('Starting new session...');
@@ -28,21 +30,29 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
 
       if (result.success && result.data?.inviteToken) {
         const token = result.data.inviteToken;
-        toast.success('Session created! Redirecting...', { id: toastId, duration: 2000 });
-
+        toast.success('Session created! Redirecting...', { 
+          id: toastId, 
+          duration: 1000, 
+          className : 'success-toast' 
+        });
         console.log("Dispatching initSession with token:", token);
-        initSession({ inviteToken: token });
-
-        // Navigate with token still in URL (optional but good for first load/sharing)
+        initSession({ inviteToken : token })
         navigate(`/user/collab?token=${token}`);
-        onClose(); // Close dialog on success
+        onClose(); 
       } else {
         throw new Error(result.message || 'Failed to create session');
       }
     } catch (error: any) {
+      if(error.status === 409){
+        console.log(error);
+        toast.info('Session already exist!',{id : toastId});
+        navigate(`/user/collab?token=${error.data.data}`);
+        onClose(); 
+        return;
+      }
       console.error('Failed to start session:', error);
       const message = error?.data?.message || error?.data?.errorMessage || error.message || 'Could not start session.';
-      toast.error(message, { id: toastId });
+      toast.error(message, { id: toastId , className : 'error-toast'});
     }
   };
 
@@ -57,9 +67,8 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
        return;
     }
 
-    // ✨ Dispatch to Redux BEFORE navigating
     console.log("Dispatching initSession with token:", tokenToJoin);
-    initSession({ inviteToken: tokenToJoin });
+    joinSession({ inviteToken : tokenToJoin });
 
     navigate(`/user/collab?token=${tokenToJoin}`); // Navigate with token
     onClose(); // Close dialog on navigation
@@ -90,6 +99,12 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
           </TabsContent>
           {/* Join Existing Tab */}
           <TabsContent value="join" className="space-y-4 pt-4">
+            { collabSession.inviteToken !== null && <Button onClick={()=>{
+              joinSession({ inviteToken : collabSession.inviteToken! });
+              navigate(`/user/collab?token=${collabSession.inviteToken}`);
+            }}>
+              Re-join last session
+            </Button>}
              <label htmlFor="inviteToken" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only">
                Invite Token
              </label>

@@ -15,11 +15,10 @@ export default defineConfig({
   },
   server: {
     // host: 'codex.com',
-    // port: 5173,
+    port: 5173,
     https: {
       key: fs.readFileSync(keyPath),
       cert: fs.readFileSync(certPath),
     },
-    port: 5173,
   }
 })

@@ -116,21 +116,61 @@
 }
 
 /* Base styles for custom cursor decorations used in CollabMonacoEditor */
+.codex-remote-cursor {
+  position: relative;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+}
 .codex-remote-cursor-label {
-  background: #111827;
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
-  border: 1px solid #374151;
+  border: 1px solid currentColor;
   border-radius: 4px;
   font-size: 11px;
   padding: 0 6px;
+  white-space: nowrap;
+  margin-left: 4px;
+  display: inline-block;
+  position: relative;
+  z-index: 100;
+}
+.codex-remote-cursor-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
 }
 .codex-remote-cursor-indicator::before {
   content: "";
   position: absolute;
-  border-left: 2px solid currentColor;
+  left: 0;
   top: 0;
   bottom: 0;
+  width: 2px;
+  background-color: currentColor;
 }
 .codex-remote-selection {
   background-color: rgba(56, 189, 248, 0.2);
+  position: absolute;
+  pointer-events: none;
 }
+
+/* Ensure Monaco content widgets (remote name tags) render above the editor and are not clipped */
+.monaco-editor .contentWidgets .codex-remote-cursor-label {
+  z-index: 1000 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+/* Let labels extend beyond the editor viewport if needed */
+.monaco-editor .overflow-guard { overflow: visible !important; }
+.monaco-scrollable-element { overflow: visible !important; }

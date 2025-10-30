@@ -163,8 +163,8 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
               <Avatar className="h-20 w-20">
                 <AvatarImage src={imagePreview || getCloudinaryUrl(formData.avatar)} alt="Profile" />
                 <AvatarFallback>
-                  {formData.firstName[0]}
-                  {formData.lastName[0]}
+                  {formData?.firstName[0]}
+                  {formData?.lastName[0]}
                 </AvatarFallback>
               </Avatar>
 

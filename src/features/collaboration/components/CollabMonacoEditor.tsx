@@ -7,10 +7,10 @@ import { registerMonacoTheme } from "@/utils/monacoThemes/registerMonacoThemes";
 import { registerLanguages } from "@/utils/monacoThemes/registerLanguages";
 import { MonacoBinding } from 'y-monaco';
 import { useCollaboration } from "@/features/collaboration/components/CollaborationProvider";
-import { type Language } from '@/const/language.const';
 
 interface CollabEditorProps {
-  language?: Language | string;
+  onChange : ()=>void;
+  language: string ;
   theme?: string;
   fontSize?: number;
   intelliSense?: boolean;
@@ -19,7 +19,7 @@ interface CollabEditorProps {
 const SHARED_TEXT_KEY = 'shared-code';
 
 const CollabEditor: React.FC<CollabEditorProps> = ({
-  language: initialLanguage = "javascript",
+  language,
   theme = "codexDark",
   fontSize = 16,
   intelliSense = true,
@@ -29,11 +29,12 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
   const bindingRef = useRef<MonacoBinding | null>(null);
   const [editorInstance, setEditorInstance] = useState<any | null>(null);
   const decorationsRef = useRef<Map<number, string[]>>(new Map());
+  const widgetsRef = useRef<Map<number, any>>(new Map()); // Map clientID -> content widget
 
   const { doc, awareness, connectionStatus, metadata, currentUser } = useCollaboration();
 
   const currentLanguage =
-    (metadata?.language as string)?.toLowerCase() || initialLanguage.toLowerCase();
+    (metadata?.language as string)?.toLowerCase() || language.toLowerCase();
 
   // --- Monaco Setup & Config Effects ---
     useEffect(() => {
@@ -203,13 +204,38 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
                   stickiness: (monaco as any).editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
                   className: `codex-remote-cursor client-${clientID}`,
                   beforeContentClassName: `codex-remote-cursor-indicator client-${clientID}`,
-                  afterContentClassName: `codex-remote-cursor-label client-${clientID}`,
-                  // In supported monaco versions, 'after' can set inline content
-                  // @ts-ignore
-                  after: { content: ` ${user.name || 'User'} ` },
                   isWholeLine: false,
                 },
               });
+
+              // Create/update a Monaco content widget to show the name near the cursor
+              const widgetId = `codex-remote-tag-${clientID}`;
+              const position = { lineNumber: pos.lineNumber, column: pos.column };
+              let widget = widgetsRef.current.get(clientID);
+              if (!widget) {
+                const domNode = document.createElement('div');
+                domNode.className = `codex-remote-cursor-label client-${clientID}`;
+                domNode.style.pointerEvents = 'none';
+                domNode.style.position = 'absolute';
+                domNode.style.transform = 'translate(4px, -16px)';
+                domNode.textContent = ` ${user.name || 'User'} `;
+
+                widget = {
+                  getId: () => widgetId,
+                  getDomNode: () => domNode,
+                  getPosition: () => ({ position, preference: [(monaco as any).editor.ContentWidgetPositionPreference.EXACT] })
+                };
+                editorInstance.addContentWidget(widget);
+                widgetsRef.current.set(clientID, widget);
+              } else {
+                try {
+                  // Update text and position
+                  const dom = widget.getDomNode();
+                  dom.textContent = ` ${user.name || 'User'} `;
+                  widget.getPosition = () => ({ position, preference: [(monaco as any).editor.ContentWidgetPositionPreference.EXACT] });
+                  editorInstance.layoutContentWidget(widget);
+                } catch {}
+              }
             }
           }
 
@@ -268,17 +294,6 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
           }
         });
         decorationsRef.current = newMap;
-        // After decorations are applied, set the label text nodes explicitly
-        setTimeout(() => {
-          states.forEach((state, clientID) => {
-            if (!activeClientIDs.has(clientID)) return;
-            const name = state.user?.name || 'User';
-            try {
-              const nodes = document.querySelectorAll(`.codex-remote-cursor-label.client-${clientID}`);
-              nodes.forEach((n) => { (n as HTMLElement).textContent = ` ${name} `; });
-            } catch {}
-          });
-        }, 0);
       } catch {}
     };
 
@@ -287,9 +302,52 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
     // Initial render
     renderRemoteDecorations();
 
+    // Use MutationObserver to continuously update label text as Monaco DOM changes
+    const observer = new MutationObserver(() => {
+      if (!awareness) return;
+      const states = awareness.getStates() as Map<number, any>;
+      const localClientID = awareness.clientID;
+      
+      states.forEach((state, clientID) => {
+        if (clientID === localClientID || !state.user) return;
+        const name = state.user.name || 'User';
+        try {
+          const selectors = [
+            `.codex-remote-cursor-label.client-${clientID}`,
+            `[class*="client-${clientID}"][class*="codex-remote-cursor-label"]`
+          ];
+          
+          for (const selector of selectors) {
+            const nodes = document.querySelectorAll(selector);
+            if (nodes.length > 0) {
+              nodes.forEach((n) => {
+                const el = n as HTMLElement;
+                const expectedText = ` ${name} `;
+                if (el.textContent !== expectedText) {
+                  el.textContent = expectedText;
+                }
+              });
+              break;
+            }
+          }
+        } catch {}
+      });
+    });
+
+    // Observe the Monaco editor container for DOM changes
+    const editorContainer = editorInstance.getContainerDomNode();
+    if (editorContainer) {
+      observer.observe(editorContainer, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    }
+
 // --- Cleanup Function ---
   return () => {
     console.log('Cleaning up y-monaco binding...');
+    observer.disconnect();
     if (awareness) awareness.off('change', onAwarenessChange);
     if (bindingRef.current) { bindingRef.current.destroy(); bindingRef.current = null; }
     if (editorInstance) {
@@ -298,6 +356,12 @@ const CollabEditor: React.FC<CollabEditorProps> = ({
     try {
       const ids = Array.from(decorationsRef.current.values()).flat();
       if (ids.length) editorInstance?.changeDecorations((a: any) => ids.forEach(id => a.removeDecoration(id)));
+    } catch {}
+    try {
+      widgetsRef.current.forEach((widget) => {
+        editorInstance?.removeContentWidget(widget);
+      });
+      widgetsRef.current.clear();
     } catch {}
   };
   }, [doc, awareness, connectionStatus, editorInstance, currentUser]);

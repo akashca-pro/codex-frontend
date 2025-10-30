@@ -98,6 +98,7 @@ export default function IDEToolbar({
       {/* Right Section */}
       <div className="flex items-center gap-4">
         <Timer/>
+
         {/* Language Selector */}
         <Select value={language} onValueChange={onLanguageChange}>
           <SelectTrigger className="w-[140px] h-8 bg-background/50">
@@ -136,19 +137,19 @@ export default function IDEToolbar({
         IntelliSense
       </Button> */}
 
-          {/* Font slider */}
-        <div className="flex items-center gap-2 w-52 px-1">
-          <span className="text-xs text-muted-foreground">Font</span>
-          <Slider
-            value={[fontSize]}
-            onValueChange={(value) => onFontSizeChange(value[0])}
-            min={12}
-            max={24}
-            step={1}
-            className="flex-1"
-          />
-          <span className="text-xs">{fontSize}px</span>
-        </div>     
+        {/* Font slider */}
+      <div className="flex items-center gap-2 w-52 px-1">
+        <span className="text-xs text-muted-foreground">Font</span>
+        <Slider
+          value={[fontSize]}
+          onValueChange={(value) => onFontSizeChange(value[0])}
+          min={12}
+          max={24}
+          step={1}
+          className="flex-1"
+        />
+        <span className="text-xs">{fontSize}px</span>
+      </div>     
 
         <Tooltip>
           <TooltipTrigger asChild >
