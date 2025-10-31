@@ -28,7 +28,7 @@ const CollaborationContext = createContext<CollaborationContextProps>({
   connectionStatus: 'disconnected',
   metadata: null,
   socket: null,
-  currentUser : null
+  currentUser : null,
 });
 
 interface CollaborationProviderProps {
@@ -49,7 +49,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
-  const { user, collabSession } = useSelect()
+  const { user } = useSelect()
   const {setParticipants} = useCollabSessionActions()
   const stableCurrentUser = useMemo(() => ({
         id: currentUser.id,
@@ -59,10 +59,10 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     }), [currentUser.id, currentUser.username, currentUser.firstName, currentUser.avatar]);
   const [refreshTokenApi] = user.details?.role === 'ADMIN' ? useAdminRefreshTokenMutation() : useUserRefreshTokenMutation()
 
-  // Removed custom CSS/DOM patching; rely on y-monaco defaults
-
   // Main effect for handling connection, Yjs setup, and listeners
   useEffect(() => {
+    // Clear stale participants immediately when provider mounts/swaps sessions
+    setParticipants([]);
     // --- Initial Validations ---
     if (!inviteToken) {
       console.error("CollaborationProvider: inviteToken is missing.");
@@ -135,8 +135,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       console.log('Socket disconnected:', reason);
       setConnectionStatus('disconnected');
        if (reason === 'io server disconnect') { // Server explicitly disconnected client
-        navigate(-1);
-        toast.error('Disconnected by server (session may have ended or token revoked).',{ className : 'error-toast' });
+        toast.error('Disconnected by server (session may have ended by the owner or token revoked).',{ className : 'error-toast' });
+        toast.info('Editor will be readonly')
       } else if (reason === 'io client disconnect') { // Client called socket.disconnect()
          toast.info('You disconnected from the session.');
       } else { // Transport error, reconnection attempts failed, etc.
@@ -198,14 +198,15 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
        console.log('Received session metadata update:', newMetadata);
        setMetadata(newMetadata);
     };
-    const handleCloseSession = () => {
-      console.log('Close session event occured');
-      if(collabSession.isOwner)return
-      socket.close();
-    }
     const handleServerError = (error: { message: string; code?: number }) => {
-       console.error('Received server error event:', error);
-       toast.error(`Server error: ${error.message}`,{ className : 'error-toast' });
+       if(error.message === 'Session is either ended or closed'){
+          toast.error(`Server error: ${error.message}`,{ className : 'error-toast' });
+          setTimeout(()=>{
+            toast.info('Editor will be readonly')
+          },1000)
+       }else{
+        toast.error(`Server error: ${error.message}`,{ className : 'error-toast' });
+       }
     };
 
     socket.on('initial-state', handleInitialState);
@@ -252,7 +253,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     newAwareness.on('change', syncParticipants);
 
     // --- Awareness heartbeat to prevent timeouts ---
-    const HEARTBEAT_MS = 15000;
+    const COLLAB_HEARTBEAT_MS = import.meta.env.VITE_COLLAB_HEARTBEAT_MS;
     const heartbeat = setInterval(() => {
       try {
         if (socket.connected && newAwareness) {
@@ -260,7 +261,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
           socket.emit('awareness-update', update);
         }
       } catch {}
-    }, HEARTBEAT_MS);
+    }, COLLAB_HEARTBEAT_MS);
 
 
     // --- Cleanup Function ---
@@ -299,6 +300,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       setMetadata(null);
       setSocketInstance(null);
       setConnectionStatus('disconnected');
+      // Clear participants in Redux on teardown
+      setParticipants([]);
     };
   // Dependencies for the main useEffect hook. Re-runs if token or stable user info changes.
   }, [inviteToken, stableCurrentUser]); 
@@ -310,7 +313,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     connectionStatus,
     metadata,
     socket: socketInstance,
-    currentUser : stableCurrentUser
+    currentUser : stableCurrentUser,
   }), [doc, awareness, connectionStatus, metadata, socketInstance, stableCurrentUser]);
 
   return (

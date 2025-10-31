@@ -20,19 +20,23 @@ const collabSessionSlice = createSlice({
         initSession : (state, action : PayloadAction<{ inviteToken : string }>) =>  {
             state.inviteToken = action.payload.inviteToken
             state.isOwner = true;
+            state.participants = [];
         },
         joinSession : (state, action : PayloadAction<{ inviteToken : string }>) => {
             state.inviteToken = action.payload.inviteToken
+            state.participants = [];
         },
         endSession : (state) => {
             state.inviteToken = null;
             state.isOwner = false;
+            state.participants = [];
         },
         setParticipants : (state, action : PayloadAction<CollabUserInfo[]>) => {
             state.participants = action.payload;
         },
         leaveSession : (state)=>{
             state.inviteToken = null;
+            state.participants = [];
         }
     }
 })

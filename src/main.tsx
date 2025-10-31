@@ -85,7 +85,7 @@ const router = createBrowserRouter([
           { path: "dashboard", element: <UserDashboard/> },
           { path: "leaderboard", element: <Leaderboard/> },
           { path: "profile", element: <UserProfile/> },
-          { path: "collab", element: <CollaborationPage/> } // <-- Your page
+          { path: "collab", element: <CollaborationPage/> }
         ]
       },
       // Admin routes

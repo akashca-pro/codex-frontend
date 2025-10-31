@@ -121,7 +121,7 @@ export default function Navbar() {
       <Tabs
         value={currentPath === 'collaborate' ? '' : currentPath}
         onValueChange={(val) => {
-          if (val === 'collaborate') {
+          if (val === 'collaborate' && !location.pathname.includes('collab')) {
             setIsCollabDialogOpen(true);
           } else {
             navigate(getPath(val));
@@ -232,6 +232,7 @@ export default function Navbar() {
             if (item.id === 'collaborate') {
               return (
                 <button
+                  disabled={location.pathname.includes('collab')}
                   key={item.id}
                   onClick={() => {
                     setIsCollabDialogOpen(true);

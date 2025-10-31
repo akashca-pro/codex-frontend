@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LogOut, Power, Wifi, WifiOff, AlertTriangle, Loader2, Copy, Users } from "lucide-react"
 import { toast } from "sonner"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -31,6 +31,11 @@ interface CollaborationHeaderProps {
   onFontSizeChange: (size: number) => void;
   intelliSense : boolean
   onToggleIntelliSense : () => void
+  disableNavigationBlock: () => void
+  triggerConfirmType?: 'end' | 'leave' | null
+  onConfirmProceed?: () => void
+  onConfirmCancel?: () => void
+  onRequestNavigateHome: () => void
 }
 
 interface Language {
@@ -53,6 +58,11 @@ const CollaborationHeader = ({
     onFontSizeChange,
     intelliSense,
     onToggleIntelliSense,
+  disableNavigationBlock,
+  triggerConfirmType,
+  onConfirmProceed,
+  onConfirmCancel,
+  onRequestNavigateHome,
   } : CollaborationHeaderProps
 ) => {
   const [searchParams] = useSearchParams();
@@ -62,28 +72,40 @@ const CollaborationHeader = ({
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const { endSession, leaveSession } = useCollabSessionActions();
   const { collabSession } = useSelect();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const selectedLanguage = languages.find((lang) => lang.id === language)
+
+  // Open confirmation dialog when parent requests
+  
+  if (triggerConfirmType === 'end' && !showEndConfirm) {
+    setShowEndConfirm(true)
+  }
+  if (triggerConfirmType === 'leave' && !showLeaveConfirm) {
+    setShowLeaveConfirm(true)
+  }
 
   // Helper to detect if a participant is the current user
   const isMe = (user: any) => currentUser && user.id === currentUser.id;
-  // Simple avatar bar shows all participants
 
   const handleEndSession = () => {
     if (socket) {
+      disableNavigationBlock();
       socket.emit("close-session")
       endSession();
-      navigate('/',{replace : true});
-      toast.success("Session ended for all participants")
+      if (onConfirmProceed) { onConfirmProceed(); }
+      else { onRequestNavigateHome(); }
+      toast.success("Session ended for all participants",{ className : 'success-toast' })
       setShowEndConfirm(false)
     }
   }
 
   const handleLeaveSession = () => {
     if (socket) {
+      disableNavigationBlock();
       socket.emit("leave-session")
       leaveSession();
-      navigate('/',{replace : true});
+      if (onConfirmProceed) { onConfirmProceed(); }
+      else { onRequestNavigateHome(); }
       toast.info("You left the session")
       setShowLeaveConfirm(false)
     }
@@ -93,7 +115,7 @@ const handleCopyInvite = () => {
   const tokenToCopy = tokenFromUrl || collabSession.inviteToken;
   if (tokenToCopy) {
     navigator.clipboard.writeText(tokenToCopy)
-      .then(() => toast.success("Invite token copied!"))
+      .then(() => toast.info("Invite token copied!"))
       .catch(() => toast.error("Failed to copy token."));
   } else {
     toast.error("Could not find invite token.");
@@ -268,7 +290,7 @@ const handleCopyInvite = () => {
       </motion.div>
 
       {/* End Session Confirmation */}
-      <Dialog open={showEndConfirm} onOpenChange={setShowEndConfirm}>
+      <Dialog open={showEndConfirm} onOpenChange={(open) => { setShowEndConfirm(open); if (!open && onConfirmCancel) onConfirmCancel(); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>End Collaboration Session?</DialogTitle>
@@ -281,7 +303,7 @@ const handleCopyInvite = () => {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <button className="btn btn-outline">Cancel</button>
+              <button className="btn btn-outline" onClick={() => onConfirmCancel && onConfirmCancel()}>Cancel</button>
             </DialogClose>
             <button type="button" className="bg-destructive text-white rounded-md px-4 py-2" onClick={handleEndSession}>
               End Session
@@ -291,17 +313,17 @@ const handleCopyInvite = () => {
       </Dialog>
 
       {/* Leave Session Confirmation */}
-      <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+      <Dialog open={showLeaveConfirm} onOpenChange={(open) => { setShowLeaveConfirm(open); if (!open && onConfirmCancel) onConfirmCancel(); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Leave Collaboration Session?</DialogTitle>
             <DialogDescription>
-              You will disconnect from the session. You can rejoin if you have the invite link.
+              You will disconnect from the session. You can rejoin if session is not ended, use invite link.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <button className="btn btn-outline">Cancel</button>
+              <button className="btn btn-outline" onClick={() => onConfirmCancel && onConfirmCancel()}>Cancel</button>
             </DialogClose>
             <button type="button" className="bg-destructive text-white rounded-md px-4 py-2" onClick={handleLeaveSession}>
               Leave Session
