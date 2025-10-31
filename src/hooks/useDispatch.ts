@@ -4,7 +4,7 @@ import type { User } from "@/store/slices/authSlice";
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 import { closeTab, createFile, deleteFile, openTab, renameFile, setActiveFile, unsetActiveFile, updateContent } from "@/store/slices/codepadSlice";
-import { endSession, initSession, joinSession, leaveSession, setParticipants, type CollabSessionState } from "@/store/slices/collabSlice";
+import { endSession, initSession, joinSession, leaveSession, setParticipants } from "@/store/slices/collabSlice";
 import type { CollabUserInfo } from "@/features/collaboration/CollaborationPage";
 
 export const useUserEmailActions = () => {

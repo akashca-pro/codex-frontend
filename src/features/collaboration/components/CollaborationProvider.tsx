@@ -191,6 +191,9 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     const handleDocUpdate = (update: Uint8Array) => {
       if (newDoc) Y.applyUpdate(newDoc, new Uint8Array(update), 'server');
     };
+    const handleUserLeft = (update : { username : string }) => {
+      toast.info(`${update.username} left the session.`)
+    }
     const handleAwarenessUpdate = (update: Uint8Array) => {
       if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(update), 'server');
     };
@@ -211,6 +214,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
 
     socket.on('initial-state', handleInitialState);
     socket.on('doc-update', handleDocUpdate);
+    socket.on('user-left', handleUserLeft);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);
     socket.on('error', handleServerError);

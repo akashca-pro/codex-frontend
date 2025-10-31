@@ -123,7 +123,7 @@ const CollaborationPage: React.FC = () => {
       setCurrentUser({
         id: user.details.userId, 
         username: user.details.username || 'username', 
-        firstName : 'firstName',
+        firstName : user.details.firstName || 'firstName',
         avatar : user.details.avatar || 'No image'
       });
     }

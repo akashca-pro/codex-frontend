@@ -4,6 +4,7 @@ import { destroyCookie } from "nookies";
 
 export interface User {
     userId : string;
+    firstName : string;
     username : string;
     email : string;
     role : 'ADMIN' | 'USER';
