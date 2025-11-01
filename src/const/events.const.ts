@@ -1,19 +1,23 @@
-export const ClientToServerEvents = {
-  CONTROL_MESSAGE: 'control-message',
-} as const;
+import type { Language } from "./language.const";
 
-export const ControlMsgType = {
-  DOC_UPDATE: 'doc-update',
-  AWARENESS_UPDATE: 'awareness-update',
+export const MetadataMsgType = {
   CHANGE_LANGUAGE: 'change-language',
   LANGUAGE_CHANGED: 'language-changed', 
-  USER_LEFT: 'user-left',
-  END_SESSION: 'end-session',
+  FONT_CHANGE : 'change-font',
+  FONT_CHANGED : 'font-changed',
+  TOGGLE_INTELLISENSE: 'toggle-intellisense',
+  INTELLISENSE_TOGGLED: 'intellisense-toggled'
 } as const;
 
-export type ControlMsgTypes = typeof ControlMsgType[keyof typeof ControlMsgType];
+export type MetadataMsgTypes = typeof MetadataMsgType[keyof typeof MetadataMsgType];
 
-export interface ControlMessage<T = any> {
-  type: ControlMsgTypes;
-  payload: T;
+export interface ActiveSessionMetadata {
+  language: Language;
+  fontSize : number;
+  intelliSense : boolean;
+}
+
+export interface MetadataMessage {
+  type: MetadataMsgTypes;
+  payload: Partial<ActiveSessionMetadata>
 }

@@ -3,25 +3,23 @@ import { io, Socket } from 'socket.io-client';
 import * as Y from 'yjs';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import { toast } from 'sonner';
-import { type Language } from '@/const/language.const'; // Adjust path
 import { useSelect } from '@/hooks/useSelect'
 import { useUserRefreshTokenMutation } from '@/apis/auth-user/auth/user'
 import { useAdminRefreshTokenMutation } from '@/apis/auth-user/auth/admin'
 import type { CollabUserInfo } from '../CollaborationPage';
 import { useCollabSessionActions } from '@/hooks/useDispatch';
 import { useNavigate } from 'react-router-dom';
+import type { ActiveSessionMetadata } from '@/const/events.const';
 
-// Define the shape of the context state
 interface CollaborationContextProps {
   doc: Y.Doc | null;
   awareness: Awareness | null;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
-  metadata: { language: Language; ownerId: string } | null; // Shared session metadata
-  socket: Socket | null; // WebSocket instance
+  metadata: Partial<ActiveSessionMetadata> | null; 
+  socket: Socket | null;
   currentUser : CollabUserInfo | null
 }
 
-// Create the context with default values
 const CollaborationContext = createContext<CollaborationContextProps>({
   doc: null,
   awareness: null,
@@ -46,7 +44,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   const navigate = useNavigate();
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
-  const [metadata, setMetadata] = useState<{ language: Language; ownerId: string } | null>(null);
+  const [metadata, setMetadata] = useState<Partial<ActiveSessionMetadata> | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const { user } = useSelect()
@@ -194,10 +192,13 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     const handleUserLeft = (update : { username : string }) => {
       toast.info(`${update.username} left the session.`)
     }
+    const handleUserJoined = (update : { username : string }) => {
+      toast.info(`${user.details?.username === update.username ? 'You' : update.username } joined the session.`)
+    }
     const handleAwarenessUpdate = (update: Uint8Array) => {
       if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(update), 'server');
     };
-    const handleMetadataChanged = (newMetadata: { language: Language; ownerId: string }) => {
+    const handleMetadataChanged = (newMetadata: Partial<ActiveSessionMetadata>) => {
        console.log('Received session metadata update:', newMetadata);
        setMetadata(newMetadata);
     };
@@ -214,6 +215,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
 
     socket.on('initial-state', handleInitialState);
     socket.on('doc-update', handleDocUpdate);
+    socket.on('user-joined',handleUserJoined);
     socket.on('user-left', handleUserLeft);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);

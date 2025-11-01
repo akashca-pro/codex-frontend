@@ -26,7 +26,7 @@ export default function MonacoEditor({
   height = "100%",
   readOnly = false,
   fontSize,
-  intelliSense = true
+  intelliSense = false
 }: MonacoEditorProps) {
   const editorRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -168,7 +168,11 @@ export default function MonacoEditor({
         theme={theme}
         onChange={handleEditorChange}
         onMount={handleEditorDidMount}
-        loading={null}
+        loading={
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading Editor...
+          </div>
+        }
         options={{
           wordWrap: "off", 
           readOnly,

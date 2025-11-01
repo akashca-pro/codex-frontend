@@ -9,7 +9,7 @@ import { MonacoBinding } from 'y-monaco';
 import { useCollaboration } from "@/features/collaboration/components/CollaborationProvider";
 
 interface CollabEditorProps {
-  onChange : ()=>void;
+  onChange: (value: string) => void
   language: string ;
   theme?: string;
   fontSize?: number;
@@ -21,8 +21,9 @@ const SHARED_TEXT_KEY = 'shared-code';
 const CollabEditor: React.FC<CollabEditorProps> = ({
   language,
   theme = "codexDark",
-  fontSize = 16,
-  intelliSense = true,
+  fontSize,
+  intelliSense = false,
+  onChange
 }) => {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -429,6 +430,12 @@ useEffect(() => {
       );
   }
 
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      onChange(value)
+    }
+  }
+
   return (
     <Card
       className={`relative h-full overflow-hidden border border-border bg-card transition-opacity duration-300 ${
@@ -449,6 +456,7 @@ useEffect(() => {
         height="100%"
         language={currentLanguage}
         theme={theme}
+        onChange={handleEditorChange}
         onMount={handleEditorDidMount}
         loading={
           <div className="flex items-center justify-center h-full">
