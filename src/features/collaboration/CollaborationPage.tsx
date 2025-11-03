@@ -33,7 +33,6 @@ const CollaborationPageInternal: React.FC = () => {
   const isOwner = collabSession.isOwner;
   const consoleContainerRef = useRef<HTMLDivElement>(null);
   const [consoleHeight, setConsoleHeight] = useState(400);
-  const [unreadMessageCount, setUnreadMessageCount]= useState<number>(0);
 
   const [shouldBlock, setShouldBlock] = useState(true);
   const blocker = useBlocker(shouldBlock);
@@ -301,11 +300,6 @@ const CollaborationPageInternal: React.FC = () => {
             <TabsTrigger value="console">Console</TabsTrigger>
             <TabsTrigger value="chat" className="relative">
               Chat
-              {unreadMessageCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary text-white text-xs font-semibold px-2 py-0.5 animate-pulse">
-                  {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
-                </span>
-              )}
             </TabsTrigger>
           </TabsList> 
             <TabsContent value="console" className="flex-1 min-h-0 overflow-hidden m-0 mt-2 p-2">

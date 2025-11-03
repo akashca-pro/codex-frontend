@@ -15,6 +15,7 @@ import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import EmojiPicker from "./EmojiPicker";
 import { useSelect } from '@/hooks/useSelect'
 import { useCollabSessionActions } from '@/hooks/useDispatch'
+import { toast } from "sonner"
 
 interface ChatPanelProps {
   currentUserId: string
@@ -168,9 +169,20 @@ useEffect(() => {
       return
     }
 
+    const trimmedMessage = inputValue.trim();
+
+    if (!trimmedMessage) return; // ignore empty
+    if (trimmedMessage.length > 500) {
+      toast.warning("Message too long: limit 500 characters",{position : 'bottom-left'});
+      return;
+    }
+
+    const sanitizedMessage = trimmedMessage.replace(/<[^>]*>?/gm, "").trim();
+    if (!sanitizedMessage) return;
+
     socket.emit(ChatMsgEvents.CLIENT_SEND_MESSAGE, {
-      content: inputValue,
-    })
+      content: sanitizedMessage,
+    });
 
     setInputValue("")
     setIsTyping(false)
@@ -209,7 +221,7 @@ useEffect(() => {
   };
 
   return (
-    <Card className="h-full flex flex-col border-r rounded-none bg-card/50">
+    <Card className="relative h-full flex flex-col border-r rounded-none bg-card/50">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0"
@@ -226,6 +238,26 @@ useEffect(() => {
           </Badge>
         )}
       </motion.div>
+
+      {/* Typing Indicator */}
+      {typingUsers &&
+      !Array.from(typingUsers).find(u => u === user.details?.firstName) && (
+        <AnimatePresence>
+          {typingUsers.size > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-[60px] left-4 z-20 
+                        flex gap-2 items-center bg-background/80 backdrop-blur-md
+                        px-3 py-1 rounded-md shadow-sm border border-border text-xs text-orange-600"
+            >
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>{Array.from(typingUsers).join(", ")} is typing...</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Messages Area with custom scroll */}
       <div className="flex-1 relative min-h-0">
@@ -272,23 +304,6 @@ useEffect(() => {
                 )
               })}
             </AnimatePresence>
-
-            {/* Typing Indicator */}
-            { typingUsers && 
-            !Array.from(typingUsers).find(u=>u === user.details?.firstName) &&
-             <AnimatePresence>
-              {typingUsers.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex gap-2 text-xs text-orange-600 items-center"
-                >
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                   <span>{Array.from(typingUsers).join(", ")} is typing...</span>
-                </motion.div>
-              )}
-            </AnimatePresence>}
 
             <div ref={messagesEndRef} />
           </div>
