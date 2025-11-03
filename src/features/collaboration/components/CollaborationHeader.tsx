@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LogOut, Power, Wifi, WifiOff, AlertTriangle, Loader2, Copy, Users } from "lucide-react"
 import { toast } from "sonner"
-import { useSearchParams } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -65,13 +65,13 @@ const CollaborationHeader = ({
   onRequestNavigateHome,
   } : CollaborationHeaderProps
 ) => {
-  const [searchParams] = useSearchParams();
-  const tokenFromUrl = searchParams.get('token');
   const { connectionStatus, socket, currentUser } = useCollaboration();
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const { endSession, leaveSession } = useCollabSessionActions();
   const { collabSession } = useSelect();
+  const location = useLocation();
+  console.log(location);
   // const navigate = useNavigate();
   const selectedLanguage = languages.find((lang) => lang.id === language)
 
@@ -112,13 +112,37 @@ const CollaborationHeader = ({
   }
 
 const handleCopyInvite = () => {
-  const tokenToCopy = tokenFromUrl || collabSession.inviteToken;
-  if (tokenToCopy) {
-    navigator.clipboard.writeText(tokenToCopy)
-      .then(() => toast.info("Invite token copied!"))
-      .catch(() => toast.error("Failed to copy token."));
+  const fullUrl = `${window.location.origin}${location.pathname}?token=${collabSession.inviteToken}`;
+
+  // Check for modern API and secure context
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard
+      .writeText(fullUrl)
+      .then(() => toast.info("Invite link copied!"))
+      .catch(() => toast.error("Failed to copy link."));
   } else {
-    toast.error("Could not find invite token.");
+    // Fallback for insecure context http
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = fullUrl;
+      textarea.style.position = "fixed"; // Avoid scrolling to bottom
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (successful) {
+        toast.info("Invite link copied!");
+      } else {
+        toast.error("Failed to copy link.");
+      }
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      toast.error("Failed to copy link.");
+    }
   }
 };
 

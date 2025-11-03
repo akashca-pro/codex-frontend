@@ -7,8 +7,8 @@ import { Loader2 } from 'lucide-react';
 import CollaborationHeader from './components/CollaborationHeader';
 
 import { useBlocker } from "react-router-dom";
-import { MetadataMsgType } from '@/const/events.const';
-import type { MetadataMessage } from '@/const/events.const';
+import { MetadataMsgType, RunCodeMsgTypes } from '@/const/events.const';
+import type { MetadataMessage, RunCodeMessage } from '@/const/events.const';
 import type { Language } from '@/const/language.const';
 import ConsolePanel from '../CodePad/components/ConsolePanel';
 import { useCustomCodeRunMutation, useLazyCustomCodeResultQuery } from '@/apis/codepad/public'
@@ -25,7 +25,7 @@ export interface CollabUserInfo {
 }
 
 const CollaborationPageInternal: React.FC = () => {
-  const { socket, metadata } = useCollaboration();
+  const { socket, metadata, runCodeDetails } = useCollaboration();
   const [language, setLanguage] = useState('javascript');
   const [fontSize, setFontSize] = useState(16);
   const [intelliSense, setIntelliSense] = useState(true);
@@ -47,8 +47,22 @@ const CollaborationPageInternal: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [consoleMessages, setConsoleMessages] = useState<string>(
     "View execution results, including logs and error traces, here."
-  )
+  );
+  
+  // Track if current user is executing code (to distinguish from other users' executions)
+  const [isCurrentUserExecuting, setIsCurrentUserExecuting] = useState(false);
 
+  // Determine UI values: use local state if current user is executing, otherwise use socket data from other users
+  const displayIsRunning = isCurrentUserExecuting 
+    ? isRunning || isFetching 
+    : runCodeDetails?.isRunning ?? false;
+  
+  const displayConsoleMessage = isCurrentUserExecuting
+    ? consoleMessages
+    : runCodeDetails?.consoleMessage ?? consoleMessages;
+
+
+  // metadata events
   useEffect(() => {
     if (!socket) return;
     const message: MetadataMessage = {
@@ -73,9 +87,37 @@ const CollaborationPageInternal: React.FC = () => {
       type: MetadataMsgType.TOGGLE_INTELLISENSE,
       payload: { intelliSense },
     };
-    console.log(message)
     socket.emit('change-metadata', message);
   }, [socket, intelliSense]);
+
+  // Emit run code events only when current user's execution state changes
+  useEffect(()=>{
+    if(!socket || !isCurrentUserExecuting) return;
+    const message : RunCodeMessage = {
+      type : RunCodeMsgTypes.RUNNING_CODE,
+      payload : { isRunning : isRunning || isFetching }
+    }
+    socket.emit('code-execution', message);
+  },[socket, isRunning, isFetching, isCurrentUserExecuting])
+
+  useEffect(()=>{
+    if(!socket || !isCurrentUserExecuting) return;
+    // Only emit if we have a meaningful console message (not the default placeholder)
+    console.log('consoleMessages', consoleMessages);
+    if(consoleMessages === "View execution results, including logs and error traces, here.") return;
+    const message : RunCodeMessage = {
+      type : RunCodeMsgTypes.RESULT_UPDATED,
+      payload : { consoleMessage : consoleMessages }
+    }
+    socket.emit('code-execution', message);
+  },[socket, consoleMessages, isCurrentUserExecuting])
+
+// This effect will run AFTER the state is updated and the final results are emitted
+  useEffect(() => {
+    if (!isRunning && !isFetching && isCurrentUserExecuting) {
+      setIsCurrentUserExecuting(false);
+    }
+  }, [isRunning, isFetching, isCurrentUserExecuting]);
 
   useEffect(()=>{
     if(metadata?.fontSize)
@@ -145,24 +187,29 @@ const CollaborationPageInternal: React.FC = () => {
       if (result.success && result.data?.stdOut !== undefined) {
         const output = result.data.stdOut.trim();
         setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
+        console.log(output);
         setIsRunning(false);
         setTempId("");
+        // setIsCurrentUserExecuting(false); // Reset flag when execution completes
         clearInterval(intervalId);
       } else if (!result.success) {
         setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
         setIsRunning(false);
         setTempId("");
+        // setIsCurrentUserExecuting(false); // Reset flag on failure
         clearInterval(intervalId);
       } else if (Date.now() - start > 10000) {
         setConsoleMessages("Execution timed out after 10 seconds.");
         setIsRunning(false);
         setTempId("");
+        // setIsCurrentUserExecuting(false); // Reset flag on timeout
         clearInterval(intervalId);
       }
     } catch (err) {
       setConsoleMessages("Error fetching result.");
       setIsRunning(false);
       setTempId("");
+      // setIsCurrentUserExecuting(false); // Reset flag on error
       clearInterval(intervalId);
     }
   }, 500);
@@ -190,6 +237,7 @@ const CollaborationPageInternal: React.FC = () => {
 
   const handleRun = async () => {
     if (!editorContent) return
+    setIsCurrentUserExecuting(true); // Mark that current user is executing
     setConsoleMessages("Executing code...");
     setIsRunning(true);
     setTempId('')
@@ -219,13 +267,14 @@ const CollaborationPageInternal: React.FC = () => {
           description : error?.data?.message
       })
       setConsoleMessages("Failed to start execution.");
-      setIsRunning(false); 
+      setIsRunning(false);
+      setIsCurrentUserExecuting(false); // Reset flag on error
     }
 
   }
 
   const handleChatMessage = (_message : Message) => {
-    // Handle chat messages here
+    
   }
 
   return (
@@ -264,8 +313,8 @@ const CollaborationPageInternal: React.FC = () => {
               <div ref={consoleContainerRef} className="h-full flex flex-col">
                 <ConsolePanel
                   onRun={handleRun}
-                  isRunning={isRunning || isFetching}
-                  message={consoleMessages}
+                  isRunning={displayIsRunning}
+                  message={displayConsoleMessage}
                   height={consoleHeight}
                 />
               </div>

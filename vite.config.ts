@@ -3,8 +3,8 @@ import fs from 'fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const certPath = path.resolve(__dirname, '../../localhost+1.pem'); 
-const keyPath = path.resolve(__dirname, '../../localhost+1-key.pem');
+// const certPath = path.resolve(__dirname, '../../localhost+1.pem'); 
+// const keyPath = path.resolve(__dirname, '../../localhost+1-key.pem');
 
 export default defineConfig({
   plugins: [react(),],
@@ -14,11 +14,11 @@ export default defineConfig({
     },
   },
   server: {
-    // host: 'codex.com',
+    host: 'codex.com',
     port: 5173,
-    https: {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath),
-    },
+  // //   https: {
+  // //     key: fs.readFileSync(keyPath),
+  // //     cert: fs.readFileSync(certPath),
+  // //   },
   }
 })

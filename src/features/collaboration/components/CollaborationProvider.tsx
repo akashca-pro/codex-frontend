@@ -9,13 +9,14 @@ import { useAdminRefreshTokenMutation } from '@/apis/auth-user/auth/admin'
 import type { CollabUserInfo } from '../CollaborationPage';
 import { useCollabSessionActions } from '@/hooks/useDispatch';
 import { useNavigate } from 'react-router-dom';
-import type { ActiveSessionMetadata } from '@/const/events.const';
+import type { ActiveSessionMetadata, ActiveSessionRunCodeData } from '@/const/events.const';
 
 interface CollaborationContextProps {
   doc: Y.Doc | null;
   awareness: Awareness | null;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   metadata: Partial<ActiveSessionMetadata> | null; 
+  runCodeDetails : Partial<ActiveSessionRunCodeData> | null;
   socket: Socket | null;
   currentUser : CollabUserInfo | null
 }
@@ -25,6 +26,7 @@ const CollaborationContext = createContext<CollaborationContextProps>({
   awareness: null,
   connectionStatus: 'disconnected',
   metadata: null,
+  runCodeDetails : null,
   socket: null,
   currentUser : null,
 });
@@ -45,6 +47,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [metadata, setMetadata] = useState<Partial<ActiveSessionMetadata> | null>(null);
+  const [runCodeDetails, setRunCodeDetails] = useState<Partial<ActiveSessionRunCodeData> | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected'); // Start as disconnected
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null);
   const { user } = useSelect()
@@ -199,8 +202,19 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(update), 'server');
     };
     const handleMetadataChanged = (newMetadata: Partial<ActiveSessionMetadata>) => {
-       console.log('Received session metadata update:', newMetadata);
        setMetadata(newMetadata);
+    };
+    const handleCodeExecuting = (runCodeData : Partial<ActiveSessionRunCodeData>) => {
+      setRunCodeDetails(prev => ({
+        ...prev,
+        ...runCodeData
+      }));
+    };
+    const handleCodeExecuted = (runCodeData : Partial<ActiveSessionRunCodeData>) => {
+      setRunCodeDetails(prev => ({
+        ...prev,
+        ...runCodeData
+      }));
     };
     const handleServerError = (error: { message: string; code?: number }) => {
        if(error.message === 'Session is either ended or closed'){
@@ -219,6 +233,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     socket.on('user-left', handleUserLeft);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);
+    socket.on('code-executing', handleCodeExecuting)
+    socket.on('code-executed', handleCodeExecuted)
     socket.on('error', handleServerError);
 
     // --- Yjs Synchronization Event Handlers (Client -> Server) ---
@@ -284,6 +300,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       socket.off('doc-update', handleDocUpdate);
       socket.off('awareness-update', handleAwarenessUpdate);
       socket.off('metadata-changed', handleMetadataChanged);
+      socket.off('code-executing', handleCodeExecuting);
+      socket.off('code-executed', handleCodeExecuted);
       socket.off('error', handleServerError);
       
       socket.disconnect(); // Disconnect the WebSocket
@@ -304,6 +322,7 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       setDoc(null);
       setAwareness(null);
       setMetadata(null);
+      setRunCodeDetails(null);
       setSocketInstance(null);
       setConnectionStatus('disconnected');
       // Clear participants in Redux on teardown
@@ -318,9 +337,10 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     awareness,
     connectionStatus,
     metadata,
+    runCodeDetails,
     socket: socketInstance,
     currentUser : stableCurrentUser,
-  }), [doc, awareness, connectionStatus, metadata, socketInstance, stableCurrentUser]);
+  }), [doc, awareness, connectionStatus, metadata, runCodeDetails, socketInstance, stableCurrentUser]);
 
   return (
     <CollaborationContext.Provider value={contextValue}>

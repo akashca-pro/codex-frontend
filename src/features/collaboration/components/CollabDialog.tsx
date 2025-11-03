@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useCollabSessionActions } from '@/hooks/useDispatch';
-import { useSelect } from '@/hooks/useSelect'
 
 interface CollabDialogProps {
   isOpen: boolean;
@@ -17,11 +16,10 @@ interface CollabDialogProps {
 
 const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
   const [tab, setTab] = useState('start');
-  const [joinToken, setJoinToken] = useState('');
+  const [joinLink, setJoinLink] = useState('');
   const [createSession, { isLoading }] = useCreateSessionMutation();
   const navigate = useNavigate();
   const { initSession, joinSession } = useCollabSessionActions(); 
-  const { collabSession } = useSelect();
 
   const handleStart = async () => {
     const toastId = toast.loading('Starting new session...');
@@ -57,21 +55,22 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
   };
 
   const handleJoin = () => {
-    const tokenToJoin = joinToken.trim();
-    if (!tokenToJoin) {
-      toast.error('Please enter an invite token.');
+    const LinkToJoin = joinLink.trim();
+    if (!LinkToJoin) {
+      toast.error('Please enter an invite link.');
       return;
     }
-    if (tokenToJoin.length < 10) { // Basic validation
-       toast.error('Invalid token format.');
+    if (LinkToJoin.length < 10) { // Basic validation
+       toast.error('Invalid link.');
        return;
     }
 
-    console.log("Dispatching initSession with token:", tokenToJoin);
-    joinSession({ inviteToken : tokenToJoin });
+    console.log("Dispatching initSession with token:", LinkToJoin);
+    joinSession({ inviteToken : LinkToJoin });
 
-    navigate(`/user/collab?token=${tokenToJoin}`); // Navigate with token
-    onClose(); // Close dialog on navigation
+    const relativePath = new URL(LinkToJoin).pathname + new URL(LinkToJoin).search;
+    navigate(relativePath, { replace: true });
+    onClose(); 
   };
 
   return (
@@ -99,24 +98,15 @@ const CollabDialog: React.FC<CollabDialogProps> = ({ isOpen, onClose }) => {
           </TabsContent>
           {/* Join Existing Tab */}
           <TabsContent value="join" className="space-y-4 pt-4">
-            { collabSession.inviteToken !== null && <Button onClick={()=>{
-              joinSession({ inviteToken : collabSession.inviteToken! });
-              navigate(`/user/collab?token=${collabSession.inviteToken}`);
-            }}>
-              Re-join last session
-            </Button>}
-             <label htmlFor="inviteToken" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 sr-only">
-               Invite Token
-             </label>
             <Input
               id="inviteToken"
-              placeholder="Paste invite token here"
-              value={joinToken}
-              onChange={(e) => setJoinToken(e.target.value)}
-              aria-label="Invite Token"
+              placeholder="Paste invite Link here"
+              value={joinLink}
+              onChange={(e) => setJoinLink(e.target.value)}
+              aria-label="Invite Link"
             />
             <DialogFooter>
-               <Button onClick={handleJoin} disabled={!joinToken.trim()} className="w-full sm:w-auto">
+               <Button onClick={handleJoin} disabled={!joinLink.trim()} className="w-full sm:w-auto">
                 Join Session
               </Button>
             </DialogFooter>
