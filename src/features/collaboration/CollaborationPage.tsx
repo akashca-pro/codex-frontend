@@ -14,7 +14,6 @@ import ConsolePanel from '../CodePad/components/ConsolePanel';
 import { useCustomCodeRunMutation, useLazyCustomCodeResultQuery } from '@/apis/codepad/public'
 import { toast } from 'sonner';
 import ChatPanel from './components/Chat-panel';
-import type { Message } from './schemas/collaboration';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export interface CollabUserInfo {
@@ -22,17 +21,19 @@ export interface CollabUserInfo {
   username : string;
   firstName : string;
   avatar : string;
+  isTyping: false
 }
 
 const CollaborationPageInternal: React.FC = () => {
-  const { socket, metadata, runCodeDetails } = useCollaboration();
+  const { socket, metadata, runCodeDetails, currentUser } = useCollaboration();
   const [language, setLanguage] = useState('javascript');
   const [fontSize, setFontSize] = useState(16);
-  const [intelliSense, setIntelliSense] = useState(true);
+  // const [intelliSense, setIntelliSense] = useState(true);
   const { collabSession } = useSelect();
   const isOwner = collabSession.isOwner;
   const consoleContainerRef = useRef<HTMLDivElement>(null);
   const [consoleHeight, setConsoleHeight] = useState(400);
+  const [unreadMessageCount, setUnreadMessageCount]= useState<number>(0);
 
   const [shouldBlock, setShouldBlock] = useState(true);
   const blocker = useBlocker(shouldBlock);
@@ -81,14 +82,14 @@ const CollaborationPageInternal: React.FC = () => {
     socket.emit('change-metadata', message);
   }, [socket, language]);
 
-  useEffect(() => {
-    if (!socket) return;
-    const message: MetadataMessage = {
-      type: MetadataMsgType.TOGGLE_INTELLISENSE,
-      payload: { intelliSense },
-    };
-    socket.emit('change-metadata', message);
-  }, [socket, intelliSense]);
+  // useEffect(() => {
+  //   if (!socket) return;
+  //   const message: MetadataMessage = {
+  //     type: MetadataMsgType.TOGGLE_INTELLISENSE,
+  //     payload: { intelliSense },
+  //   };
+  //   socket.emit('change-metadata', message);
+  // }, [socket, intelliSense]);
 
   // Emit run code events only when current user's execution state changes
   useEffect(()=>{
@@ -126,8 +127,8 @@ const CollaborationPageInternal: React.FC = () => {
     if(metadata?.language)
     setLanguage(metadata.language);
 
-    if(metadata?.intelliSense !== undefined)
-    setIntelliSense(metadata.intelliSense);
+    // if(metadata?.intelliSense !== undefined)
+    // setIntelliSense(metadata.intelliSense);
   },[metadata])
 
   useEffect(() => {
@@ -187,29 +188,24 @@ const CollaborationPageInternal: React.FC = () => {
       if (result.success && result.data?.stdOut !== undefined) {
         const output = result.data.stdOut.trim();
         setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
-        console.log(output);
         setIsRunning(false);
         setTempId("");
-        // setIsCurrentUserExecuting(false); // Reset flag when execution completes
         clearInterval(intervalId);
       } else if (!result.success) {
         setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
         setIsRunning(false);
         setTempId("");
-        // setIsCurrentUserExecuting(false); // Reset flag on failure
         clearInterval(intervalId);
       } else if (Date.now() - start > 10000) {
         setConsoleMessages("Execution timed out after 10 seconds.");
         setIsRunning(false);
         setTempId("");
-        // setIsCurrentUserExecuting(false); // Reset flag on timeout
         clearInterval(intervalId);
       }
     } catch (err) {
       setConsoleMessages("Error fetching result.");
       setIsRunning(false);
       setTempId("");
-      // setIsCurrentUserExecuting(false); // Reset flag on error
       clearInterval(intervalId);
     }
   }, 500);
@@ -270,13 +266,9 @@ const CollaborationPageInternal: React.FC = () => {
       setIsRunning(false);
       setIsCurrentUserExecuting(false); // Reset flag on error
     }
-
-  }
-
-  const handleChatMessage = (_message : Message) => {
     
   }
-
+  
   return (
     <div className="flex flex-col h-full w-full overflow-hidden pl-2 pr-2 bg-background text-foreground">
       <CollaborationHeader
@@ -289,8 +281,8 @@ const CollaborationPageInternal: React.FC = () => {
         onFontSizeChange={setFontSize}
         language={language}
         onLanguageChange={(newLanguage : string) => setLanguage(newLanguage)}
-        intelliSense={intelliSense}
-        onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
+        // intelliSense={intelliSense}
+        // onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
       />
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Section - CollabEditor (60%) */}
@@ -307,7 +299,14 @@ const CollaborationPageInternal: React.FC = () => {
           <Tabs defaultValue="console" className="flex flex-col h-full">
           <TabsList className="grid w-full grid-cols-2 mt-2 shrink-0">
             <TabsTrigger value="console">Console</TabsTrigger>
-            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="chat" className="relative">
+              Chat
+              {unreadMessageCount > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-primary text-white text-xs font-semibold px-2 py-0.5 animate-pulse">
+                  {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList> 
             <TabsContent value="console" className="flex-1 min-h-0 overflow-hidden m-0 mt-2 p-2">
               <div ref={consoleContainerRef} className="h-full flex flex-col">
@@ -320,12 +319,9 @@ const CollaborationPageInternal: React.FC = () => {
               </div>
             </TabsContent>
             <TabsContent value="chat" className="flex-1 min-h-0 overflow-hidden m-0 mt-2">
-              <div className="h-full overflow-hidden">
-                <ChatPanel
-                  currentUserId='dfdf'
-                  onChatMessage={handleChatMessage}
+                <ChatPanel 
+                  currentUserId={currentUser?.id!}
                 />
-              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -347,7 +343,8 @@ const CollaborationPage: React.FC = () => {
         id: user.details.userId, 
         username: user.details.username || 'username', 
         firstName : user.details.firstName || 'firstName',
-        avatar : user.details.avatar || 'No image'
+        avatar : user.details.avatar || 'No image',
+        isTyping: false
       });
     }
   }, [user.isAuthenticated, user.details, tokenFromUrl]);

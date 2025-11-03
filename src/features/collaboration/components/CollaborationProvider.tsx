@@ -56,8 +56,9 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
         id: currentUser.id,
         username: currentUser.username,
         firstName : currentUser.firstName,
-        avatar : currentUser.avatar
-    }), [currentUser.id, currentUser.username, currentUser.firstName, currentUser.avatar]);
+        avatar : currentUser.avatar,
+        isTyping : currentUser.isTyping
+    }), [currentUser.id, currentUser.username, currentUser.firstName, currentUser.avatar, currentUser.isTyping]);
   const [refreshTokenApi] = user.details?.role === 'ADMIN' ? useAdminRefreshTokenMutation() : useUserRefreshTokenMutation()
 
   // Main effect for handling connection, Yjs setup, and listeners
@@ -96,7 +97,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       id: stableCurrentUser.id,
       username: stableCurrentUser.username,
       firstName: stableCurrentUser.firstName,
-      avatar : stableCurrentUser.avatar
+      avatar : stableCurrentUser.avatar,
+      isTyping : stableCurrentUser.isTyping,
     });
 
     // Update React state with the new Yjs instances
@@ -202,7 +204,10 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
       if (newAwareness) applyAwarenessUpdate(newAwareness, new Uint8Array(update), 'server');
     };
     const handleMetadataChanged = (newMetadata: Partial<ActiveSessionMetadata>) => {
-       setMetadata(newMetadata);
+       setMetadata(prev => ({
+         ...prev,
+         ...newMetadata
+       }));
     };
     const handleCodeExecuting = (runCodeData : Partial<ActiveSessionRunCodeData>) => {
       setRunCodeDetails(prev => ({
@@ -233,8 +238,8 @@ export const CollaborationProvider: React.FC<CollaborationProviderProps> = ({
     socket.on('user-left', handleUserLeft);
     socket.on('awareness-update', handleAwarenessUpdate);
     socket.on('metadata-changed', handleMetadataChanged);
-    socket.on('code-executing', handleCodeExecuting)
-    socket.on('code-executed', handleCodeExecuted)
+    socket.on('code-executing', handleCodeExecuting);
+    socket.on('code-executed', handleCodeExecuted);
     socket.on('error', handleServerError);
 
     // --- Yjs Synchronization Event Handlers (Client -> Server) ---

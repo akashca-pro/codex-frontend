@@ -4,8 +4,9 @@ import type { User } from "@/store/slices/authSlice";
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
 import { closeTab, createFile, deleteFile, openTab, renameFile, setActiveFile, unsetActiveFile, updateContent } from "@/store/slices/codepadSlice";
-import { endSession, initSession, joinSession, leaveSession, setParticipants } from "@/store/slices/collabSlice";
+import { addChatMessages, endSession, initSession, joinSession, leaveSession, setParticipants } from "@/store/slices/collabSlice";
 import type { CollabUserInfo } from "@/features/collaboration/CollaborationPage";
+import type { ChatMessage } from "@/const/events.const";
 
 export const useUserEmailActions = () => {
   const dispatch = useDispatch();
@@ -52,6 +53,7 @@ export const useCollabSessionActions = () => {
     endSession : () => dispatch(endSession()),
     joinSession : (payload : { inviteToken : string }) => dispatch(joinSession(payload)),
     setParticipants : (payload : CollabUserInfo[]) => dispatch(setParticipants(payload)),
+    addChatMessages : (payload : ChatMessage) => dispatch(addChatMessages(payload)),
     leaveSession : () => dispatch(leaveSession())
   }
 }

@@ -37,3 +37,20 @@ export interface RunCodeMessage {
   type : RunCodeMsgTypes;
   payload : Partial<ActiveSessionRunCodeData>;
 }
+
+// -----------------------------------------
+
+export interface ChatMessage {
+  id: string; 
+  userId: string;
+  username: string;
+  firstName : string;
+  avatar : string;
+  content: string; 
+  timestamp: number;
+}
+
+export const ChatMsgEvents = {
+  CLIENT_SEND_MESSAGE: 'send-chat-message', // Client-to-Server
+  SERVER_NEW_MESSAGE: 'new-chat-message',   // Server-to-Client
+} as const;

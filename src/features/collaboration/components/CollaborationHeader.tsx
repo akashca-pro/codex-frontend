@@ -29,8 +29,8 @@ interface CollaborationHeaderProps {
   onLanguageChange: (language: string) => void
   fontSize : number;
   onFontSizeChange: (size: number) => void;
-  intelliSense : boolean
-  onToggleIntelliSense : () => void
+  // intelliSense : boolean
+  // onToggleIntelliSense : () => void
   disableNavigationBlock: () => void
   triggerConfirmType?: 'end' | 'leave' | null
   onConfirmProceed?: () => void
@@ -56,8 +56,8 @@ const CollaborationHeader = ({
     onLanguageChange,
     fontSize,
     onFontSizeChange,
-    intelliSense,
-    onToggleIntelliSense,
+    // intelliSense,
+    // onToggleIntelliSense,
   disableNavigationBlock,
   triggerConfirmType,
   onConfirmProceed,
@@ -71,8 +71,6 @@ const CollaborationHeader = ({
   const { endSession, leaveSession } = useCollabSessionActions();
   const { collabSession } = useSelect();
   const location = useLocation();
-  console.log(location);
-  // const navigate = useNavigate();
   const selectedLanguage = languages.find((lang) => lang.id === language)
 
   // Open confirmation dialog when parent requests
@@ -245,7 +243,7 @@ const handleCopyInvite = () => {
               </SelectContent>
             </Select>
             {/* Intellisense toggle */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={onToggleIntelliSense}
@@ -254,7 +252,7 @@ const handleCopyInvite = () => {
               }`}
             >
               IntelliSense
-            </Button>
+            </Button> */}
             {/* Font slider */}
             <div className="flex items-center gap-2 w-52 px-1">
               <span className="text-xs text-muted-foreground">Font</span>
