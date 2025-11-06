@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { getCountryFlag } from "@/utils/countryFlag"
 import { Trophy, Medal, Award } from "lucide-react"
 import type { LeaderboardResponse } from "@/types/leaderboard/responses/user"
+import { getCountryCode } from "@/utils/countryMap"
 
 interface LeaderboardListProps {
   data: LeaderboardResponse[]
@@ -59,21 +60,24 @@ export function LeaderboardList({ data, searchTerm = "" }: LeaderboardListProps)
           </div>
 
           {/* User Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium truncate">{user.username}</h3>
-              {user.entity && (
-                <Badge variant="outline" className="text-xs">
-                  {getCountryFlag(user.entity)}
-                </Badge>
-              )}
+        <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+            <h3 className="font-medium truncate">{user.username}</h3>
+            {user.entity && (
+            <div className="flex items-center gap-1">
+                <span>{getCountryFlag(user.entity)}</span>
+                <span className="text-sm text-muted-foreground">
+                {getCountryCode(user.entity)}
+                </span>
             </div>
-            {user.problemsSolved !== undefined && (
-              <p className="text-sm text-muted-foreground">
-                {user.problemsSolved} problems solved
-              </p>
             )}
-          </div>
+        </div>
+        {user.problemsSolved !== undefined && (
+            <p className="text-sm text-muted-foreground">
+            {user.problemsSolved} problems solved
+            </p>
+        )}
+        </div>
 
           {/* Stats */}
           <div className="flex items-center gap-6 text-sm">
