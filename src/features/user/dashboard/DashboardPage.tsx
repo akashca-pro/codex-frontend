@@ -5,47 +5,60 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CalendarDays, Code2, Trophy, Target, Flame } from "lucide-react"
 import CalendarHeatmap from "./components/CalendarHeatmap"
+import { useUserDashboardQuery } from '@/apis/dashboard/user'
+import { useMemo } from "react"
 
-const stats = [
-  {
-    title: "Problems Solved",
-    value: "247",
-    change: "+12 this week",
-    icon: Code2,
-    color: "text-green-500",
-  },
-  {
-    title: "Current Streak",
-    value: "15 days",
-    change: "Personal best: 23",
-    icon: Flame,
-    color: "text-orange-500",
-  },
+const staticStats = [
   {
     title: "Global Rank",
     value: "#1,247",
-    change: "↑ 23 positions",
     icon: Trophy,
     color: "text-yellow-500",
   },
   {
     title: "Acceptance Rate",
     value: "87.3%",
-    change: "+2.1% this month",
     icon: Target,
     color: "text-blue-500",
   },
 ]
 
-const recentActivity = [
-  { problem: "Two Sum", difficulty: "Easy", status: "Solved", time: "2 hours ago" },
-  { problem: "Longest Substring", difficulty: "Medium", status: "Attempted", time: "5 hours ago" },
-  { problem: "Merge K Lists", difficulty: "Hard", status: "Solved", time: "1 day ago" },
-  { problem: "Valid Parentheses", difficulty: "Easy", status: "Solved", time: "2 days ago" },
-]
-
 export default function UserDashboard() {
-  return (
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const { data: apiResponse, isLoading, isError } = useUserDashboardQuery({
+    userTimezone
+  });
+  const dashboardData = apiResponse?.data
+  const stats = useMemo(() => {
+      if (!dashboardData) {
+        return [] // Return empty or skeleton data
+      }
+      return [
+        {
+          title: "Problems Solved",
+          value: dashboardData.problemsSolved.toString(),
+          icon: Code2,
+          color: "text-green-500",
+        },
+        {
+          title: "Current Streak",
+          value: `${dashboardData.currentStreak} ${dashboardData.currentStreak === 1 ? 'day' : 'days'}`,
+          icon: Flame,
+          color: "text-orange-500",
+        },
+        ...staticStats, // Add the static ones
+      ]
+    }, [dashboardData])
+
+    if (isLoading) {
+      return <div className="p-6">Loading dashboard...</div>
+    }
+
+    if (isError || !dashboardData) {
+      return <div className="p-6 text-red-500">Error loading dashboard.</div>
+    }
+
+return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -53,14 +66,14 @@ export default function UserDashboard() {
         <p className="text-muted-foreground">Welcome back! Here's your coding progress.</p>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid (now uses dynamic 'stats' array) */}
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const Icon = stat.icon
           return (
             <Card key={stat.title} className="relative overflow-hidden">
@@ -70,7 +83,6 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.change}</p>
               </CardContent>
             </Card>
           )
@@ -78,8 +90,7 @@ export default function UserDashboard() {
       </motion.div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activity Heatmap */}
+        {/* Activity Heatmap (pass 'dashboardData.heatmap' as a prop) */}
         <motion.div
           className="lg:col-span-2"
           initial={{ opacity: 0, y: 20 }}
@@ -95,54 +106,86 @@ export default function UserDashboard() {
               <CardDescription>Your coding activity over the past year</CardDescription>
             </CardHeader>
             <CardContent>
-              <CalendarHeatmap />
+              {/* Pass the live data to the component */}
+              <CalendarHeatmap data={dashboardData.heatmap} />
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity (uses 'dashboardData.recentActivities') */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your latest problem attempts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{activity.problem}</p>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          activity.difficulty === "Easy"
-                            ? "secondary"
-                            : activity.difficulty === "Medium"
-                              ? "default"
-                              : "destructive"
-                        }
-                        className="text-xs"
-                      >
-                        {activity.difficulty}
-                      </Badge>
-                      <Badge variant={activity.status === "Solved" ? "default" : "outline"} className="text-xs">
-                        {activity.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Your latest problem attempts</CardDescription>
+          </CardHeader>
 
-      {/* Progress Section */}
+          <CardContent className="space-y-2">
+            {/* Header Row */}
+            <div className="grid grid-cols-4 text-xs font-medium text-muted-foreground border-b border-border pb-2">
+              <div>Title</div>
+              <div>Difficulty</div>
+              <div>Status</div>
+              <div className="text-right">Time</div>
+            </div>
+
+            {/* Activity Rows */}
+            {dashboardData.recentActivities.map((activity, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-4 items-center py-2 text-sm border-b border-border last:border-none"
+              >
+                {/* Title */}
+                <div className="font-medium truncate">{activity.title}</div>
+
+                {/* Difficulty */}
+                <div>
+                  <Badge
+                    variant={
+                      activity.difficulty.toLowerCase() === "easy"
+                        ? "secondary"
+                        : activity.difficulty.toLowerCase() === "medium"
+                        ? "default"
+                        : "destructive"
+                    }
+                    className="text-xs capitalize"
+                  >
+                    {activity.difficulty}
+                  </Badge>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <Badge
+                    variant={activity.status.toLowerCase() === "accepted" ? "default" : "outline"}
+                    className="text-xs capitalize"
+                  >
+                    {activity.status}
+                  </Badge>
+                </div>
+
+                {/* Time */}
+                <div className="text-right text-xs text-muted-foreground">
+                  {activity.timeAgo}
+                </div>
+              </div>
+            ))}
+
+            {/* Empty State */}
+            {dashboardData.recentActivities.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No recent activity.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+        </motion.div>
+        
+      {/* Progress Section
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -212,7 +255,7 @@ export default function UserDashboard() {
             </Tabs>
           </CardContent>
         </Card>
-      </motion.div>
+      </motion.div> */}
     </div>
   )
 }
