@@ -3,4 +3,5 @@ export interface LeaderboardResponse {
     entity? : string;
     score : number;
     problemsSolved? : number;
+    username : string;
 }
