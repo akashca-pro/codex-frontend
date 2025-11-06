@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { useUserEmailActions } from '@/hooks/useDispatch';
 import { generateRandomUsername } from "@/utils/generateRandomUsername"
+import { countryMap } from "@/utils/countryMap"
 
 export default function SignupForm() {
   const navigate = useNavigate();
@@ -160,30 +161,48 @@ export default function SignupForm() {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => {
+                const selectedCode = field.value;
+                return (
                   <FormItem className="w-1/2">
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={selectedCode}
+                    >
                       <FormControl>
-                        <SelectTrigger className="bg-gray-900 border border-gray-800 text-white placeholder-gray-400 focus:outline-none">
-                          <SelectValue placeholder="Country" />
+                        <SelectTrigger
+                          className="bg-gray-900 border border-gray-800 text-white placeholder-gray-400 focus:outline-none"
+                        >
+                          <SelectValue
+                            placeholder="Country"
+                          >
+                            {selectedCode ? selectedCode.toUpperCase() : "Country"}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-900 text-white border-gray-800">
-                        <SelectItem value="India">India</SelectItem>
-                        <SelectItem value="USA">USA</SelectItem>
-                        <SelectItem value="UK">UK</SelectItem>
-                        <SelectItem value="Germany">Germany</SelectItem>
-                        <SelectItem value="Japan">Japan</SelectItem>
+                      <SelectContent
+                        className="bg-gray-900 text-white border-gray-800 max-h-[250px] overflow-y-auto"
+                      >
+                        {Object.entries(countryMap).map(([code, name]) => (
+                          <SelectItem
+                            key={code}
+                            value={code}
+                            title={name}
+                            className=" overflow-hidden text-ellipsis"
+                          >
+                            {name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage className="text-red-400 text-sm" />
                   </FormItem>
-                )}
-              />
+                );
+              }}
+            />
             </div>
 
             {/* Email */}

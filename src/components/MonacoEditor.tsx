@@ -168,11 +168,7 @@ export default function MonacoEditor({
         theme={theme}
         onChange={handleEditorChange}
         onMount={handleEditorDidMount}
-        loading={
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-5 w-5 animate-spin" /> Loading Editor...
-          </div>
-        }
+        loading={null}
         options={{
           wordWrap: "off", 
           readOnly,

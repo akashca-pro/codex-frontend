@@ -23,7 +23,9 @@ export interface Submission {
     Id : string;
     status : string;
     language : Language;
-    executionResult : ExecutionResult | null
+    executionResult : ExecutionResult | null,
+    userCode : string;
+    createdAt : string;
 }
 
 export interface listProblemSpecificSubmissionsResponse {
