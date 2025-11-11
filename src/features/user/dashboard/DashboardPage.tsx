@@ -1,8 +1,6 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CalendarDays, Code2, Trophy, Target, Flame } from "lucide-react"
 import CalendarHeatmap from "./components/CalendarHeatmap"
 import { useUserDashboardQuery } from '@/apis/dashboard/user'

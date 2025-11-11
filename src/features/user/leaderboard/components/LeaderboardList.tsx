@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { getCountryFlag } from "@/utils/countryFlag"
-import { Trophy, Medal, Award } from "lucide-react"
+import { Award } from "lucide-react"
 import type { LeaderboardResponse } from "@/types/leaderboard/responses/user"
 import { getCountryCode } from "@/utils/countryMap"
 
@@ -22,11 +22,11 @@ export function LeaderboardList({ data, searchTerm = "" }: LeaderboardListProps)
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
-      case 0:
-        return <Trophy className="w-5 h-5 text-yellow-500" />
       case 1:
-        return <Medal className="w-5 h-5 text-gray-400" />
+        return <Award className="w-5 h-5 text-yellow-500" />
       case 2:
+        return <Award className="w-5 h-5 text-gray-400" />
+      case 3:
         return <Award className="w-5 h-5 text-amber-600" />
       default:
         return (
@@ -38,9 +38,9 @@ export function LeaderboardList({ data, searchTerm = "" }: LeaderboardListProps)
   }
 
   const getRankBadge = (rank: number) => {
-    if (rank === 0) return "bg-yellow-500"
-    if (rank === 1) return "bg-gray-400"
-    if (rank === 2) return "bg-amber-600"
+    if (rank === 1) return "bg-yellow-500"
+    if (rank === 2) return "bg-gray-400"
+    if (rank === 3) return "bg-amber-600"
     return "bg-muted"
   }
 
@@ -56,7 +56,7 @@ export function LeaderboardList({ data, searchTerm = "" }: LeaderboardListProps)
         >
           {/* Rank */}
           <div className="flex items-center justify-center w-8">
-            {getRankIcon(index)}
+            {getRankIcon(user.rank)}
           </div>
 
           {/* User Info */}
@@ -88,8 +88,8 @@ export function LeaderboardList({ data, searchTerm = "" }: LeaderboardListProps)
           </div>
 
           {/* Rank Badge */}
-          <Badge className={`${getRankBadge(index)} text-white`}>
-            #{index + 1}
+          <Badge className={`${getRankBadge(user.rank)} text-white`}>
+            #{user.rank}
           </Badge>
         </motion.div>
       ))}

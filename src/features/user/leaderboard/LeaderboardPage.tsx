@@ -12,6 +12,7 @@ export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState("global")
   const { user } = useSelect();
   const { data: leaderboardData, error, isLoading } = useGlobalLeaderboardQuery({ k : 10 });
+  console.log(leaderboardData)
   const { data: countryLeaderboardData, error: countryError, isLoading: isCountryLoading } = useCountryLeaderboardQuery({ k : 10, country : user.details?.country!});
 
   if(error || countryError) <ErrorPage/>

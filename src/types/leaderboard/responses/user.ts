@@ -4,4 +4,5 @@ export interface LeaderboardResponse {
     score : number;
     problemsSolved? : number;
     username : string;
+    rank : number
 }
