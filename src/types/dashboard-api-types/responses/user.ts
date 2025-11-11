@@ -21,7 +21,7 @@ interface RecentActivity {
 export interface UserDashboardResponse {
     heatmap : Activity[];
     currentStreak : number;
-    leaderboadDetails : LeaderboardData;
+    leaderboardDetails : LeaderboardData;
     problemsSolved : number;
     recentActivities : RecentActivity[];
 }

@@ -1,25 +1,12 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Code2, Trophy, Target, Flame } from "lucide-react"
+import { CalendarDays, Code2, Trophy, Flame, Globe, Globe2 } from "lucide-react"
 import CalendarHeatmap from "./components/CalendarHeatmap"
 import { useUserDashboardQuery } from '@/apis/dashboard/user'
 import { useMemo } from "react"
-
-const staticStats = [
-  {
-    title: "Global Rank",
-    value: "#1,247",
-    icon: Trophy,
-    color: "text-yellow-500",
-  },
-  {
-    title: "Acceptance Rate",
-    value: "87.3%",
-    icon: Target,
-    color: "text-blue-500",
-  },
-]
+import UserDashboardLoadingSkeleton from "./components/LoadingSkeleton"
+import { getCountryFlag } from "@/utils/countryFlag"
 
 export default function UserDashboard() {
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -44,12 +31,24 @@ export default function UserDashboard() {
           icon: Flame,
           color: "text-orange-500",
         },
-        ...staticStats, // Add the static ones
+        {
+          title: "Global Rank",
+          value : `#${dashboardData?.leaderboardDetails?.globalRank + 1}`,
+          icon: Globe2,
+          color: "text-blue-500",
+        },
+        {
+          title : 'Country Rank',
+          value : `#${dashboardData.leaderboardDetails.entityRank + 1}`,
+          icon : getCountryFlag(dashboardData.leaderboardDetails.entity),
+          color : 'text-yellow-500',
+          isFlag : true
+        }
       ]
     }, [dashboardData])
 
     if (isLoading) {
-      return <div className="p-6">Loading dashboard...</div>
+      return <UserDashboardLoadingSkeleton/>
     }
 
     if (isError || !dashboardData) {
@@ -77,7 +76,16 @@ return (
             <Card key={stat.title} className="relative overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <Icon className={`h-4 w-4 ${stat.color}`} />
+                {stat.isFlag ? (
+                  <span
+                    className="flex items-center justify-center w-5 h-5 text-base rounded-full bg-muted shadow-sm"
+                    style={{ lineHeight: "1rem" }}
+                  >
+                    {stat.icon}
+                  </span>
+                ) : (
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                )}
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
