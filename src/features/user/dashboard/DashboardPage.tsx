@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Code2, Trophy, Flame, Globe, Globe2 } from "lucide-react"
+import { CalendarDays, Code2, Flame, Globe2 } from "lucide-react"
 import CalendarHeatmap from "./components/CalendarHeatmap"
 import { useUserDashboardQuery } from '@/apis/dashboard/user'
 import { useMemo } from "react"
@@ -16,7 +16,7 @@ export default function UserDashboard() {
   const dashboardData = apiResponse?.data
   const stats = useMemo(() => {
       if (!dashboardData) {
-        return [] // Return empty or skeleton data
+        return []
       }
       return [
         {
@@ -96,7 +96,7 @@ return (
       </motion.div>
 
       {/* Main Content */}
-        {/* Activity Heatmap (pass 'dashboardData.heatmap' as a prop) */}
+      {/* Activity Heatmap */}
         <motion.div
           className="lg:col-span-2"
           initial={{ opacity: 0, y: 20 }}
@@ -105,11 +105,21 @@ return (
         >
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" />
-                Activity
-              </CardTitle>
-              <CardDescription>Your coding activity over the past year</CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5" />
+                  Submissions
+                  <motion.span
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="ml-2 bg-green-500/10 text-green-500 text-xs font-medium px-2 py-0.5 rounded-full"
+                  >
+                    {dashboardData.heatmap.length.toLocaleString()} total
+                  </motion.span>
+                </CardTitle>
+              </div>
+              <CardDescription>Your submissions over the past year</CardDescription>
             </CardHeader>
             <CardContent>
               {/* Pass the live data to the component */}
