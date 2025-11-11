@@ -1,5 +1,5 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
-import type { ApiSuccess, UserProfileResponse } from "@/types/apiTypes";
+import type { ApiSuccess, UpdateProfileResponse, UserProfileResponse } from "@/types/apiTypes";
 import type { UpdateEmailRequest, EmailRequest, VerifyEmailRequest, ChangePasswordSchema, PasswordRequest } from "@/types/profile/user/payload";
 
 const preUrl = `/user/profile`
@@ -15,7 +15,7 @@ const userProfileApi = apiSlice.injectEndpoints({
             providesTags : ['user']
         }),
 
-        updateProfile : builder.mutation<ApiSuccess<null>,FormData>({
+        updateProfile : builder.mutation<ApiSuccess<UpdateProfileResponse>,FormData>({
             query : (formData) => ({
                 url : `${preUrl}/update`,
                 method : 'PATCH',

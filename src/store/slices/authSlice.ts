@@ -30,6 +30,11 @@ export const authSlice = createSlice({
             state.details = action.payload;
             state.isAuthenticated = true;
         },
+        updateUser : (state, action : PayloadAction<Partial<User>>) => {
+            if (state.details) {
+                Object.assign(state.details, action.payload);
+            }
+        },
         clearUser : (state) => {
             state.details = null;
             state.isAuthenticated = false;
@@ -43,6 +48,7 @@ export const authSlice = createSlice({
 export const { 
     
     setUser, 
+    updateUser,
     clearUser,
 
 } = authSlice.actions;

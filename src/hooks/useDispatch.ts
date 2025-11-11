@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { clearUser, setUser } from '@/store/slices/authSlice'
+import { clearUser, setUser, updateUser } from '@/store/slices/authSlice'
 import type { User } from "@/store/slices/authSlice"; 
 import { setEmail, clearEmail } from '@/store/slices/emailSlice'
 import { setOAuthVerified, resetOAuthVerified } from '@/store/slices/oAuthSlice'
@@ -20,6 +20,7 @@ export const useAuthActions = () => {
   const dispatch = useDispatch();
   return {
     login: (payload: User) => dispatch(setUser(payload)),
+    updateUser : (payload : Partial<User>) => dispatch(updateUser(payload)),
     logout: () => dispatch(clearUser()),
   };
 };

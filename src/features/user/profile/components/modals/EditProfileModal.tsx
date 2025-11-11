@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Upload } from "lucide-react"
 import { countryMap, getCountryName } from "@/utils/countryMap"
+import { useAuthActions } from '@/hooks/useDispatch'
 
 import { toast } from "sonner"
 import { useUpdateProfileMutation } from "@/apis/auth-user/profile/user"
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface UserProfile {
   username: string
@@ -39,7 +41,7 @@ const languages = [
 export default function EditProfileModal({ profile, isOpen, onClose, refetch }: EditProfileModalProps) {
   const [imagePreview,setImagePreview] = useState('');
   const [updateProfile] = useUpdateProfileMutation()
-  console.log(profile)
+  const { updateUser } = useAuthActions();
   const [formData, setFormData] = useState({
     username: profile.username,
     firstName: profile.firstName,
@@ -55,26 +57,30 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {}
 
-    if (!formData.username.trim()) {
+    if (!formData.username ||!formData.username.trim()) {
       newErrors.username = "Username is required"
     } else if (formData.username.length < 3) {
       newErrors.username = "Username must be at least 3 characters"
     }
 
-    if (!formData.firstName.trim()) {
+    if (!formData.lastName || !formData.firstName.trim()) {
       newErrors.firstName = "First name is required"
     }
 
-    if (!formData.lastName.trim()) {
+    if (!formData.lastName || !formData.lastName.trim()) {
       newErrors.lastName = "Last name is required"
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return newErrors
   }
 
   const handleSave = async () => {
-      if (!validateForm()) return;
+      const validationErrors = validateForm();
+      if (Object.keys(validationErrors).length > 0) {
+        Object.values(validationErrors).forEach((msg) => toast.error(msg))
+        return
+      }
       const data = new FormData();
       if (formData.username !== profile.username) {
         data.append("username", formData.username);
@@ -96,12 +102,14 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
       }
       const toastId = toast.loading('Processing...');
       try {
-        console.log(formData);
-        await updateProfile(data).unwrap();
+        const updatedData = await updateProfile(data).unwrap();
         toast.success('Profile update successful',{
           className : 'success-toast',
           id : toastId
         })
+        updateUser({
+          ...updatedData.data
+        });
         refetch();
         onClose();
       } catch (error : any) {
@@ -115,12 +123,12 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
           })
         })
       }
-        toast.error('Error',{
-            className : 'error-toast',
-            id : toastId,
-            description : error?.data?.message
-        })
-      }
+      toast.error('Error',{
+          className : 'error-toast',
+          id : toastId,
+          description : error?.data?.message
+      })
+    }
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,7 +172,7 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
                 <AvatarImage src={imagePreview || getCloudinaryUrl(formData.avatar)} alt="Profile" />
                 <AvatarFallback>
                   {formData?.firstName[0]}
-                  {formData?.lastName[0]}
+                  {formData.lastName && formData?.lastName[0]}
                 </AvatarFallback>
               </Avatar>
 
@@ -224,41 +232,67 @@ export default function EditProfileModal({ profile, isOpen, onClose, refetch }: 
                 </div>
               </div>
 
+            {/* Country Selector */}
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
-              <select
-                id="country"
-                value={getCountryName(formData.country)}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, country: e.target.value }))
+              <Select
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, country: value }))
                 }
-                className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                value={formData.country}
               >
-                {Object.values(countryMap).map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="country"
+                  className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                >
+                  <SelectValue placeholder="Select Country">
+                    {formData.country ? getCountryName(formData.country) : "Select Country"}
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent className="max-h-[250px] overflow-y-auto">
+                  {Object.entries(countryMap).map(([code, name]) => (
+                    <SelectItem
+                      key={code}
+                      value={code}
+                      title={name}
+                      className="truncate"
+                    >
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
+            {/* Preferred Language Selector */}
             <div className="space-y-2">
-              <Label htmlFor="language">Preferred Language</Label>
-              <select
-                id="language"
-                value={formData.preferredLanguage}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, preferredLanguage: e.target.value }))
+              <Label htmlFor="preferredLanguage">Preferred Language</Label>
+              <Select
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, preferredLanguage: value }))
                 }
-                className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                value={formData.preferredLanguage}
               >
-                {languages.map((language) => (
-                  <option key={language} value={language}>
-                    {language}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  id="preferredLanguage"
+                  className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                >
+                  <SelectValue placeholder="Select Language">
+                    {formData.preferredLanguage || "Select Language"}
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent className="max-h-[250px] overflow-y-auto">
+                  {languages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            
             </div>
 
             {/* Action Buttons */}
