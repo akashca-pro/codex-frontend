@@ -10,31 +10,43 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { useCountryLeaderboardQuery, useGlobalLeaderboardQuery } from '@/apis/leaderboard/user'
+import { useUserCountryLeaderboardQuery, useUserGlobalLeaderboardQuery } from '@/apis/leaderboard/user'
 import { useSelect } from '@/hooks/useSelect'
 import { LeaderboardList } from "./components/LeaderboardList"
 import LoadingDots from "@/components/LoadingDots"
 import ErrorPage from "@/components/ErrorPage"
 import { Button } from "@/components/ui/button"
-import { countryMap, getCountryCode } from "@/utils/countryMap"
+import { countryMap, getCountryCode, getCountryName } from "@/utils/countryMap"
 import { Label } from "@/components/ui/label"
 import { useUpdateProfileMutation } from '@/apis/auth-user/profile/user'
 import { toast } from "sonner"
 import { useAuthActions } from '@/hooks/useDispatch';
+import { useLocation } from "react-router-dom"
+import { useAdminGlobalLeaderboardQuery, useAdminCountryLeaderboardQuery } from '@/apis/leaderboard/admin'
 
 export default function Leaderboard() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("global");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>("")
   const [updateProfile] = useUpdateProfileMutation()
   const { user } = useSelect();
+  const [selectCountry, setSelectCountry] = useState(user.details?.country!)
   const { updateUser } = useAuthActions();
-  const { data: leaderboardData, error, isLoading } = useGlobalLeaderboardQuery({ k : 10 });
+  const isAdmin = location.pathname.includes('/admin')
+  const { 
+    data: leaderboardData, 
+    error, isLoading 
+  } = isAdmin 
+  ? useAdminGlobalLeaderboardQuery({ k : 10 }) 
+  : useUserGlobalLeaderboardQuery({ k : 10 });
   const { 
     data: countryLeaderboardData, 
     error: countryError, 
     isLoading: isCountryLoading 
-  } = useCountryLeaderboardQuery({ k : 10, country : user.details?.country!});
+  } = isAdmin 
+  ? useAdminCountryLeaderboardQuery({ k : 10, country : selectCountry})
+  : useUserCountryLeaderboardQuery({ k : 10, country : user.details?.country!});
   
   if(error || countryError) <ErrorPage/>
 
@@ -109,9 +121,44 @@ export default function Leaderboard() {
               <TabsContent value="country" className="space-y-4 mt-6">
                 { isCountryLoading ?
                   <LoadingDots/>
-                : countryLeaderboardData?.data ? <LeaderboardList
+                : countryLeaderboardData?.data ? 
+                <>
+                {/* Country Selector */}
+                {isAdmin &&
+                <div className="space-y-2">
+                  <Select
+                    onValueChange={(value) =>
+                      setSelectCountry(value)
+                    }
+                    value={selectCountry}
+                  >
+                    <SelectTrigger
+                      id="country"
+                      className="w-full border border-input bg-background text-foreground rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    >
+                      <SelectValue placeholder="Select Country">
+                        {selectCountry ? getCountryName(selectCountry) : "Select Country"}
+                      </SelectValue>
+                    </SelectTrigger>
+
+                    <SelectContent className="max-h-[250px] overflow-y-auto">
+                      {Object.entries(countryMap).map(([code, name]) => (
+                        <SelectItem
+                          key={code}
+                          value={code}
+                          title={name}
+                          className="truncate"
+                        >
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>}
+                 <LeaderboardList
                   data={countryLeaderboardData?.data?.users ?? []}
                 />
+                </>
                 : (
                 <Dialog
                   open={openDialog}

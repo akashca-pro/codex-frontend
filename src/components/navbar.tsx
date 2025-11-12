@@ -48,7 +48,7 @@ export default function Navbar() {
   const role = user && user.details?.role.toLowerCase();
   
   const publicRoutes = ["problems","codepad"];
-  const protectedRoutes = ["dashboard", "profile","leaderboard"]; 
+  const protectedRoutes = ["dashboard", "profile","leaderboard", "collaborate"]; 
   const adminOnlyRoutes = ["problems","users"]
 
   const visibleNavitems = navItems.filter((item) => {

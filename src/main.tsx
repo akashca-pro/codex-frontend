@@ -100,6 +100,7 @@ const router = createBrowserRouter([
           { path: "dashboard", element: <AdminDashboard/> },
           { path: "problems", element: <AdminProblems/> },
           { path: "problems/:problemId", element: <ProblemDetailsPage/> },
+          { path: "leaderboard", element: <Leaderboard/> },
           { path: "users", element: <UsersList/> },
           { path: "profile", element: <AdminProfile/> }
         ]
