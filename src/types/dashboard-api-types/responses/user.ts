@@ -18,10 +18,16 @@ interface RecentActivity {
     timeAgo : string
 }
 
+interface ISolvedByDifficulty {
+  difficulty : string;
+  count : number;
+}
+
 export interface UserDashboardResponse {
     heatmap : Activity[];
     currentStreak : number;
     leaderboardDetails : LeaderboardData;
     problemsSolved : number;
     recentActivities : RecentActivity[];
+    solvedByDifficulty : ISolvedByDifficulty[];
 }
