@@ -31,10 +31,10 @@ export default function UserDashboard() {
       },
       {
         title: "Ranks",
-        value: `#${dashboardData.leaderboardDetails.globalRank} / #${dashboardData.leaderboardDetails.entityRank}`,
-        subtext: `Global / ${dashboardData.leaderboardDetails.entity}`,
+        value: `#${dashboardData.leaderboardDetails.globalRank} / #${dashboardData.leaderboardDetails.entityRank ?? 'No country set'}`,
+        subtext: `Global / ${dashboardData.leaderboardDetails.entity ?? 'No country set'}`,
         icon: Trophy,
-        flag: getCountryFlag(dashboardData.leaderboardDetails.entity),
+        flag: dashboardData.leaderboardDetails.entity ? getCountryFlag(dashboardData.leaderboardDetails.entity) : '',
         color: "text-yellow-500",
       },
       {
