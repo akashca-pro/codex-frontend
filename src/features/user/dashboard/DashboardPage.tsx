@@ -33,13 +33,13 @@ export default function UserDashboard() {
         },
         {
           title: "Global Rank",
-          value : `#${dashboardData?.leaderboardDetails?.globalRank + 1}`,
+          value : `#${dashboardData?.leaderboardDetails?.globalRank}`,
           icon: Globe2,
           color: "text-blue-500",
         },
         {
           title : 'Country Rank',
-          value : `#${dashboardData.leaderboardDetails.entityRank + 1}`,
+          value : `#${dashboardData.leaderboardDetails.entityRank}`,
           icon : getCountryFlag(dashboardData.leaderboardDetails.entity),
           color : 'text-yellow-500',
           isFlag : true
@@ -115,7 +115,7 @@ return (
                     transition={{ duration: 0.4 }}
                     className="ml-2 bg-green-500/10 text-green-500 text-xs font-medium px-2 py-0.5 rounded-full"
                   >
-                    {dashboardData.heatmap.length.toLocaleString()} total
+                    {dashboardData.heatmap.reduce((total, h) => total + h.count, 0)} total
                   </motion.span>
                 </CardTitle>
               </div>

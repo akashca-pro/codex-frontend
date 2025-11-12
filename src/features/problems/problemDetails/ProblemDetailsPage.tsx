@@ -284,6 +284,10 @@ const handleLanguageChange = (newLanguage: string) => {
             </TabsContent>
             <TabsContent value="submissions">
               <Submissions
+                monacoProps={{
+                  language : language === "javascript" ? "javascript" : language,
+                  theme : editorTheme
+                }}
                 problemId={problemDetails.Id}
               />
             </TabsContent>

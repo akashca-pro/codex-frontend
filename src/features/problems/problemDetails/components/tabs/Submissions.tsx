@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { useListProblemSpecificSubmissionsQuery } from '@/apis/problem/user'
 import { LanguageMap } from "@/mappers/problem"
 import type { Submission } from "@/types/problem-api-types/responses/user"
-import LoadingDots from "@/components/LoadingDots"
+import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog"
 
 function statusBadgeVariant(status: string) {
   const s = status.toLowerCase()
@@ -22,9 +22,19 @@ function formatNumber(n?: number) {
   return n.toFixed(2)
 }
 
-export default function Submissions({ problemId }) {
+interface SubmissionsProps {
+  problemId: string;
+  monacoProps : {
+    theme : string;
+    language : string;
+  }
+}
+
+export default function Submissions({ problemId, monacoProps } : SubmissionsProps) {
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const { data, isFetching } = useListProblemSpecificSubmissionsQuery({
     problemId ,
     params : {
@@ -98,34 +108,38 @@ const handleScroll = useCallback(() => {
                 <TableHead>Language</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {submissions.map((s, i) => {
-                const res = s.executionResult?.stats;
-                return (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {res ? `${res.passedTestCase}/${res.totalTestCase} passed` : "-"}
-                    </TableCell>
-                    <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
-                    <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {isFetching && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    <LoadingDots/>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+              <TableBody>
+                {submissions.map((s, i) => {
+                  const res = s.executionResult?.stats
+                  return (
+                    <TableRow
+                      key={i}
+                      onClick={() => {
+                        setSelectedSubmission(s)
+                        setDialogOpen(true)
+                      }}
+                      className="cursor-pointer hover:bg-muted/50 transition"
+                    >
+                      <TableCell>
+                        <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
+                      </TableCell>
+                      <TableCell>{res ? `${res.passedTestCase}/${res.totalTestCase}` : "-"}</TableCell>
+                      <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
+                      <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
           </Table>
+        <SubmissionDetailsDialog
+          monacoProps={monacoProps}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          submission={selectedSubmission}
+        />
         </div>
       </CardContent>
     </Card>
