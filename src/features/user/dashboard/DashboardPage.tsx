@@ -67,11 +67,94 @@ export default function UserDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-      {stats.map((stat, idx) => {
-        // --- Normal Stat Cards ---
-        if (stat.type !== "difficulty") {
-          const Icon = stat.icon;
+        {stats.map((stat, idx) => {
+          // --- Difficulty Card ---
+          if (stat.type === "difficulty") {
+            const difficulties = ["easy", "medium", "hard"];
+            const colors = {
+              easy: "text-green-500 border-green-400",
+              medium: "text-yellow-500 border-yellow-400",
+              hard: "text-red-500 border-red-400",
+            };
 
+            const counts: Record<string, number> = stat.data.reduce((acc, d) => {
+              acc[d.difficulty.toLowerCase()] = d.count;
+              return acc;
+            }, {} as Record<string, number>);
+
+            return (
+              <Card key={idx} className="relative flex flex-col items-center justify-center overflow-hidden">
+                <CardHeader className="pb-2 text-center">
+                  <CardTitle className="text-sm font-medium">Problems by Difficulty</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-around w-full px-4">
+                  {difficulties.map((diff, index) => (
+                    <motion.div
+                      key={diff}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 * index }}
+                      className="flex flex-col items-center justify-center space-y-1"
+                    >
+                      <div
+                        className={`relative flex items-center justify-center w-12 h-12 rounded-full border-4 ${colors[diff]} bg-muted`}
+                      >
+                        <span className={`text-sm font-semibold ${colors[diff].split(" ")[0]}`}>
+                          {counts[diff] || 0}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground capitalize">{diff}</span>
+                    </motion.div>
+                  ))}
+                </CardContent>
+              </Card>
+            );
+          }
+
+          // --- Normal Stat Cards ---
+          if (stat.title === "Ranks") {
+            const Icon = stat.icon;
+            const { globalRank, entityRank, entity } = dashboardData.leaderboardDetails;
+
+            const isGlobalUnset = globalRank === -1;
+            const isCountryUnset = entityRank === -1;
+            const noRank = isGlobalUnset && isCountryUnset;
+
+            let rankMessage = "";
+            if (noRank) rankMessage = "No rank data available";
+            else if (isGlobalUnset) rankMessage = "Global rank not set";
+            else if (isCountryUnset) rankMessage = `${entity ?? "Country"} rank not set`;
+
+            return (
+              <Card key={idx} className="relative overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                  {Icon ? <Icon className={`h-4 w-4 ${stat.color}`} /> : null}
+                </CardHeader>
+
+                <CardContent>
+                  {noRank || isGlobalUnset || isCountryUnset ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {rankMessage}
+                    </p>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      {stat.subtext && (
+                        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          {stat.subtext}
+                          {stat.flag && <span>{stat.flag}</span>}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          }
+
+          // Other cards (Solved, Streak)
+          const Icon = stat.icon;
           return (
             <Card key={idx} className="relative overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -80,58 +163,10 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
-                {stat.subtext && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    {stat.subtext}
-                    {stat.flag && <span>{stat.flag}</span>}
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
-        }
-
-        // --- Difficulty Progress Card ---
-        const difficulties = ["easy", "medium", "hard"];
-        const colors = {
-          easy: "text-green-500 border-green-400",
-          medium: "text-yellow-500 border-yellow-400",
-          hard: "text-red-500 border-red-400",
-        };
-
-        const counts: Record<string, number> = stat.data.reduce((acc, d) => {
-          acc[d.difficulty.toLowerCase()] = d.count;
-          return acc;
-        }, {} as Record<string, number>);
-
-        return (
-          <Card key={idx} className="relative flex flex-col items-center justify-center overflow-hidden">
-            <CardHeader className="pb-2 text-center">
-              <CardTitle className="text-sm font-medium">Problems by Difficulty</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-around w-full px-4">
-              {difficulties.map((diff, index) => (
-                <motion.div
-                  key={diff}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.4, delay: 0.1 * index }}
-                  className="flex flex-col items-center justify-center space-y-1"
-                >
-                  <div
-                    className={`relative flex items-center justify-center w-12 h-12 rounded-full border-4 ${colors[diff]} bg-muted`}
-                  >
-                    <span className={`text-sm font-semibold ${colors[diff].split(" ")[0]}`}>
-                      {counts[diff] || 0}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground capitalize">{diff}</span>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
-        );
-      })}
+        })}
       </motion.div>
 
       {/* Activity Heatmap */}
@@ -157,7 +192,7 @@ export default function UserDashboard() {
                 </motion.span>
               </CardTitle>
             </div>
-            <CardDescription>Your submissions over the past year</CardDescription>
+            <CardDescription>Your accepted submissions over the past year</CardDescription>
           </CardHeader>
           <CardContent>
             <CalendarHeatmap data={dashboardData.heatmap} />
@@ -179,10 +214,11 @@ export default function UserDashboard() {
 
           <CardContent className="space-y-2">
             {/* Header Row */}
-            <div className="grid grid-cols-4 text-xs font-medium text-muted-foreground border-b border-border pb-2">
+            <div className="grid grid-cols-5 text-xs font-medium text-muted-foreground border-b border-border pb-2">
               <div>Title</div>
               <div>Difficulty</div>
               <div>Status</div>
+              <div>Language</div>
               <div className="text-right">Time</div>
             </div>
 
@@ -190,9 +226,12 @@ export default function UserDashboard() {
             {dashboardData.recentActivities.map((activity, index) => (
               <div
                 key={index}
-                className="grid grid-cols-4 items-center py-2 text-sm border-b border-border last:border-none"
+                className="grid grid-cols-5 items-center py-2 text-sm border-b border-border last:border-none"
               >
+                {/* Problem Title */}
                 <div className="font-medium truncate">{activity.title}</div>
+
+                {/* Difficulty */}
                 <div>
                   <Badge
                     variant={
@@ -207,14 +246,30 @@ export default function UserDashboard() {
                     {activity.difficulty}
                   </Badge>
                 </div>
+
+                {/* Status */}
                 <div>
                   <Badge
-                    variant={activity.status.toLowerCase() === "accepted" ? "default" : "outline"}
+                    variant={
+                      activity.status.toLowerCase() === "accepted" ? "default" : "outline"
+                    }
                     className="text-xs capitalize"
                   >
                     {activity.status}
                   </Badge>
                 </div>
+
+                {/* Language */}
+                <div>
+                  <Badge
+                    variant="outline"
+                    className="text-xs capitalize"
+                  >
+                    {activity.language ? activity.language : "Unknown"}
+                  </Badge>
+                </div>
+
+                {/* Time */}
                 <div className="text-right text-xs text-muted-foreground">
                   {activity.timeAgo}
                 </div>

@@ -236,7 +236,9 @@ const handleLanguageChange = (newLanguage: string) => {
   }
 
   const handleReset = () => {
-    setCode(code)
+    if(language === 'javascript') setCode(problemDetails.starterCodes[0].code)
+    else if(language === 'python') setCode(problemDetails.starterCodes[1].code)
+    else if(language === 'go') setCode(problemDetails.starterCodes[2].code)
     setTestResults(undefined)
     toast.info("Editor code has been reset!",{
       position : 'bottom-right'

@@ -22,9 +22,6 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 // Column width: w-3 (12px) + gap-1 (4px) = 16px per week.
 const COLUMN_WIDTH = 16; 
 
-// --- Helper ---
-const toDateString = (date: Date): string => date.toISOString().split("T")[0]
-
 // --- Component ---
 export default function CalendarHeatmap({ data }: CalendarHeatmapProps) {
   // Prepare the last 365 days
@@ -54,7 +51,8 @@ export default function CalendarHeatmap({ data }: CalendarHeatmapProps) {
   const submissionsMap = useMemo(() => {
     const map = new Map<string, number>()
     for (const item of filteredData) {
-      map.set(item.date, item.count)
+      const localDate = new Date(item.date)
+      map.set(localDate.toLocaleDateString('en-CA'), item.count) 
     }
     return map
   }, [filteredData])
@@ -78,7 +76,7 @@ export default function CalendarHeatmap({ data }: CalendarHeatmapProps) {
     // --- Fill the real days ---
     const current = new Date(start);
     while (current <= now) {
-      const dateStr = toDateString(current)
+      const dateStr = current.toLocaleDateString('en-CA')
       const count = submissionsMap.get(dateStr) || 0
       list.push({ date: new Date(current), count })
       current.setDate(current.getDate() + 1)

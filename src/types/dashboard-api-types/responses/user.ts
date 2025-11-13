@@ -15,7 +15,8 @@ interface RecentActivity {
     title : string;
     difficulty : string;
     status : string;
-    timeAgo : string
+    language : string;
+    timeAgo : string;
 }
 
 interface ISolvedByDifficulty {

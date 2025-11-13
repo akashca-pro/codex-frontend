@@ -280,7 +280,8 @@ useEffect(() => {
                   {/* Results tab */}
                   <TabsContent value="result" className="mt-4">
                     <TestResult 
-                    stdOut={runResult?.failedTestCase?.output ?? runResult?.stats?.stdout ?? undefined}
+                    stdout={runResult?.stats?.stdout}
+                    failedOutput={runResult?.failedTestCase?.output}
                     totalCount={totalCount}
                     passedCount={passedCount}
                     testResults={testResults} 
