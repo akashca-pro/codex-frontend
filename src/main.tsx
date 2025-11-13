@@ -19,7 +19,6 @@ import UserSignupPage from "./features/auth/user/signup/UserSignupPage";
 import OtpVerificationPage from "./features/auth/user/otp/OtpVerificationPage";
 import AdminLoginPage from "./features/auth/admin/login/AdminLoginPage";
 import AdminLayout from "./features/admin/AdminLayout";
-import AdminDashboard from "./features/admin/dashboard/AdminDashboard";
 import AuthGuard from "./components/protectors/auth-guard";
 import UserLayout from "./features/user/UserLayout";
 import UserDashboard from "./features/user/dashboard/DashboardPage";
@@ -35,6 +34,7 @@ import NotFoundPage from "./components/NotFound";
 import AdminProfile from "./features/admin/profile/AdminProfile";
 import ForgotPasswordPage from "./features/auth/user/forgotPassword/ForgotPasswordPage";
 import CollaborationPage from "./features/collaboration/CollaborationPage";
+import { AdminDashboardNew } from './features/admin/dashboard/AdminDashboard';
 
 const router = createBrowserRouter([
   {
@@ -97,7 +97,7 @@ const router = createBrowserRouter([
           </AuthGuard>
         ),
         children: [
-          { path: "dashboard", element: <AdminDashboard/> },
+          { path: "dashboard", element: <AdminDashboardNew/> },
           { path: "problems", element: <AdminProblems/> },
           { path: "problems/:problemId", element: <ProblemDetailsPage/> },
           { path: "leaderboard", element: <Leaderboard/> },
