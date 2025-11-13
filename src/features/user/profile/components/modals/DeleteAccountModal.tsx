@@ -16,18 +16,18 @@ import { AlertTriangle, Eye, EyeOff } from "lucide-react"
 import { deleteAccountSchema, type DeleteAccountSchemaType } from "../../schema"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useDeleteAccountMutation } from '@/apis/auth-user/profile/user';
 import { useAuthActions } from "@/hooks/useDispatch"
+import type { ProfileMutations } from "./apis"
 
 interface DeleteAccountModalProps {
   open: boolean
   onClose: () => void
+  deleteAccount : ProfileMutations['deleteAccount']
 }
 
-export default function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
+export default function DeleteAccountModal({ open, onClose, deleteAccount }: DeleteAccountModalProps) {
   const { logout } = useAuthActions();
   const [showPassword, setShowPassword] = useState(false);
-  const [deleteAccount] = useDeleteAccountMutation();
 
   const form = useForm<DeleteAccountSchemaType>({
     resolver: zodResolver(deleteAccountSchema),

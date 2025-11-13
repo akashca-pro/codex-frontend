@@ -1,4 +1,4 @@
-import { Moon, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -149,10 +149,10 @@ export default function Navbar() {
         <>
           {/* Notifications */}
 
-          {/* Theme Toggle */}
+          {/* Theme Toggle
           <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Moon className="w-5 h-5" />
-          </Button>
+          </Button> */}
 
           {/* User Menu */}
           <DropdownMenu>
@@ -260,10 +260,10 @@ export default function Navbar() {
             <div className="pt-4 pb-3 border-t border-gray-800 space-y-3">
 
               {/* Theme Toggle */}
-              <Button variant="ghost" size="sm" className="w-full justify-start">
+              {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                 <Moon className="w-5 h-5 mr-2" />
                 Toggle Theme
-              </Button>
+              </Button> */}
 
               {/* Profile */}
               <Button

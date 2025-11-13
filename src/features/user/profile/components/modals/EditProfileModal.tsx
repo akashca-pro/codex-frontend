@@ -12,9 +12,9 @@ import { countryMap, getCountryName } from "@/utils/countryMap"
 import { useAuthActions } from '@/hooks/useDispatch'
 
 import { toast } from "sonner"
-import { useUpdateProfileMutation } from "@/apis/auth-user/profile/user"
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { ProfileMutations } from "./apis"
 
 interface UserProfile {
   username: string
@@ -30,6 +30,7 @@ interface EditProfileModalProps {
   isOpen : boolean
   onClose: () => void
   refetch : () => void
+  updateProfile : ProfileMutations['updateProfile']
 }
 
 const languages = [
@@ -38,9 +39,8 @@ const languages = [
   "go",
 ]
 
-export default function EditProfileModal({ profile, isOpen, onClose, refetch }: EditProfileModalProps) {
+export default function EditProfileModal({ profile, isOpen, onClose, refetch, updateProfile }: EditProfileModalProps) {
   const [imagePreview,setImagePreview] = useState('');
-  const [updateProfile] = useUpdateProfileMutation()
   const { updateUser } = useAuthActions();
   const [formData, setFormData] = useState({
     username: profile.username,

@@ -31,7 +31,6 @@ import CodePad from "./features/CodePad/CodePad";
 import ProblemDetails from "./features/problems/problemDetails/ProblemDetailsPage";
 import UsersList from "./features/admin/users/UsersList";
 import NotFoundPage from "./components/NotFound";
-import AdminProfile from "./features/admin/profile/AdminProfile";
 import ForgotPasswordPage from "./features/auth/user/forgotPassword/ForgotPasswordPage";
 import CollaborationPage from "./features/collaboration/CollaborationPage";
 import { AdminDashboardNew } from './features/admin/dashboard/AdminDashboard';
@@ -102,7 +101,7 @@ const router = createBrowserRouter([
           { path: "problems/:problemId", element: <ProblemDetailsPage/> },
           { path: "leaderboard", element: <Leaderboard/> },
           { path: "users", element: <UsersList/> },
-          { path: "profile", element: <AdminProfile/> }
+          { path: "profile", element: <UserProfile/> }
         ]
       },
       // 404

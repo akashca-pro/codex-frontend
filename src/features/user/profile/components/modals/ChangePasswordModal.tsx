@@ -19,18 +19,19 @@ import {
   type ChangePasswordSchemaType,
 } from "../../schema"
 import { toast } from "sonner"
-import { useChangePasswordMutation } from '@/apis/auth-user/profile/user'
+import type { ProfileMutations } from "./apis"
 
 interface ChangePasswordModalProps {
   open: boolean
   onClose: () => void
+  changePassword : ProfileMutations['changePassword']
 }
 
 export default function ChangePasswordModal({
   open,
   onClose,
+  changePassword
 }: ChangePasswordModalProps) {
-  const [changePassword] = useChangePasswordMutation()
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
