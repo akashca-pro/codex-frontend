@@ -32,7 +32,6 @@ const initialProblemDetails = {
     Id : '',
     input : '',
     output : '',
-    explanation : '',
   }],
   starterCodes : [{
     Id : '',
@@ -250,7 +249,7 @@ const handleLanguageChange = (newLanguage: string) => {
   return (
     <div className="h-full bg-black">
       {/* Main Content */}
-  <div className="h-screen w-screen overflow-hidden">
+  <div className="h-screen w-screen overflow-hidden flex flex-col">
       <IDEToolbar
         editorTheme={editorTheme}
         onThemeChange={setEditorTheme}
@@ -263,6 +262,7 @@ const handleLanguageChange = (newLanguage: string) => {
         onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
         goBackLink={'/problems'}
       />
+  <div className="flex-1 overflow-hidden">
     <Allotment >
       {/* Problem Details */}
       <Allotment.Pane minSize={300} preferredSize="43.5%">
@@ -330,6 +330,7 @@ const handleLanguageChange = (newLanguage: string) => {
         </Allotment>
       </Allotment.Pane>
     </Allotment>
+  </div>
 </div>
   {/* Notes Panel */}
   <NotesPanel isOpen={showNotes} onClose={() => setShowNotes(false)} />

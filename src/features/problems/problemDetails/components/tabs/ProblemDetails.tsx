@@ -2,7 +2,6 @@ import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 const difficultyColors: Record<string, string> = {
   Easy: "bg-green-500/10 text-green-400 border-green-500/20",
@@ -45,9 +44,8 @@ export default function ProblemDetailsComponent({ problem }) {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        <ScrollArea className="h-[calc(100vh-200px)]">
-          <div className="space-y-8 pr-4">
+      <CardContent className="pt-0 h-full overflow-auto">
+          <div className="space-y-4 pr-4">
             {/* Description */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <div
@@ -77,11 +75,6 @@ export default function ProblemDetailsComponent({ problem }) {
                       <div>
                         <strong>Output:</strong> {example.output}
                       </div>
-                      {example.explanation && (
-                        <div>
-                          <strong>Explanation:</strong> {example.explanation}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -110,7 +103,6 @@ export default function ProblemDetailsComponent({ problem }) {
               </motion.div>
             )}
           </div>
-        </ScrollArea>
       </CardContent>
     </Card>
   )

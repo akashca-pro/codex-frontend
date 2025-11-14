@@ -18,7 +18,6 @@ export interface IExample {
     Id : string;
     input : string;
     output : string;
-    explanation : string;
 }
 
 export interface ITemplateCode {
