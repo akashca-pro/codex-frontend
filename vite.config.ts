@@ -13,12 +13,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    host: 'codex.com',
-    port: 5173,
-  // //   https: {
-  // //     key: fs.readFileSync(keyPath),
-  // //     cert: fs.readFileSync(certPath),
-  // //   },
-  }
+  // server: {
+  //   host: 'codex.com',
+  //   port: 5173,
+  // // //   https: {
+  // // //     key: fs.readFileSync(keyPath),
+  // // //     cert: fs.readFileSync(certPath),
+  // // //   },
+  // }
 })

@@ -38,5 +38,5 @@ export interface CustomCodeRunResponse{
 
 export interface CustomCodeResultResponse {
     tempId : string;
-    stdout : string;
+    stdOut : string;
 }
