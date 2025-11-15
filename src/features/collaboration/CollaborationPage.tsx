@@ -184,8 +184,8 @@ const CollaborationPageInternal: React.FC = () => {
     try {
       const result = await triggerResultQuery({ tempId }).unwrap();
 
-      if (result.success && result.data?.stdOut !== undefined) {
-        const output = result.data.stdOut.trim();
+      if (result.success && result.data?.stdout !== undefined) {
+        const output = result.data.stdout.trim();
         setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
         setIsRunning(false);
         setTempId("");
@@ -263,7 +263,6 @@ const CollaborationPageInternal: React.FC = () => {
       })
       setConsoleMessages("Failed to start execution.");
       setIsRunning(false);
-      setIsCurrentUserExecuting(false); // Reset flag on error
     }
     
   }

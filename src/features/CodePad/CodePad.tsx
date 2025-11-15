@@ -45,8 +45,8 @@ useEffect(() => {
     try {
       const result = await triggerResultQuery({ tempId }).unwrap();
 
-      if (result.success && result.data?.stdOut !== undefined) {
-        const output = result.data.stdOut.trim();
+      if (result.success && result.data?.stdout !== undefined) {
+        const output = result.data.stdout.trim();
         setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
         setIsRunning(false);
         setTempId("");
