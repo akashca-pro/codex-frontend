@@ -32,6 +32,12 @@ export interface ITestCaseCollection {
     submit : ITestCase[];
 }
 
+export interface ISolutionRoadmap {
+    Id : string;
+    level : number;
+    description : string;
+}
+
 interface Stats {
     totalTestCase: number;
     passedTestCase: number;

@@ -29,7 +29,11 @@ export const CreateProblemSchema = z.object({
 export const ExampleSchema = z.object({
   input:  z.string().trim().min(1, "Value cannot be empty"),
   output:  z.string().trim().min(1, "Value cannot be empty"),
-  explanation:  z.string().trim().min(1, "Value cannot be empty"),
+});
+
+const SolutionRoadmapSchema = z.object({
+  level: z.number().min(1, "Level must be at least 1"),
+  description: z.string().trim().min(5, "Description must be at least 5 characters"),
 });
 
 export const BasicDetailsSchema = z.object({
@@ -54,6 +58,10 @@ export const BasicDetailsSchema = z.object({
     .nonempty("At least one constraint is required."),
   examples: z.array(ExampleSchema),
   starterCodes: z.array(StarterCodeSchema).min(1,'At least one starter code is required'),
+  solutionRoadmap: z
+    .array(SolutionRoadmapSchema)
+    .min(5, "You must provide exactly 5 solution steps.")
+    .max(5, "You must provide exactly 5 solution steps."),
 })
 
 export const TestCaseItemSchema = z.object({

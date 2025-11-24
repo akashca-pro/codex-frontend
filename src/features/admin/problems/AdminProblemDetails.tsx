@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useParams } from "react-router-dom";
-import SolutionCode from "./components/tabs/SolutionCode"
 import TestCase from "./components/tabs/TestCase"
 import BasicDetails from "./components/tabs/BasicDetails"
 import { useAdminGetProblemDetailsQuery } from '@/apis/problem/admin'
@@ -13,26 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import TemplateCode from "./components/tabs/TemplateCode";
 
 const initialBasicDetails = {
-  Id : '',
-  questionId : '',
-  title : '',
-  description : '',
-  difficulty : '',
-  active : false,
-  tags : [''],
-  constraints : [''],
-  examples : [{
-    Id : '',
-    input : '',
-    output : '',
-    explanation : '',
-  }],
-  starterCodes : [{
-    Id : '',
-    language : '',
-    code : ''
-  }] 
-}
+  Id: '',
+  questionId: '',
+  title: '',
+  description: '',
+  difficulty: '',
+  active: false,
+  tags: [''],
+  constraints: [''],
+  examples: [{ Id: '', input: '', output: '' }],
+  starterCodes: [{ Id: '', language: '', code: '' }],
+  solutionRoadmap: [{ Id: '', level: 1, description: '' }] 
+};
 
 const initialTestCaseData = {
   Id : '',
@@ -68,25 +59,33 @@ export default function ProblemDetailsPage() {
     const loadProblems = () => {
 
       if(data && data.data){
-        setBasicDetailsData({
-          Id : data.data.Id,
-          questionId : data.data.questionId,
-          title : data.data.title,
-          description : data.data.description,
-          active : data.data.active,
-          tags : data.data.tags,
-          constraints : data.data.constraints,
-          difficulty : DifficultyMap[data.data.difficulty],
-          examples : data.data.examples,
-          starterCodes : data.data.starterCodes.map(s=>{
-            return {
-              Id : s.Id,
-              code : s.code,
-              language : LanguageMap[s.language]
-            }
-          })
-        });
-      
+      setBasicDetailsData({
+        Id: data.data.Id,
+        questionId: data.data.questionId,
+        title: data.data.title,
+        description: data.data.description,
+        active: data.data.active,
+        tags: data.data.tags,
+        constraints: data.data.constraints,
+        difficulty: DifficultyMap[data.data.difficulty],
+        examples: data.data.examples.map(e => ({
+          Id: e.Id,
+          input: e.input,
+          output: e.output
+        })),
+        starterCodes: data.data.starterCodes.map(s => ({
+          Id: s.Id,
+          code: s.code,
+          language: LanguageMap[s.language]
+        })),
+        solutionRoadmap: data.data.solutionRoadmap?.length
+          ? data.data.solutionRoadmap.map(step => ({
+              Id: step.Id,
+              level: step.level,
+              description: step.description
+            }))
+          : []
+      });
           const converted : ConvertedTestCase[] = [
             ...data.data.testcaseCollection.run.map(tc=>({
               Id : tc.Id, 

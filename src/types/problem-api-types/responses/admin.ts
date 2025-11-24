@@ -1,4 +1,4 @@
-import type { Difficulty, IExample, IStarterCode, ITemplateCode, ITestCaseCollection } from "../fieldTypes";
+import type { Difficulty, IExample, ISolutionRoadmap, IStarterCode, ITemplateCode, ITestCaseCollection } from "../fieldTypes";
 
 export interface AdminProblemDetailsResponse {
     Id : string;
@@ -13,6 +13,7 @@ export interface AdminProblemDetailsResponse {
     examples : IExample[];
     active : boolean;
     templateCodes : ITemplateCode[]
+    solutionRoadmap : ISolutionRoadmap[];
     updatedAt : string;
     createdAt : string;
 }
