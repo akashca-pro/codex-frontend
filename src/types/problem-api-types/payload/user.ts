@@ -35,3 +35,15 @@ export interface listProblemSpecificSubmissionsRequest {
         nextCursor : string | undefined
     }
 }
+
+export interface GetPreviousHintsRequest {
+    problemId : string;
+}
+
+export interface RequestHintRequest {
+    problemId : string;
+    params : {
+        language : string;
+        userCode : string;
+    }
+}

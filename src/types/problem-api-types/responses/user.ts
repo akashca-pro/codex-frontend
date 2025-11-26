@@ -37,3 +37,18 @@ export interface listProblemSpecificSubmissionsResponse {
 export interface CreateCollabSessionResponse {
     inviteToken : string;
 }
+
+export interface IHints {
+    hint : string;
+    level : number;
+    createdAt : string;
+}
+
+export interface GetPreviousHintsResponse{
+    hints : IHints[];
+}
+
+export interface RequestHintResponse {
+    hint : string;
+}
+

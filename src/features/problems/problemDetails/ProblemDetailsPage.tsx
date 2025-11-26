@@ -16,7 +16,8 @@ import { useLazyRunResultQuery } from '@/apis/problem/public'
 import { useRunProblemMutation } from '@/apis/problem/public'
 import type { ExecutionResult, ITestCase } from "@/types/problem-api-types/fieldTypes"
 import Submissions from "./components/tabs/Submissions"
-import { useLazySubmitResultQuery, useListProblemSpecificSubmissionsQuery, useSubmitProblemMutation } from '@/apis/problem/user'
+import { useLazySubmitResultQuery, useListProblemSpecificSubmissionsQuery, 
+  useSubmitProblemMutation, useGetPreviousHintsQuery, useRequestHintMutation } from '@/apis/problem/user'
 import { useSelect } from '@/hooks/useSelect'
 import { usePolling } from "@/hooks/usePolling"
 
@@ -63,6 +64,9 @@ export default function ProblemDetails() {
   const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
   const [hasSubmissionResults, setHasSubmissionResults] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [newHint, setNewHint] = useState<string|undefined>(undefined);
+  const [hintError, setHintError] = useState<string | undefined>(undefined);
+
 
   const [submitProblem] = useSubmitProblemMutation();
   const [runProblem] = useRunProblemMutation()
@@ -86,6 +90,12 @@ export default function ProblemDetails() {
     },
     { skip: !problemId }
   );
+
+  const { data : previousHintsData, refetch : refetchHints} = useGetPreviousHintsQuery({
+    problemId : problemId!
+  },{ skip : !problemId });
+
+  const [requestHint, { isLoading: isRequestingHint }] = useRequestHintMutation();
 
 
 useEffect(() => {
@@ -226,7 +236,6 @@ const handleLanguageChange = (newLanguage: string) => {
     }
     try {
       const res = await submitProblem({ problemId : problemDetails.Id, payload }).unwrap();
-      console.log(res)
       if (res?.data?.submissionId) {
         setSubmissionId(res.data.submissionId); 
       } else {
@@ -258,6 +267,30 @@ const handleLanguageChange = (newLanguage: string) => {
     toast.info("Editor code has been reset!",{
       position : 'bottom-right'
     })
+  }
+
+  const handleRequestHint = async() => {
+    const params = {language, userCode : JSON.stringify(code)}
+    try {
+      const res = await requestHint({ problemId : problemDetails.Id, params }).unwrap();
+      setNewHint(res.data.hint);
+      setHintError(undefined);
+    } catch (error : any) {
+      const apiErrors = error?.data?.error
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          description : error?.data?.message
+      })
+      const msg = error?.data?.message || "Error getting new hint";
+      setHintError(msg);
+    }
   }
 
   if(isLoading) return(<ProblemDetailsPageSkeleton/>)
@@ -344,6 +377,15 @@ const handleLanguageChange = (newLanguage: string) => {
                 onReset={handleReset}
                 isRunning={isRunning}
                 runResult={testResults}
+                previousHints={previousHintsData?.data?.hints ?? []}
+                usedHints={previousHintsData?.data.hints.length ?? 0}
+                maxHints={5}
+                requestHint={handleRequestHint}
+                newHint={newHint}
+                clearNewHint={() => setNewHint(undefined)}
+                isRequestingHint={isRequestingHint}
+                hintError={hintError}
+                refetchHints={refetchHints}
               />}
             </div>
           </Allotment.Pane>

@@ -1,7 +1,7 @@
 import { apiSlice } from "@/store/rtk-query/apiSlice";
 import { type ApiSuccess } from '@/types/apiTypes'
-import type { listProblemSpecificSubmissionsRequest, SubmitProblemRequest, SubmitResultRequest } from "@/types/problem-api-types/payload/user";
-import type { listProblemSpecificSubmissionsResponse, SubmitProblemResponse, SubmitResultResponse } from "@/types/problem-api-types/responses/user";
+import type { GetPreviousHintsRequest, listProblemSpecificSubmissionsRequest, RequestHintRequest, SubmitProblemRequest, SubmitResultRequest } from "@/types/problem-api-types/payload/user";
+import type { GetPreviousHintsResponse, listProblemSpecificSubmissionsResponse, RequestHintResponse, SubmitProblemResponse, SubmitResultResponse } from "@/types/problem-api-types/responses/user";
 
 const preUrl = '/user/problems';
 
@@ -31,6 +31,20 @@ const userProblemApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags : ['user']
         }),
+        getPreviousHints : builder.query<ApiSuccess<GetPreviousHintsResponse>,GetPreviousHintsRequest>({
+            query : ({ problemId }) => ({
+                url : `${preUrl}/${problemId}/hints`,
+                method : 'GET',
+            }),
+            providesTags : ['user']
+        }),
+        requestHint : builder.mutation<ApiSuccess<RequestHintResponse>,RequestHintRequest>({
+            query : ({ problemId, params }) => ({
+                url : `${preUrl}/${problemId}/hints/request`,
+                method : 'POST',
+                body : params
+            })
+        })
     })
 })
 
@@ -39,5 +53,7 @@ export const {
     useSubmitProblemMutation,
     useLazySubmitResultQuery,
     useListProblemSpecificSubmissionsQuery,
+    useGetPreviousHintsQuery,
+    useRequestHintMutation,
 
 } = userProblemApiSlice
