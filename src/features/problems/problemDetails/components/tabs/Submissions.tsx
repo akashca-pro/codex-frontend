@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
-import { useListProblemSpecificSubmissionsQuery } from '@/apis/problem/user'
 import { LanguageMap } from "@/mappers/problem"
 import type { Submission } from "@/types/problem-api-types/responses/user"
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog"
@@ -24,51 +23,27 @@ function formatNumber(n?: number) {
 
 interface SubmissionsProps {
   problemId: string;
-  monacoProps : {
-    theme : string;
-    language : string;
-  }
+  monacoProps: { theme: string; language: string };
+  submissions: Submission[];
+  hasMore: boolean;
+  nextCursor?: string;
+  setNextCursor: React.Dispatch<React.SetStateAction<string | undefined>>;
+  isFetching: boolean;
 }
 
-export default function Submissions({ problemId, monacoProps } : SubmissionsProps) {
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+export default function Submissions({ monacoProps, submissions, nextCursor, hasMore, setNextCursor, isFetching } : SubmissionsProps) {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const { data, isFetching } = useListProblemSpecificSubmissionsQuery({
-    problemId ,
-    params : {
-      limit : 10,
-      nextCursor
-    }
-  },{ skip: !problemId,});
- 
-useEffect(() => {
-  if (data?.data) {
-    setSubmissions(prev => {
-      const existingIds = new Set(prev.map(s => s.Id));
-      const newOnes = data.data.submissions.filter(s => !existingIds.has(s.Id));
-      return [...prev, ...newOnes];
-    });
-
-    if (data.data.hasMore) {
-      setNextCursor(data.data.nextCursor);
-    } else {
-      setNextCursor(undefined); // stop fetching
-    }
-  }
-}, [data]);
-
   const containerRef = useRef<HTMLDivElement>(null);
 
-const handleScroll = useCallback(() => {
-  if (!containerRef.current || isFetching || !nextCursor) return;
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || isFetching || !nextCursor) return;
 
-  const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-  if (scrollTop + clientHeight >= scrollHeight - 50) {
-    setNextCursor(nextCursor);
-  }
-}, [isFetching, nextCursor]);
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    if (scrollTop + clientHeight >= scrollHeight - 50 && hasMore) {
+      setNextCursor(nextCursor);
+    }
+  }, [isFetching, nextCursor, hasMore, setNextCursor]);
 
   useEffect(() => {
     const el = containerRef.current;

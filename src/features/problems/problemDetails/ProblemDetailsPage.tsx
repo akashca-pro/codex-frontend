@@ -16,7 +16,7 @@ import { useLazyRunResultQuery } from '@/apis/problem/public'
 import { useRunProblemMutation } from '@/apis/problem/public'
 import type { ExecutionResult, ITestCase } from "@/types/problem-api-types/fieldTypes"
 import Submissions from "./components/tabs/Submissions"
-import { useLazySubmitResultQuery, useSubmitProblemMutation } from '@/apis/problem/user'
+import { useLazySubmitResultQuery, useListProblemSpecificSubmissionsQuery, useSubmitProblemMutation } from '@/apis/problem/user'
 import { useSelect } from '@/hooks/useSelect'
 import { usePolling } from "@/hooks/usePolling"
 
@@ -62,6 +62,7 @@ export default function ProblemDetails() {
   const [submissionId, setSubmissionId] = useState('');
   const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
   const [hasSubmissionResults, setHasSubmissionResults] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
 
   const [submitProblem] = useSubmitProblemMutation();
   const [runProblem] = useRunProblemMutation()
@@ -71,6 +72,20 @@ export default function ProblemDetails() {
   const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
     skip: !problemId,
   });
+  const {
+    data: submissions,
+    isFetching: isFetchingSubmissions,
+    refetch: refetchSubmissions,
+  } = useListProblemSpecificSubmissionsQuery(
+    {
+      problemId : problemId!,
+      params: {
+        limit: 10,
+        nextCursor,
+      },
+    },
+    { skip: !problemId }
+  );
 
 
 useEffect(() => {
@@ -143,7 +158,8 @@ usePolling({
 useEffect(() => {
   if (hasSubmissionResults) {
     setActiveTab("submissions");   
-    setHasSubmissionResults(false); 
+    refetchSubmissions(); 
+    setHasSubmissionResults(false);
   }
 }, [hasSubmissionResults]);
 
@@ -255,7 +271,6 @@ const handleLanguageChange = (newLanguage: string) => {
         onThemeChange={setEditorTheme}
         language={language}
         onLanguageChange={handleLanguageChange}
-        onCollaboration={() => {}}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
         intelliSense={intelliSense}
@@ -285,13 +300,18 @@ const handleLanguageChange = (newLanguage: string) => {
               <ProblemDetailsComponent problem={problemDetails} />
             </TabsContent>
             <TabsContent value="submissions">
-              <Submissions
-                monacoProps={{
-                  language : language === "javascript" ? "javascript" : language,
-                  theme : editorTheme
-                }}
-                problemId={problemDetails.Id}
-              />
+            <Submissions
+              monacoProps={{
+                language: language,
+                theme: editorTheme,
+              }}
+              problemId={problemDetails.Id}
+              submissions={submissions?.data?.submissions ?? []}
+              hasMore={submissions?.data?.hasMore ?? false}
+              nextCursor={nextCursor}
+              setNextCursor={setNextCursor}
+              isFetching={isFetchingSubmissions}
+            />
             </TabsContent>
           </Tabs>
         </div>
