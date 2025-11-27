@@ -2,7 +2,6 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -53,14 +52,6 @@ export default function AIHintsTab({
       console.error("Failed to request hint:", err)
     }
   }
-
-const levelColors = {
-  1: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
-  2: "bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/30",
-  3: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  4: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/30",
-  5: "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30",
-};
 
   return (
     <div className="w-full space-y-4">
@@ -132,7 +123,7 @@ const levelColors = {
                 <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
                     <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                    ✨ New Hint
+                    New Hint
                     </span>
                 </div>
                 <p className="text-sm leading-relaxed text-foreground">{newHint}</p>
@@ -153,8 +144,6 @@ const levelColors = {
             .map((h, idx) => {
                 const displayIndex = previousHints.length - idx
                 const isExpanded = expandedHints.has(idx)
-                const difficultyLevel = Math.min(5, Math.max(1, h.level)) as 1 | 2 | 3 | 4 | 5
-                const levelLabel = `Level ${difficultyLevel}`
                 const createdDate = new Date(h.createdAt)
                 const timeAgo = formatDistanceToNow(createdDate, { addSuffix: true })
 
@@ -173,13 +162,6 @@ const levelColors = {
                             <span className="text-xs font-semibold text-muted-foreground">
                                 Hint {displayIndex}
                             </span>
-
-                            <Badge
-                                variant="outline"
-                                className={cn("text-[11px] border", levelColors[difficultyLevel])}
-                            >
-                                {levelLabel}
-                            </Badge>
 
                             <span className="text-xs text-muted-foreground">{timeAgo}</span>
                             </div>

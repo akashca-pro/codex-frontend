@@ -38,7 +38,7 @@ interface TestCasePanelProps {
   isSubmitting?: boolean
   runResult?: ExecutionResult
   onTestCasesChange?: (cases: TestCaseForm[]) => void
-  previousHints?: Array<{ hint: string; level: number; createdAt: string }>
+  previousHints?: Array<{ hint: string; createdAt: string }>
   newHint?: string
   usedHints?: number
   maxHints?: number
@@ -90,12 +90,19 @@ export default function TestCasePanel({
 
 
   useEffect(() => {
+    if(activeTab === 'result' || activeTab === 'testcase'){
       refetchHints();
+    }
       if (newHint !== undefined) {
         clearNewHint();
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (newHint) {
+      refetchHints()
+    }
+  }, [newHint]);
 
   const [activeCaseIndex, setActiveCaseIndex] = useState(0)
 

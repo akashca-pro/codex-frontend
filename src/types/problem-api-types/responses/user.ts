@@ -40,7 +40,6 @@ export interface CreateCollabSessionResponse {
 
 export interface IHints {
     hint : string;
-    level : number;
     createdAt : string;
 }
 
