@@ -37,7 +37,7 @@ export type Submission = {
   title: string
   battleId?: string | null
   score: number
-  status: string // e.g., "Accepted", "Wrong Answer", "Runtime Error"
+  status: string 
   language: string // "JAVASCRIPT" | "PYTHON" | "GO" etc.
   userCode: string
   executionResult?: ExecutionResult

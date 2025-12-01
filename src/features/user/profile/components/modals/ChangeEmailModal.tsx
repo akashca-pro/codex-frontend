@@ -9,24 +9,31 @@ import { Eye, EyeOff } from "lucide-react"
 import { updateEmailSchema, type UpdateEmailSchemaType } from "../../schema"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { toast } from "sonner"
-import { useUpdateEmailMutation, useChangeEmailresendOtpMutation, useVerifyEmailMutation } from '@/apis/auth-user/profile/user'
 import OtpVerificationForm from "@/features/auth/components/form-components/OtpVerificationForm"
 import type { OtpVerificationSchemaType } from "@/features/auth/validations/schemas"
 import { useAuthActions } from '@/hooks/useDispatch'
 import { useSelect } from '@/hooks/useSelect'
+import type { ProfileMutations } from "./apis"
 
 interface ChangeEmailModalProps {
   currentEmail: string
   open : boolean
   onClose: () => void
+  updateEmail : ProfileMutations['updateEmail']
+  resendOtp : ProfileMutations['resendOtp']
+  verifyEmail : ProfileMutations['verifyEmail']
 }
 
-export default function ChangeEmailModal({ currentEmail, open, onClose }: ChangeEmailModalProps) {
+export default function ChangeEmailModal({
+    currentEmail, 
+    open, 
+    onClose, 
+    updateEmail, 
+    resendOtp, 
+    verifyEmail
+  } : ChangeEmailModalProps) {
   const { login } = useAuthActions();
   const { user } = useSelect();
-  const [updateEmail] = useUpdateEmailMutation();
-  const [resendOtp] = useChangeEmailresendOtpMutation();
-  const [verifyEmail] = useVerifyEmailMutation();
   const [showPassword, setShowPassword] = useState(false)
   const [step,setStep] = useState<'form'|'otp'>("form")
   const form = useForm<UpdateEmailSchemaType>({

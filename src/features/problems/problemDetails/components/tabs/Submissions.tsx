@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
-import { useListProblemSpecificSubmissionsQuery } from '@/apis/problem/user'
 import { LanguageMap } from "@/mappers/problem"
 import type { Submission } from "@/types/problem-api-types/responses/user"
-import LoadingDots from "@/components/LoadingDots"
+import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog"
+import { Bot } from "lucide-react"
 
 function statusBadgeVariant(status: string) {
   const s = status.toLowerCase()
@@ -22,43 +22,29 @@ function formatNumber(n?: number) {
   return n.toFixed(2)
 }
 
-export default function Submissions({ problemId }) {
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const { data, isFetching } = useListProblemSpecificSubmissionsQuery({
-    problemId ,
-    params : {
-      limit : 10,
-      nextCursor
-    }
-  },{ skip: !problemId,});
- 
-useEffect(() => {
-  if (data?.data) {
-    setSubmissions(prev => {
-      const existingIds = new Set(prev.map(s => s.Id));
-      const newOnes = data.data.submissions.filter(s => !existingIds.has(s.Id));
-      return [...prev, ...newOnes];
-    });
+interface SubmissionsProps {
+  problemId: string;
+  monacoProps: { theme: string; language: string };
+  submissions: Submission[];
+  hasMore: boolean;
+  nextCursor?: string;
+  setNextCursor: React.Dispatch<React.SetStateAction<string | undefined>>;
+  isFetching: boolean;
+}
 
-    if (data.data.hasMore) {
-      setNextCursor(data.data.nextCursor);
-    } else {
-      setNextCursor(undefined); // stop fetching
-    }
-  }
-}, [data]);
-
+export default function Submissions({ monacoProps, submissions, nextCursor, hasMore, setNextCursor, isFetching } : SubmissionsProps) {
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null);
 
-const handleScroll = useCallback(() => {
-  if (!containerRef.current || isFetching || !nextCursor) return;
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || isFetching || !nextCursor) return;
 
-  const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-  if (scrollTop + clientHeight >= scrollHeight - 50) {
-    setNextCursor(nextCursor);
-  }
-}, [isFetching, nextCursor]);
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    if (scrollTop + clientHeight >= scrollHeight - 50 && hasMore) {
+      setNextCursor(nextCursor);
+    }
+  }, [isFetching, nextCursor, hasMore, setNextCursor]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -98,34 +84,42 @@ const handleScroll = useCallback(() => {
                 <TableHead>Language</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {submissions.map((s, i) => {
-                const res = s.executionResult?.stats;
-                return (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {res ? `${res.passedTestCase}/${res.totalTestCase} passed` : "-"}
-                    </TableCell>
-                    <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
-                    <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {isFetching && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    <LoadingDots/>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+              <TableBody>
+                {submissions.map((s, i) => {
+                  const res = s.executionResult?.stats
+                  return (
+                    <TableRow
+                      key={i}
+                      onClick={() => {
+                        setSelectedSubmission(s)
+                        setDialogOpen(true)
+                      }}
+                      className="cursor-pointer hover:bg-muted/50 transition"
+                    >
+
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
+                          {s.isAiAssisted && <Bot className=" h-4 w-4 opacity-80" />}
+                        </div>
+                      </TableCell>
+                      <TableCell>{res ? `${res.passedTestCase}/${res.totalTestCase}` : "-"}</TableCell>
+                      <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
+                      <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
           </Table>
+        <SubmissionDetailsDialog
+          monacoProps={monacoProps}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          submission={selectedSubmission}
+        />
         </div>
       </CardContent>
     </Card>

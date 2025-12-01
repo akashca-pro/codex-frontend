@@ -19,9 +19,24 @@ import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { toast } from "sonner"
 import UserProfileSkeleton from "./components/UserProfileSkeleton"
 import ErrorPage from "@/components/ErrorPage"
+import { useSelect } from '@/hooks/useSelect'
+import { useProfileMutations } from "./components/modals/apis"
+import { useAdminProfileQuery } from '@/apis/auth-user/profile/admin'
 
 export default function UserProfile() {
-  const { data, refetch, isLoading, isError } = useProfileQuery()
+  const { user } = useSelect();
+  const isAdmin = user.details?.role === 'ADMIN'
+  console.log(isAdmin);
+  const { 
+    updateProfile, 
+    changePassword, 
+    updateEmail, 
+    resendOtp, 
+    verifyEmail, 
+    deleteAccount 
+  } = useProfileMutations(isAdmin);
+  
+  const { data, refetch, isLoading, isError } = isAdmin ? useAdminProfileQuery() : useProfileQuery();
 
   const [profile, setProfile] = useState<UserProfileResponse>({
     userId: "",
@@ -292,11 +307,16 @@ export default function UserProfile() {
               isOpen={isEditModalOpen}
               onClose={() => setIsEditModalOpen(false)}
               refetch={refetch}
+              updateProfile={updateProfile}
             />
           )}
 
           {isPasswordModalOpen && (
-            <ChangePasswordModal open={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
+            <ChangePasswordModal 
+            open={isPasswordModalOpen} 
+            onClose={() => setIsPasswordModalOpen(false)} 
+            changePassword={changePassword}
+            />
           )}
 
           {isEmailModalOpen && (
@@ -304,11 +324,17 @@ export default function UserProfile() {
               currentEmail={profile.email}
               open={isEmailModalOpen}
               onClose={() => setIsEmailModalOpen(false)}
+              updateEmail={updateEmail}
+              resendOtp={resendOtp}
+              verifyEmail={verifyEmail}
             />
           )}
 
           {isDeleteModalOpen && (
-            <DeleteAccountModal open={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} />
+            <DeleteAccountModal
+             open={isDeleteModalOpen}
+             deleteAccount={deleteAccount}
+             onClose={() => setIsDeleteModalOpen(false)} />
           )}
         </AnimatePresence>
       </div>

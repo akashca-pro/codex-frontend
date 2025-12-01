@@ -1,4 +1,4 @@
-import { Moon, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -19,7 +19,7 @@ import { useSelect } from '@/hooks/useSelect'
 import { getCloudinaryUrl } from "@/utils/cloudinaryImageResolver"
 import { useState } from "react" 
 import TypewriterTitle from "../features/landing/components/TypewriterTitle"
-import CollabDialog from "@/features/collaboration/components/CollabDialog" 
+import CollabDialog from "@/features/collaboration/components/CollabDialog"
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", protected : true },
@@ -48,7 +48,7 @@ export default function Navbar() {
   const role = user && user.details?.role.toLowerCase();
   
   const publicRoutes = ["problems","codepad"];
-  const protectedRoutes = ["dashboard", "profile","leaderboard"]; 
+  const protectedRoutes = ["dashboard", "profile","leaderboard", "collaborate"]; 
   const adminOnlyRoutes = ["problems","users"]
 
   const visibleNavitems = navItems.filter((item) => {
@@ -121,7 +121,7 @@ export default function Navbar() {
       <Tabs
         value={currentPath === 'collaborate' ? '' : currentPath}
         onValueChange={(val) => {
-          if (val === 'collaborate') {
+          if (val === 'collaborate' && !location.pathname.includes('collab')) {
             setIsCollabDialogOpen(true);
           } else {
             navigate(getPath(val));
@@ -149,10 +149,10 @@ export default function Navbar() {
         <>
           {/* Notifications */}
 
-          {/* Theme Toggle */}
+          {/* Theme Toggle
           <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Moon className="w-5 h-5" />
-          </Button>
+          </Button> */}
 
           {/* User Menu */}
           <DropdownMenu>
@@ -232,6 +232,7 @@ export default function Navbar() {
             if (item.id === 'collaborate') {
               return (
                 <button
+                  disabled={location.pathname.includes('collab')}
                   key={item.id}
                   onClick={() => {
                     setIsCollabDialogOpen(true);
@@ -259,10 +260,10 @@ export default function Navbar() {
             <div className="pt-4 pb-3 border-t border-gray-800 space-y-3">
 
               {/* Theme Toggle */}
-              <Button variant="ghost" size="sm" className="w-full justify-start">
+              {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                 <Moon className="w-5 h-5 mr-2" />
                 Toggle Theme
-              </Button>
+              </Button> */}
 
               {/* Profile */}
               <Button

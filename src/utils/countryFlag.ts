@@ -1,10 +1,97 @@
-export const getCountryFlag = (code: string): string => {
+const ISO3_TO_ISO2: Record<string, string> = {
+  AFG: "AF",
+  ALB: "AL",
+  DZA: "DZ",
+  AND: "AD",
+  AGO: "AO",
+  ARG: "AR",
+  ARM: "AM",
+  AUS: "AU",
+  AUT: "AT",
+  AZE: "AZ",
+  BHS: "BS",
+  BHR: "BH",
+  BGD: "BD",
+  BRB: "BB",
+  BLR: "BY",
+  BEL: "BE",
+  BFA: "BF",
+  BIH: "BA",
+  BWA: "BW",
+  BRA: "BR",
+  BRN: "BN",
+  BGR: "BG",
+  BDI: "BI",
+  KHM: "KH",
+  CAN: "CA",
+  CHN: "CN",
+  COL: "CO",
+  CRI: "CR",
+  CUB: "CU",
+  CYP: "CY",
+  CZE: "CZ",
+  DNK: "DK",
+  DJI: "DJ",
+  DOM: "DO",
+  ECU: "EC",
+  EGY: "EG",
+  SLV: "SV",
+  EST: "EE",
+  ETH: "ET",
+  FIN: "FI",
+  FRA: "FR",
+  DEU: "DE",
+  GRC: "GR",
+  GBR: "GB",
+  HKG: "HK",
+  HUN: "HU",
+  IND: "IN",
+  IDN: "ID",
+  IRN: "IR",
+  IRQ: "IQ",
+  IRL: "IE",
+  ISR: "IL",
+  ITA: "IT",
+  JPN: "JP",
+  KEN: "KE",
+  KOR: "KR",
+  KUW: "KW",
+  LBN: "LB",
+  MYS: "MY",
+  MEX: "MX",
+  NLD: "NL",
+  NZL: "NZ",
+  NOR: "NO",
+  PAK: "PK",
+  PER: "PE",
+  PHL: "PH",
+  POL: "PL",
+  PRT: "PT",
+  ROU: "RO",
+  RUS: "RU",
+  SAU: "SA",
+  SGP: "SG",
+  ZAF: "ZA",
+  ESP: "ES",
+  SWE: "SE",
+  CHE: "CH",
+  THA: "TH",
+  TUR: "TR",
+  USA: "US",
+  VNM: "VN",
+  ZWE: "ZW",
+};
 
+export const getCountryFlag = (code: string): string => {
   if (!code) return "🌍";
 
-  return code
-    .slice(0,-1)
-    .toUpperCase()
+  const upper = code.toUpperCase();
+  const iso2 = ISO3_TO_ISO2[upper] || upper.slice(0,2);
+
+  // ensure we have two letters
+  const final = iso2.length === 2 ? iso2 : upper.slice(0,2);
+
+  return final
     .split("")
     .map(char => String.fromCodePoint(127397 + char.charCodeAt(0)))
     .join("");

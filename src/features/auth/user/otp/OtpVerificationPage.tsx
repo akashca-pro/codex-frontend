@@ -63,10 +63,12 @@ export default function OtpVerificationPage() {
         console.log(res);
         login({
             userId : res.data.userId,
+            firstName : res.data.firstName,
             username : res.data.username,
             email : res.data.email,
             role : res.data.role,
-            avatar : res.data.avatar
+            avatar : res.data.avatar,
+            country : res.data.country ?? null
         })
         navigate('/dashboard');
     } catch (error : any) {

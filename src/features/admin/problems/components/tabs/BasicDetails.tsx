@@ -31,11 +31,12 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
         active: basicDetailsData.active,
         tags: [],
         constraints: [],
-        examples: [{input : '', output : '', explanation : ''}],
+        examples: [{input : '', output : ''}],
         starterCodes: [{
             code : '',
             language : 'javascript'
         }],
+        solutionRoadmap: [{ level: 1, description: "" }],
         },
     })
 
@@ -68,6 +69,16 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
     name: "starterCodes",
     });
 
+    const { 
+        fields: solutionFields, 
+        append: appendSolution, 
+        remove: removeSolution 
+    } = useFieldArray({
+    control: basicForm.control,
+    name: "solutionRoadmap",
+    });
+
+
     useEffect(() => {
         if (basicDetailsData) {
         basicForm.reset({
@@ -79,9 +90,12 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             tags: basicDetailsData.tags,
             constraints: basicDetailsData.constraints,
             examples: basicDetailsData.examples.length === 0 
-                        ? [{input : '', output : '', explanation : ''}]
+                        ? [{input : '', output : ''}]
                         : basicDetailsData.examples,
             starterCodes: basicDetailsData.starterCodes || [],
+            solutionRoadmap: basicDetailsData.solutionRoadmap?.length
+            ? basicDetailsData.solutionRoadmap
+            : [{ level: 1, description: "" }],
         })
         }
             basicForm.trigger();
@@ -210,8 +224,6 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                                         {...basicForm.register(`constraints.${index}` as const)}
                                         placeholder={`Constraint ${index + 1}`}
                                     />
-                                    {/* You could display item-level errors here if you had them */}
-                                    {/* {basicForm.formState.errors.constraints?.[index]?.message} */}
                                     <Button
                                         type="button"
                                         size="sm"
@@ -242,17 +254,62 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                         <Input {...basicForm.register(`examples.${index}.output` as const)} />
                         </FormField>
 
-                        <FormField label="Explanation" error={basicForm.formState.errors.examples?.[index]?.explanation?.message}>
-                        <Input {...basicForm.register(`examples.${index}.explanation` as const)} />
-                        </FormField>
-
                         <Button type="button" variant="destructive" onClick={() => removeExample(index)}>Delete</Button>
                     </div>
                     ))}
-                    <Button type="button" variant="outline" onClick={() => appendExample({ input: "", output: "", explanation: "" })}>
+                    <Button type="button" variant="outline" onClick={() => appendExample({ input: "", output: "" })}>
                     + Add Example
                     </Button>
 
+                    {/* Solution Roadmap */}
+                    <FormField
+                    label="Solution Roadmap"
+                    description="Define up to 5 guided steps"
+                    error={basicForm.formState.errors.solutionRoadmap?.message}
+                    >
+                    {solutionFields.map((field, index) => (
+                        <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+                        <FormField label="Level">
+                            <Input
+                            type="number"
+                            {...basicForm.register(`solutionRoadmap.${index}.level`, { valueAsNumber: true })}
+                            min={1}
+                            />
+                        </FormField>
+
+                        <FormField label="Description">
+                            <Input
+                            {...basicForm.register(`solutionRoadmap.${index}.description`)}
+                            placeholder="Logical step description"
+                            />
+                        </FormField>
+
+                        <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => {
+                            removeSolution(index);
+                            basicForm.trigger("solutionRoadmap");
+                        }}
+                        disabled={solutionFields.length === 1}
+                        >
+                        Delete
+                        </Button>
+                        </div>
+                    ))}
+
+                    <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                        appendSolution({ level: solutionFields.length + 1, description: "" });
+                        basicForm.trigger("solutionRoadmap"); 
+                    }}
+                    disabled={solutionFields.length >= 5}
+                    >
+                    + Add Step (Max 5)
+                    </Button>
+                    </FormField>
 
                     {/* Starter Codes */}
                     {starterFields.map((field, index) => {
@@ -308,8 +365,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Reset
                         </Button>
-                        <Button 
-                        type="submit">
+                        <Button type="submit" disabled={solutionFields.length !== 5}>
                         <Save className="h-4 w-4 mr-2" />
                         Save Changes
                         </Button>

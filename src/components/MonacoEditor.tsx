@@ -26,7 +26,7 @@ export default function MonacoEditor({
   height = "100%",
   readOnly = false,
   fontSize,
-  intelliSense = true
+  intelliSense = false
 }: MonacoEditorProps) {
   const editorRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(true)

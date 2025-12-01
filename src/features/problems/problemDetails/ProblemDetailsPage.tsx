@@ -16,7 +16,8 @@ import { useLazyRunResultQuery } from '@/apis/problem/public'
 import { useRunProblemMutation } from '@/apis/problem/public'
 import type { ExecutionResult, ITestCase } from "@/types/problem-api-types/fieldTypes"
 import Submissions from "./components/tabs/Submissions"
-import { useLazySubmitResultQuery, useSubmitProblemMutation } from '@/apis/problem/user'
+import { useLazySubmitResultQuery, useListProblemSpecificSubmissionsQuery, 
+  useSubmitProblemMutation, useGetPreviousHintsQuery, useRequestHintMutation } from '@/apis/problem/user'
 import { useSelect } from '@/hooks/useSelect'
 import { usePolling } from "@/hooks/usePolling"
 
@@ -32,7 +33,6 @@ const initialProblemDetails = {
     Id : '',
     input : '',
     output : '',
-    explanation : '',
   }],
   starterCodes : [{
     Id : '',
@@ -63,6 +63,10 @@ export default function ProblemDetails() {
   const [submissionId, setSubmissionId] = useState('');
   const [testCases, setTestCases] = useState<ITestCase[] | null>(null);
   const [hasSubmissionResults, setHasSubmissionResults] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [newHint, setNewHint] = useState<string|undefined>(undefined);
+  const [hintError, setHintError] = useState<string | undefined>(undefined);
+
 
   const [submitProblem] = useSubmitProblemMutation();
   const [runProblem] = useRunProblemMutation()
@@ -72,6 +76,26 @@ export default function ProblemDetails() {
   const { data, isLoading } = usePublicGetProblemDetailsQuery(problemId!, {
     skip: !problemId,
   });
+  const {
+    data: submissions,
+    isFetching: isFetchingSubmissions,
+    refetch: refetchSubmissions,
+  } = useListProblemSpecificSubmissionsQuery(
+    {
+      problemId : problemId!,
+      params: {
+        limit: 10,
+        nextCursor,
+      },
+    },
+    { skip: !problemId }
+  );
+
+  const { data : previousHintsData, refetch : refetchHints} = useGetPreviousHintsQuery({
+    problemId : problemId!
+  },{ skip : !problemId });
+
+  const [requestHint, { isLoading: isRequestingHint }] = useRequestHintMutation();
 
 
 useEffect(() => {
@@ -144,7 +168,8 @@ usePolling({
 useEffect(() => {
   if (hasSubmissionResults) {
     setActiveTab("submissions");   
-    setHasSubmissionResults(false); 
+    refetchSubmissions(); 
+    setHasSubmissionResults(false);
   }
 }, [hasSubmissionResults]);
 
@@ -211,7 +236,6 @@ const handleLanguageChange = (newLanguage: string) => {
     }
     try {
       const res = await submitProblem({ problemId : problemDetails.Id, payload }).unwrap();
-      console.log(res)
       if (res?.data?.submissionId) {
         setSubmissionId(res.data.submissionId); 
       } else {
@@ -236,11 +260,37 @@ const handleLanguageChange = (newLanguage: string) => {
   }
 
   const handleReset = () => {
-    setCode(code)
+    if(language === 'javascript') setCode(problemDetails.starterCodes[0].code)
+    else if(language === 'python') setCode(problemDetails.starterCodes[1].code)
+    else if(language === 'go') setCode(problemDetails.starterCodes[2].code)
     setTestResults(undefined)
     toast.info("Editor code has been reset!",{
       position : 'bottom-right'
     })
+  }
+
+  const handleRequestHint = async() => {
+    const params = {language, userCode : JSON.stringify(code)}
+    try {
+      const res = await requestHint({ problemId : problemDetails.Id, params }).unwrap();
+      setNewHint(res.data.hint);
+      setHintError(undefined);
+    } catch (error : any) {
+      const apiErrors = error?.data?.error
+      if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+        apiErrors.forEach((e: any) => {
+          toast.error(`field : ${e.field}`, {
+            description: `Error : ${e.message}`,
+          })
+        })
+      }
+      toast.error('Error',{
+          className : 'error-toast',
+          description : error?.data?.message
+      })
+      const msg = error?.data?.message || "Error getting new hint";
+      setHintError(msg);
+    }
   }
 
   if(isLoading) return(<ProblemDetailsPageSkeleton/>)
@@ -248,19 +298,19 @@ const handleLanguageChange = (newLanguage: string) => {
   return (
     <div className="h-full bg-black">
       {/* Main Content */}
-  <div className="h-screen w-screen overflow-hidden">
+  <div className="h-screen w-screen overflow-hidden flex flex-col">
       <IDEToolbar
         editorTheme={editorTheme}
         onThemeChange={setEditorTheme}
         language={language}
         onLanguageChange={handleLanguageChange}
-        onCollaboration={() => {}}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
         intelliSense={intelliSense}
         onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
         goBackLink={'/problems'}
       />
+  <div className="flex-1 overflow-hidden">
     <Allotment >
       {/* Problem Details */}
       <Allotment.Pane minSize={300} preferredSize="43.5%">
@@ -283,9 +333,18 @@ const handleLanguageChange = (newLanguage: string) => {
               <ProblemDetailsComponent problem={problemDetails} />
             </TabsContent>
             <TabsContent value="submissions">
-              <Submissions
-                problemId={problemDetails.Id}
-              />
+            <Submissions
+              monacoProps={{
+                language: language,
+                theme: editorTheme,
+              }}
+              problemId={problemDetails.Id}
+              submissions={submissions?.data?.submissions ?? []}
+              hasMore={submissions?.data?.hasMore ?? false}
+              nextCursor={nextCursor}
+              setNextCursor={setNextCursor}
+              isFetching={isFetchingSubmissions}
+            />
             </TabsContent>
           </Tabs>
         </div>
@@ -318,12 +377,22 @@ const handleLanguageChange = (newLanguage: string) => {
                 onReset={handleReset}
                 isRunning={isRunning}
                 runResult={testResults}
+                previousHints={previousHintsData?.data?.hints ?? []}
+                usedHints={previousHintsData?.data.hints.length ?? 0}
+                maxHints={5}
+                requestHint={handleRequestHint}
+                newHint={newHint}
+                clearNewHint={() => setNewHint(undefined)}
+                isRequestingHint={isRequestingHint}
+                hintError={hintError}
+                refetchHints={refetchHints}
               />}
             </div>
           </Allotment.Pane>
         </Allotment>
       </Allotment.Pane>
     </Allotment>
+  </div>
 </div>
   {/* Notes Panel */}
   <NotesPanel isOpen={showNotes} onClose={() => setShowNotes(false)} />

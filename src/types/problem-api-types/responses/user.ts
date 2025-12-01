@@ -23,7 +23,11 @@ export interface Submission {
     Id : string;
     status : string;
     language : Language;
-    executionResult : ExecutionResult | null
+    executionResult : ExecutionResult | null,
+    userCode : string;
+    isAiAssisted : boolean;
+    hintsUsed : number;
+    createdAt : string;
 }
 
 export interface listProblemSpecificSubmissionsResponse {
@@ -35,3 +39,17 @@ export interface listProblemSpecificSubmissionsResponse {
 export interface CreateCollabSessionResponse {
     inviteToken : string;
 }
+
+export interface IHints {
+    hint : string;
+    createdAt : string;
+}
+
+export interface GetPreviousHintsResponse{
+    hints : IHints[];
+}
+
+export interface RequestHintResponse {
+    hint : string;
+}
+

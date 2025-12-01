@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface File {
   id: string;
@@ -28,7 +29,7 @@ const codePadSlice = createSlice({
 
         createFile : (state, action : PayloadAction<{ name : string, language : string }>) => {
             const newFile : File = {
-                id : crypto.randomUUID(),
+                id : uuidv4(),
                 name : action.payload.name,
                 content : '',
                 language : action.payload.language,

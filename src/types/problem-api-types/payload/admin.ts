@@ -1,4 +1,4 @@
-import type { Difficulty, IExample, IStarterCode, ITestCase, TestCaseCollectionType } from "../fieldTypes";
+import type { Difficulty, IExample, ISolutionRoadmap, IStarterCode, ITestCase, TestCaseCollectionType } from "../fieldTypes";
 
 export interface CreateProblemRequest {
     questionId : string;
@@ -19,6 +19,7 @@ export interface UpdateProblemRequest {
         tags? : string[];
         constraints? : string[];
         examples? : Partial<IExample>[];
+        solutionRoadmap? : Partial<ISolutionRoadmap>[];
         starterCodes? : Partial<IStarterCode>[];
     }
 }

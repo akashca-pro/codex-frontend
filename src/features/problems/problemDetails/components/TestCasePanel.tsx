@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Clock,
   Cpu,
+  Sparkles,
 } from "lucide-react"
 import TestCase from "./tabs/TestCase"
 import TestResult from "./tabs/TestResult"
@@ -17,6 +18,7 @@ import type { ExecutionResult } from "@/types/problem-api-types/fieldTypes"
 import { z } from "zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import type { ITestCase } from "@/types/problem-api-types/fieldTypes"
+import AIHintsTab from "./tabs/AiHints"
 
 const testCaseSchema = z.object({
   Id: z.string(),
@@ -36,6 +38,15 @@ interface TestCasePanelProps {
   isSubmitting?: boolean
   runResult?: ExecutionResult
   onTestCasesChange?: (cases: TestCaseForm[]) => void
+  previousHints?: Array<{ hint: string; createdAt: string }>
+  newHint?: string
+  usedHints?: number
+  maxHints?: number
+  requestHint?: any
+  isRequestingHint?: boolean
+  hintError?: string
+  refetchHints : any
+  clearNewHint : () => void
 }
 
 export default function TestCasePanel({
@@ -46,9 +57,18 @@ export default function TestCasePanel({
   isRunning = false,
   runResult,
   onTestCasesChange,
+  previousHints = [],
+  newHint,
+  usedHints = 0,
+  maxHints = 5,
+  requestHint,
+  isRequestingHint = false,
+  hintError,
+  refetchHints,
+  clearNewHint
 }: TestCasePanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [activeTab, setActiveTab] = useState<"testcase" | "result">("testcase")
+  const [activeTab, setActiveTab] = useState<"testcase" | "result" | "hint">("testcase")
   const [initialized, setInitialized] = useState(false)
 
   const { control, setValue } = useForm<{ cases: TestCaseForm[] }>({
@@ -60,15 +80,29 @@ export default function TestCasePanel({
     name: "cases",
   })
 
-useEffect(() => {
-  if (!initialized && testCases) {
-    setValue("cases", testCases)
-    setActiveCaseIndex(0)
-    setInitialized(true)
-  }
-}, [testCases, initialized, setValue])
+  useEffect(() => {
+    if (!initialized && testCases) {
+      setValue("cases", testCases)
+      setActiveCaseIndex(0)
+      setInitialized(true)
+    }
+  }, [testCases, initialized, setValue])
 
 
+  useEffect(() => {
+    if(activeTab === 'result' || activeTab === 'testcase'){
+      refetchHints();
+    }
+      if (newHint !== undefined) {
+        clearNewHint();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (newHint) {
+      refetchHints()
+    }
+  }, [newHint]);
 
   const [activeCaseIndex, setActiveCaseIndex] = useState(0)
 
@@ -253,15 +287,19 @@ useEffect(() => {
                 <Tabs
                   value={activeTab}
                   onValueChange={(v) =>
-                    setActiveTab(v as "testcase" | "result")
+                    setActiveTab(v as "testcase" | "result" | "hint")
                   }
                   className="w-full"
                 >
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="testcase">Testcase</TabsTrigger>
                     <TabsTrigger value="result">
                       TestResult
                       {totalCount > 0 ? ` (${passedCount}/${totalCount})` : ""}
+                    </TabsTrigger>
+                    <TabsTrigger value="hints">
+                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                      AI Hints
                     </TabsTrigger>
                   </TabsList>
 
@@ -280,11 +318,25 @@ useEffect(() => {
                   {/* Results tab */}
                   <TabsContent value="result" className="mt-4">
                     <TestResult 
-                    stdOut={runResult?.failedTestCase?.output ?? runResult?.stats?.stdout ?? undefined}
+                    stdout={runResult?.stats?.stdout}
+                    failedOutput={runResult?.failedTestCase?.output}
                     totalCount={totalCount}
                     passedCount={passedCount}
                     testResults={testResults} 
                      />
+                  </TabsContent>
+
+                  {/* AI Hints tab */}
+                  <TabsContent value="hints" className="mt-4">
+                    <AIHintsTab
+                      previousHints={previousHints}
+                      newHint={newHint}
+                      usedHints={usedHints}
+                      maxHints={maxHints}
+                      requestHint={requestHint || (() => Promise.resolve({ hint: "" }))}
+                      isRequestingHint={isRequestingHint}
+                      error={hintError}
+                    />
                   </TabsContent>
                 </Tabs>
               </CardContent>

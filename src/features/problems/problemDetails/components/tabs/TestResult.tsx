@@ -7,7 +7,8 @@ import { useEffect, useState } from "react"
 
 interface TestResultProps {
   totalCount: number
-  stdOut?: string | undefined
+  stdout?: string | undefined
+  failedOutput?: string
   passedCount : number
   testResults: {
     Id?: string
@@ -23,11 +24,11 @@ interface TestResultProps {
 
 
 const TestResult = (props: TestResultProps) => {
-  const [stdOut, setStdOut] = useState(props.stdOut);
+  const [stdout, setStdout] = useState(props.stdout);
 
   useEffect(() => {
-    setStdOut(props.stdOut);
-  }, [props.stdOut]);
+    setStdout(props.stdout);
+  }, [props.stdout]);
 
   const allPassed = props.totalCount === props.passedCount
 
@@ -148,13 +149,31 @@ const TestResult = (props: TestResultProps) => {
                   </div>
                 </motion.div>
               ))}
+            {/* Console Outputs */}
+            {(stdout || props.failedOutput) && (
+              <div className="mt-4 space-y-3">
+                {stdout && (
+                  <div className="rounded-md border bg-muted/40 p-3">
+                    <div className="text-sm font-semibold text-foreground/80">Stdout</div>
+                    <pre className="mt-2 whitespace-pre-wrap font-mono text-xs text-muted-foreground">
+                      {stdout.trim() || "<empty>"}
+                    </pre>
+                  </div>
+                )}
 
-              {stdOut && (
-                <div className="mt-3 rounded-md border bg-muted/40 p-3">
-                  <div className="text-sm font-semibold">Stdout</div>
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-xs">{stdOut.split("\n")[0]}</pre>
-                </div>
-              )}
+                {props.failedOutput && (
+                  <div className="rounded-md border border-red-500/30 bg-red-500/10 p-3">
+                    <div className="text-sm font-semibold text-red-500 flex items-center gap-2">
+                      <XCircle className="h-4 w-4" />
+                      Error Output
+                    </div>
+                    <pre className="mt-2 whitespace-pre-wrap font-mono text-xs text-red-400">
+                      {props.failedOutput.trim()}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
             </div>
           </ScrollArea>
         </>

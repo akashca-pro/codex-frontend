@@ -18,7 +18,6 @@ export interface IExample {
     Id : string;
     input : string;
     output : string;
-    explanation : string;
 }
 
 export interface ITemplateCode {
@@ -31,6 +30,12 @@ export interface ITemplateCode {
 export interface ITestCaseCollection {
     run : ITestCase[];
     submit : ITestCase[];
+}
+
+export interface ISolutionRoadmap {
+    Id : string;
+    level : number;
+    description : string;
 }
 
 interface Stats {

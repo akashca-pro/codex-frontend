@@ -42,7 +42,6 @@ export default function LoginForm() {
     })
     try {
       const res = await userLogin(credentials).unwrap();
-      console.log(res);
       if(res.data === 'not-verified'){
       toast.success(res.data.message || 'Account should be verified', {
         description: 'A one-time code was injected into your inbox.',
@@ -53,16 +52,18 @@ export default function LoginForm() {
       navigate('/signup/verify-otp');
       }else{
         toast.success('Access Granted',{
-          description : `Welcome back ${res.data.username}! Ready to code?, `,
+          description : `Welcome back ${res.data.username}! Ready to code? `,
           className : 'success-toast',
           id : toastId
         })
         login({
             userId : res.data.userId,
+            firstName : res.data.firstName,
             username : res.data.username,
             email : res.data.email,
             role : res.data.role,
-            avatar : res.data.avatar
+            avatar : res.data.avatar,
+            country : res.data.country ?? null
         })
       }
     } catch (error : any) {

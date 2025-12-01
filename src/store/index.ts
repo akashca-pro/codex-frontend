@@ -18,11 +18,11 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
-  auth: authReducer,
-  userEmail: emailReducer,
-  oAuthCheck: oAuthCheckReducer,
-  codePad : codePadReducer,
-  collab : collabReducer
+    auth: authReducer,
+    userEmail: emailReducer,
+    oAuthCheck: oAuthCheckReducer,
+    codePad : codePadReducer,
+    collab : collabReducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

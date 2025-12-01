@@ -36,8 +36,8 @@ export const signupSchema = z.object({
 
   country: z
     .string()
-    .min(3, 'Country name must be at least 3 characters')
-    .max(20),
+    .min(3, 'Country name must be 3 characters')
+    .max(3),
 
   confirmPassword : z
     .string()
