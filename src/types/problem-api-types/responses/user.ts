@@ -25,6 +25,8 @@ export interface Submission {
     language : Language;
     executionResult : ExecutionResult | null,
     userCode : string;
+    isAiAssisted : boolean;
+    hintsUsed : number;
     createdAt : string;
 }
 

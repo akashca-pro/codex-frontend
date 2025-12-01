@@ -100,6 +100,17 @@ export function SubmissionDetailsDialog({ open, onOpenChange, submission, monaco
             </Badge>
             <span className="ml-3">Submitted:</span> <span className="ml-1">{formatDate(submission?.createdAt)}</span>
           </div>
+          {submission?.isAiAssisted && (
+            <div className="pt-2 text-xs">
+              <Badge variant="secondary">AI Assisted</Badge>
+              {submission.hintsUsed && (
+                <span className="ml-2 text-muted-foreground">
+                  Used {submission.hintsUsed} hint{submission.hintsUsed? "s" : ""}
+                </span>
+              )}
+            </div>
+          )}
+
         </DialogHeader>
         <Separator />
 

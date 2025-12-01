@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { LanguageMap } from "@/mappers/problem"
 import type { Submission } from "@/types/problem-api-types/responses/user"
 import { SubmissionDetailsDialog } from "../SubmissionDetailsDialog"
+import { Bot } from "lucide-react"
 
 function statusBadgeVariant(status: string) {
   const s = status.toLowerCase()
@@ -95,8 +96,12 @@ export default function Submissions({ monacoProps, submissions, nextCursor, hasM
                       }}
                       className="cursor-pointer hover:bg-muted/50 transition"
                     >
+
                       <TableCell>
-                        <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
+                          {s.isAiAssisted && <Bot className=" h-4 w-4 opacity-80" />}
+                        </div>
                       </TableCell>
                       <TableCell>{res ? `${res.passedTestCase}/${res.totalTestCase}` : "-"}</TableCell>
                       <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
