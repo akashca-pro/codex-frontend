@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, Dispatch, SetStateAction } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -28,11 +28,11 @@ interface SubmissionsProps {
   submissions: Submission[];
   hasMore: boolean;
   nextCursor?: string;
-  setNextCursor: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setNextCursor: Dispatch<SetStateAction<string | undefined>>;
   isFetching: boolean;
 }
 
-export default function Submissions({ monacoProps, submissions, nextCursor, hasMore, setNextCursor, isFetching } : SubmissionsProps) {
+export default function Submissions({ monacoProps, submissions, nextCursor, hasMore, setNextCursor, isFetching }: SubmissionsProps) {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,7 @@ export default function Submissions({ monacoProps, submissions, nextCursor, hasM
   }, [handleScroll]);
 
 
-  const accepted = submissions.filter((s)=>{
+  const accepted = submissions.filter((s) => {
     return s.executionResult?.stats?.passedTestCase === s.executionResult?.stats?.totalTestCase
   })
 
@@ -84,42 +84,42 @@ export default function Submissions({ monacoProps, submissions, nextCursor, hasM
                 <TableHead>Language</TableHead>
               </TableRow>
             </TableHeader>
-              <TableBody>
-                {submissions.map((s, i) => {
-                  const res = s.executionResult?.stats
-                  return (
-                    <TableRow
-                      key={i}
-                      onClick={() => {
-                        setSelectedSubmission(s)
-                        setDialogOpen(true)
-                      }}
-                      className="cursor-pointer hover:bg-muted/50 transition"
-                    >
+            <TableBody>
+              {submissions.map((s, i) => {
+                const res = s.executionResult?.stats
+                return (
+                  <TableRow
+                    key={i}
+                    onClick={() => {
+                      setSelectedSubmission(s)
+                      setDialogOpen(true)
+                    }}
+                    className="cursor-pointer hover:bg-muted/50 transition"
+                  >
 
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
-                          {s.isAiAssisted && <Bot className=" h-4 w-4 opacity-80" />}
-                        </div>
-                      </TableCell>
-                      <TableCell>{res ? `${res.passedTestCase}/${res.totalTestCase}` : "-"}</TableCell>
-                      <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
-                      <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={statusBadgeVariant(s.status)}>{s.status}</Badge>
+                        {s.isAiAssisted && <Bot className=" h-4 w-4 opacity-80" />}
+                      </div>
+                    </TableCell>
+                    <TableCell>{res ? `${res.passedTestCase}/${res.totalTestCase}` : "-"}</TableCell>
+                    <TableCell>{res ? `${formatNumber(res.executionTimeMs)} ms` : "-"}</TableCell>
+                    <TableCell>{res ? `${formatNumber(res.memoryMB)} MB` : "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{LanguageMap[s.language] ?? "-"}</Badge>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
           </Table>
-        <SubmissionDetailsDialog
-          monacoProps={monacoProps}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          submission={selectedSubmission}
-        />
+          <SubmissionDetailsDialog
+            monacoProps={monacoProps}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            submission={selectedSubmission}
+          />
         </div>
       </CardContent>
     </Card>

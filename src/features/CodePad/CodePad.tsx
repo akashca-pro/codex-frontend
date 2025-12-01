@@ -13,11 +13,11 @@ import { useCustomCodeRunMutation, useLazyCustomCodeResultQuery } from '@/apis/c
 import { toast } from "sonner"
 export default function CodePad() {
   const { codePad } = useSelect();
-  const { 
-    createFile, 
+  const {
+    createFile,
     updateContent,
-    renameFile, 
-    deleteFile,  
+    renameFile,
+    deleteFile,
     openTab,
     closeTab,
     setActiveFile,
@@ -35,57 +35,57 @@ export default function CodePad() {
   const [runCode] = useCustomCodeRunMutation();
   const [triggerResultQuery, { isFetching }] = useLazyCustomCodeResultQuery();
 
-useEffect(() => {
-  if (!tempId || !isRunning) return;
+  useEffect(() => {
+    if (!tempId || !isRunning) return;
 
-  let intervalId: NodeJS.Timeout;
-  const start = Date.now();
+    let intervalId: NodeJS.Timeout;
+    const start = Date.now();
 
-  intervalId = setInterval(async () => {
-    try {
-      const result = await triggerResultQuery({ tempId }).unwrap();
+    intervalId = setInterval(async () => {
+      try {
+        const result = await triggerResultQuery({ tempId }).unwrap();
 
-      if (result.success && result.data?.stdOut !== undefined) {
-        const output = result.data.stdOut.trim();
-        setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
-        setIsRunning(false);
-        setTempId("");
-        clearInterval(intervalId);
-      } else if (!result.success) {
-        setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
-        setIsRunning(false);
-        setTempId("");
-        clearInterval(intervalId);
-      } else if (Date.now() - start > 10000) {
-        setConsoleMessages("Execution timed out after 10 seconds.");
+        if (result.success && result.data?.stdOut !== undefined) {
+          const output = result.data.stdOut.trim();
+          setConsoleMessages(output === "" ? "Execution finished. (no output)" : output);
+          setIsRunning(false);
+          setTempId("");
+          clearInterval(intervalId);
+        } else if (!result.success) {
+          setConsoleMessages(`Execution failed: ${result.message || "Unknown error"}`);
+          setIsRunning(false);
+          setTempId("");
+          clearInterval(intervalId);
+        } else if (Date.now() - start > 10000) {
+          setConsoleMessages("Execution timed out after 10 seconds.");
+          setIsRunning(false);
+          setTempId("");
+          clearInterval(intervalId);
+        }
+      } catch (err) {
+        setConsoleMessages("Error fetching result.");
         setIsRunning(false);
         setTempId("");
         clearInterval(intervalId);
       }
-    } catch (err) {
-      setConsoleMessages("Error fetching result.");
-      setIsRunning(false);
-      setTempId("");
-      clearInterval(intervalId);
-    }
-  }, 500);
+    }, 500);
 
-  return () => clearInterval(intervalId);
-}, [tempId, isRunning, triggerResultQuery]);
+    return () => clearInterval(intervalId);
+  }, [tempId, isRunning, triggerResultQuery]);
 
   const activeFile = codePad.files.find(f => f.id === codePad.activeFileId);
-  
+
   const handleFileCreate = (name: string) => {
-    createFile({ name, language })  
+    createFile({ name, language })
   }
 
   const handleCodeChange = (content: string) => {
     if (!codePad.activeFileId) return
-    updateContent(content) 
+    updateContent(content)
   }
 
   const handleTabClose = (fileId: string) => {
-    closeTab(fileId)   
+    closeTab(fileId)
   }
 
   const handleRun = async () => {
@@ -100,12 +100,12 @@ useEffect(() => {
     try {
       const res = await runCode(payload).unwrap();
       if (res?.data?.tempId) {
-        setTempId(res.data.tempId); 
+        setTempId(res.data.tempId);
       } else {
         throw new Error("Failed to get a valid execution ID.");
       }
       setTempId(res.data.tempId);
-    } catch (error : any) {
+    } catch (error: any) {
       const apiErrors = error?.data?.error
       if (Array.isArray(apiErrors) && apiErrors.length > 0) {
         apiErrors.forEach((e: any) => {
@@ -114,12 +114,12 @@ useEffect(() => {
           })
         })
       }
-      toast.error('Error',{
-          className : 'error-toast',
-          description : error?.data?.message
+      toast.error('Error', {
+        className: 'error-toast',
+        description: error?.data?.message
       })
       setConsoleMessages("Failed to start execution.");
-      setIsRunning(false); 
+      setIsRunning(false);
     }
 
   }
@@ -128,19 +128,19 @@ useEffect(() => {
     <div className="h-full bg-background">
       {/* Main Content */}
       <div className="h-screen w-screen overflow-hidden">
-      {/* Toolbar */}
-      <IDEToolbar
-        editorTheme={editorTheme}
-        onThemeChange={setEditorTheme}
-        language={ activeFile?.language || language}
-        onLanguageChange={(newLanguage : string) => setLanguage(newLanguage)}
-        onCollaboration={() => {}}
-        fontSize={fontSize}
-        onFontSizeChange={setFontSize}
-        intelliSense={intelliSense}
-        onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
-        goBackLink={`/problems`}
-      />
+        {/* Toolbar */}
+        <IDEToolbar
+          editorTheme={editorTheme}
+          onThemeChange={setEditorTheme}
+          language={activeFile?.language || language}
+          onLanguageChange={(newLanguage: string) => setLanguage(newLanguage)}
+
+          fontSize={fontSize}
+          onFontSizeChange={setFontSize}
+          intelliSense={intelliSense}
+          onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
+          goBackLink={`/problems`}
+        />
         <Allotment>
           {/* Left Panel - File Explorer */}
           <Allotment.Pane minSize={200} preferredSize="25%">
@@ -156,11 +156,11 @@ useEffect(() => {
                 activeFileId={codePad.activeFileId}
                 onFileSelect={(id) => {
                   setActiveFile(id)
-                  openTab(id) 
+                  openTab(id)
                 }}
                 unsetActiveFile={unsetActiveFile}
                 onFileCreate={handleFileCreate}
-                onFileRename={(id, newName)=> renameFile({id, name : newName})}
+                onFileRename={(id, newName) => renameFile({ id, name: newName })}
                 onFileDelete={(id) => deleteFile(id)}
               />
             </motion.div>

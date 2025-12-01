@@ -31,7 +31,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ currentUserId }) => {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  
+
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ currentUserId }) => {
   // Check if scrolled to bottom
   const checkIfScrolledToBottom = useCallback(() => {
     if (!scrollContainerRef.current) return false
-    
+
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
     const threshold = 50
     return scrollHeight - scrollTop - clientHeight < threshold
@@ -80,7 +80,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ currentUserId }) => {
       const states = Array.from(awareness.getStates().entries())
       const typing = new Set<string>()
 
-      states.forEach(([_, state]) => {
+      states.forEach((entry: any) => {
+        const [_, state] = entry;
         if (state.user && state.user.isTyping && state.user.id) {
           typing.add(state.user.firstName)
         }
@@ -94,26 +95,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ currentUserId }) => {
   }, [awareness])
 
   // Listen for incoming chat messages
-useEffect(() => {
-  if (!socket) {
-    return;
-  }
-
-  const handleNewMessage = (message: ChatMessage) => {
-    addChatMessages(message);
-
-    // Add unread if not from current user and not scrolled to bottom
-    if (message.userId !== currentUserId && !isScrolledToBottom) {
-      setUnreadCount((prev) => prev + 1);
+  useEffect(() => {
+    if (!socket) {
+      return;
     }
-  };
 
-  socket.on(ChatMsgEvents.SERVER_NEW_MESSAGE, handleNewMessage);
+    const handleNewMessage = (message: ChatMessage) => {
+      addChatMessages(message);
 
-  return () => {
-    socket.off(ChatMsgEvents.SERVER_NEW_MESSAGE, handleNewMessage);
-  };
-}, [socket, currentUserId, isScrolledToBottom]);
+      // Add unread if not from current user and not scrolled to bottom
+      if (message.userId !== currentUserId && !isScrolledToBottom) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    };
+
+    socket.on(ChatMsgEvents.SERVER_NEW_MESSAGE, handleNewMessage);
+
+    return () => {
+      socket.off(ChatMsgEvents.SERVER_NEW_MESSAGE, handleNewMessage);
+    };
+  }, [socket, currentUserId, isScrolledToBottom]);
 
   // Auto-scroll when new messages arrive if already at bottom
   useEffect(() => {
@@ -129,7 +130,7 @@ useEffect(() => {
     }
   }, [collabSession.chatMessages, isScrolledToBottom, scrollToBottom]);
 
-    // Initial scroll to bottom
+  // Initial scroll to bottom
   useEffect(() => {
     scrollToBottom(false)
   }, [scrollToBottom])
@@ -173,7 +174,7 @@ useEffect(() => {
 
     if (!trimmedMessage) return; // ignore empty
     if (trimmedMessage.length > 500) {
-      toast.warning("Message too long: limit 500 characters",{position : 'bottom-left'});
+      toast.warning("Message too long: limit 500 characters", { position: 'bottom-left' });
       return;
     }
 
@@ -241,23 +242,23 @@ useEffect(() => {
 
       {/* Typing Indicator */}
       {typingUsers &&
-      !Array.from(typingUsers).find(u => u === user.details?.firstName) && (
-        <AnimatePresence>
-          {typingUsers.size > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute top-[60px] left-4 z-20 
+        !Array.from(typingUsers).find(u => u === user.details?.firstName) && (
+          <AnimatePresence>
+            {typingUsers.size > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-[60px] left-4 z-20 
                         flex gap-2 items-center bg-background/80 backdrop-blur-md
                         px-3 py-1 rounded-md shadow-sm border border-border text-xs text-orange-600"
-            >
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>{Array.from(typingUsers).join(", ")} is typing...</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+              >
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>{Array.from(typingUsers).join(", ")} is typing...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
       {/* Messages Area with custom scroll */}
       <div className="flex-1 relative min-h-0">
@@ -293,9 +294,8 @@ useEffect(() => {
                         </span>
                       </div>
                       <p
-                        className={`text-sm rounded-lg px-3 py-2 break-words ${
-                          isCurrentUser ? "bg-primary text-primary-foreground" : "bg-background/70 border border-border"
-                        }`}
+                        className={`text-sm rounded-lg px-3 py-2 break-words ${isCurrentUser ? "bg-primary text-primary-foreground" : "bg-background/70 border border-border"
+                          }`}
                       >
                         {message.content}
                       </p>

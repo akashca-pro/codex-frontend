@@ -1,3 +1,4 @@
+import React from "react"
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
 
@@ -9,7 +10,7 @@ interface CopyToClipboardProps {
 const CopyToClipboard: React.FC<CopyToClipboardProps> = ({ text, label }) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(text)
-    toast.info(`${label || "Text"} copied to clipboard!`,{position : 'bottom-right'})
+    toast.info(`${label || "Text"} copied to clipboard!`, { position: 'bottom-right' })
   }
 
   return (

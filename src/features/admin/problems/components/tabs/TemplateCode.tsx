@@ -13,80 +13,80 @@ import { Code, RotateCcw } from "lucide-react"
 import { getLanguageIcon } from "@/utils/languageIcon"
 import type { UpdateTemplateCodeRequest } from "@/types/problem-api-types/payload/admin"
 import { toast } from "sonner"
-import { 
-    useAdminUpdateTemplateCodeMutation,
- } from '@/apis/problem/admin'
+import {
+  useAdminUpdateTemplateCodeMutation,
+} from '@/apis/problem/admin'
 import type { ITemplateCode } from "@/types/problem-api-types/fieldTypes"
 
 interface CodeSolutionFormProps {
-  problemId : string | undefined
-  templateCodes : ITemplateCode[]
+  problemId: string | undefined
+  templateCodes: ITemplateCode[]
 }
 
 const languageOptions = [
   { value: "javascript", label: "JavaScript" },
-  { value: "python", label: "Python"},
+  { value: "python", label: "Python" },
   { value: "go", label: "Go" },
 ] as const
 
 export default function TemplateCode({
-    problemId,
-    templateCodes
+  problemId,
+  templateCodes
 }: CodeSolutionFormProps) {
   const form = useForm<CodeSolutionFormData>({
     resolver: zodResolver(CodeSolutionSchema),
     defaultValues: {
-        language: templateCodes?.[0]?.language || "javascript",
-        submitWrapperCode: templateCodes?.[0]?.submitWrapperCode || '',
-        runWrapperCode : templateCodes?.[0]?.runWrapperCode || '',
-        templateCodeId: templateCodes?.[0]?.Id || ''
+      language: templateCodes?.[0]?.language || "javascript",
+      submitWrapperCode: templateCodes?.[0]?.submitWrapperCode || '',
+      runWrapperCode: templateCodes?.[0]?.runWrapperCode || '',
+      templateCodeId: templateCodes?.[0]?.Id || ''
     },
   });
-  const [updateTemplateCode, {isLoading}] = useAdminUpdateTemplateCodeMutation();
+  const [updateTemplateCode, { isLoading }] = useAdminUpdateTemplateCodeMutation();
 
   const selectedLanguage = form.watch("language")
 
   // Update code templates when language changes
-    useEffect(() => {
+  useEffect(() => {
     if (!selectedLanguage) return;
 
     // find matching template code from props
     const template = templateCodes.find(t => t.language === selectedLanguage);
 
     if (template) {
-        form.setValue("submitWrapperCode", template.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '');
-        form.setValue("runWrapperCode", template.runWrapperCode ? JSON.parse(template.runWrapperCode) : '');
-        form.setValue("templateCodeId", template.Id);
-        form.setValue("language", template.language);
+      form.setValue("submitWrapperCode", template.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '');
+      form.setValue("runWrapperCode", template.runWrapperCode ? JSON.parse(template.runWrapperCode) : '');
+      form.setValue("templateCodeId", template.Id);
+      form.setValue("language", template.language);
     } else {
-        // fallback if not found in backend
-        form.setValue("submitWrapperCode", '');
-        form.setValue("runWrapperCode", '');
-        form.setValue("templateCodeId", undefined);
+      // fallback if not found in backend
+      form.setValue("submitWrapperCode", '');
+      form.setValue("runWrapperCode", '');
+      form.setValue("templateCodeId", undefined);
     }
-    }, [selectedLanguage, templateCodes, form]);
+  }, [selectedLanguage, templateCodes, form]);
 
   const handleSubmit = async (data: CodeSolutionFormData) => {
-    if(!problemId) return
-    const payload : UpdateTemplateCodeRequest = {
-        problemId,
-        templateCodeId : data.templateCodeId!,
-        updatedData : {
-            language : data.language,
-            submitWrapperCode : JSON.stringify(data.submitWrapperCode),
-            runWrapperCode : JSON.stringify(data.runWrapperCode)
-        }
+    if (!problemId) return
+    const payload: UpdateTemplateCodeRequest = {
+      problemId,
+      templateCodeId: data.templateCodeId!,
+      updatedData: {
+        language: data.language,
+        submitWrapperCode: JSON.stringify(data.submitWrapperCode),
+        runWrapperCode: JSON.stringify(data.runWrapperCode)
+      }
     }
     const toastId = toast.loading('Processing...');
     try {
-        await updateTemplateCode(payload).unwrap();
-        toast.success(`Template code for ${data.language} updated`,{
-            className : 'success-toast',
-            id : toastId
-        })
-    } catch (error : any) {
+      await updateTemplateCode(payload).unwrap();
+      toast.success(`Template code for ${data.language} updated`, {
+        className: 'success-toast',
+        id: toastId
+      })
+    } catch (error: any) {
       const apiErrors = error?.data?.error
-      
+
       if (Array.isArray(apiErrors) && apiErrors.length > 0) {
         toast.dismiss(toastId);
         apiErrors.forEach((e: any) => {
@@ -95,25 +95,25 @@ export default function TemplateCode({
           })
         })
       }
-      toast.error('Error',{
-          className : 'error-toast',
-          id : toastId,
-          description : error?.data?.message
+      toast.error('Error', {
+        className: 'error-toast',
+        id: toastId,
+        description: error?.data?.message
       })
     }
   }
 
-const handleReset = () => {
-  if (selectedLanguage) {
-    const template = templateCodes.find(t => t.language === selectedLanguage);
-    form.reset({
-      language: template?.language || selectedLanguage,
-      submitWrapperCode: template?.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '',
-      runWrapperCode : template?.runWrapperCode ? JSON.parse(template.runWrapperCode) : '',
-      templateCodeId: template?.Id || ''
-    });
-  }
-};
+  const handleReset = () => {
+    if (selectedLanguage) {
+      const template = templateCodes.find(t => t.language === selectedLanguage);
+      form.reset({
+        language: template?.language || selectedLanguage,
+        submitWrapperCode: template?.submitWrapperCode ? JSON.parse(template.submitWrapperCode) : '',
+        runWrapperCode: template?.runWrapperCode ? JSON.parse(template.runWrapperCode) : '',
+        templateCodeId: template?.Id || ''
+      });
+    }
+  };
 
   return (
     <div className={`space-y-6 `}>
@@ -125,33 +125,33 @@ const handleReset = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between gap-2 text-lg">
                   <div className="flex items-center justify- gap-2 text-lg">
-                  <Code className="h-5 w-5" />
+                    <Code className="h-5 w-5" />
                     Template Code
                   </div>
-                {/* Action Buttons */}
-                <motion.div
+                  {/* Action Buttons */}
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="flex flex-col sm:flex-row gap-3"
-                >
+                  >
                     <Button type="submit" disabled={isLoading} className="flex-1 sm:flex-none" size="lg">
-                    {isLoading ? "Submitting..." : "Submit"}
+                      {isLoading ? "Submitting..." : "Submit"}
                     </Button>
 
                     <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleReset}
-                    disabled={isLoading}
-                    className="flex-1 sm:flex-none bg-transparent"
-                    size="lg"
+                      type="button"
+                      variant="outline"
+                      onClick={handleReset}
+                      disabled={isLoading}
+                      className="flex-1 sm:flex-none bg-transparent"
+                      size="lg"
                     >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Reset
                     </Button>
 
-                </motion.div>
+                  </motion.div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -212,7 +212,7 @@ const handleReset = () => {
                         <FormControl>
                           <div className="rounded-lg overflow-hidden">
                             <MonacoEditor
-                              value={field.value}
+                              value={field.value || ""}
                               onChange={field.onChange}
                               language={selectedLanguage}
                               height="650px"
@@ -235,7 +235,7 @@ const handleReset = () => {
                         <FormControl>
                           <div className="rounded-lg overflow-hidden">
                             <MonacoEditor
-                              value={field.value}
+                              value={field.value || ""}
                               onChange={field.onChange}
                               language={selectedLanguage}
                               height="650px"

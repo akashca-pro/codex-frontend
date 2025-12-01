@@ -75,4 +75,4 @@ const EditorPanel = ({
 };
 
 // Memoize the new component
-const MemoizedEditorPanel = React.memo(EditorPanel);
+export default React.memo(EditorPanel);

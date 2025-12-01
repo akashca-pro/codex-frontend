@@ -34,3 +34,7 @@ export interface AdminDashboardResponse {
         };
     };
 }
+
+export interface AdminGrpcMetricResponse {
+    [key: string]: any;
+}

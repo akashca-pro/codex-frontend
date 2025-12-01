@@ -1,3 +1,4 @@
+import React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,7 @@ interface UserCardProps {
   onBlock: () => void
 }
 
-const MobileUserCard = ({ user, onView, onBlock }: UserCardProps) => {
+const MobileUserCard: React.FC<UserCardProps> = ({ user, onView, onBlock }) => {
   return (
     <div className="p-4 rounded-xl border bg-card shadow-sm space-y-3">
       {/* Top row: Avatar + Name */}
@@ -64,11 +65,10 @@ const MobileUserCard = ({ user, onView, onBlock }: UserCardProps) => {
             <TooltipTrigger asChild>
               <Button
                 onClick={onBlock}
-                className={`h-8 ${
-                  user.isBlocked
-                    ? "bg-red-500 hover:bg-red-600 text-white"
-                    : "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
-                }`}
+                className={`h-8 ${user.isBlocked
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
+                  }`}
               >
                 {user.isBlocked ? (
                   <>

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { X, Plus } from "lucide-react"
+import { X } from "lucide-react"
 import type { File } from "@/store/slices/codepadSlice"
 import { getLanguageIcon } from "@/utils/languageIcon"
 
@@ -43,11 +43,10 @@ export default function IDETabs({ files, openTabs, activeFileId, onTabSelect, on
                   // Handle tab reordering logic here
                   console.log(`Tab ${file.id} drag ended`)
                 }}
-                className={`flex items-center gap-2 px-3 py-2 border-r border-border/30 cursor-pointer group relative ${
-                  activeFileId === file.id
+                className={`flex items-center gap-2 px-3 py-2 border-r border-border/30 cursor-pointer group relative ${activeFileId === file.id
                     ? "bg-background text-foreground"
                     : "hover:bg-accent/50 text-muted-foreground"
-                } ${draggedTab === file.id ? "opacity-70" : ""}`}
+                  } ${draggedTab === file.id ? "opacity-70" : ""}`}
                 onClick={() => onTabSelect(file.id)}
               >
                 <span className="text-sm">

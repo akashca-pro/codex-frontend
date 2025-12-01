@@ -3,16 +3,16 @@ import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
 import { useSelect } from '@/hooks/useSelect'
 
-export default function Hero(){
+export default function Hero() {
   const { user } = useSelect();
-  const role = user && user.details?.role.toLowerCase();
+
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center">
           <div className="animate-slide-up">
             <div className="text-center">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 text-white">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 text-white">
                 Welcome to <span className="text-orange-600">CodeX</span>
               </h1>
 
@@ -28,9 +28,9 @@ export default function Hero(){
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to={
-                user.isAuthenticated 
-                ? `/problems` 
-                : '/login'
+                user.isAuthenticated
+                  ? `/problems`
+                  : '/login'
               }>
                 <Button size="lg" className="bg-orange-600 hover:bg-orange-700 neon-glow text-lg px-8 py-3">
                   Start Coding
