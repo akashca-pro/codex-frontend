@@ -33,6 +33,7 @@ const initialProblemDetails = {
     Id : '',
     input : '',
     output : '',
+    explanation: undefined as string | undefined,
   }],
   starterCodes : [{
     Id : '',
@@ -107,7 +108,12 @@ useEffect(() => {
       tags: data.data.tags,
       constraints: data.data.constraints,
       difficulty: DifficultyMap[data.data.difficulty],
-      examples: data.data.examples,
+      examples: data.data.examples.map((ex: any) => ({
+        Id: ex.Id,
+        input: ex.input,
+        output: ex.output,
+        explanation: ex.explanation ?? undefined,
+      })),
       starterCodes: data.data.starterCodes.map(s => ({
         Id: s.Id,
         code: s.code,

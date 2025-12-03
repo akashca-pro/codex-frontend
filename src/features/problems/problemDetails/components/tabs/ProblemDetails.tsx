@@ -75,6 +75,11 @@ export default function ProblemDetailsComponent({ problem }) {
                       <div>
                         <strong>Output:</strong> {example.output}
                       </div>
+                      {example.explanation && (
+                        <div className="pt-2 border-t border-border/30 text-foreground/80">
+                          <strong>Explanation:</strong> {example.explanation}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

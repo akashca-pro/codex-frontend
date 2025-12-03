@@ -31,7 +31,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
         active: basicDetailsData.active,
         tags: [],
         constraints: [],
-        examples: [{input : '', output : ''}],
+        examples: [{input : '', output : '', explanation : undefined ,}],
         starterCodes: [{
             code : '',
             language : 'javascript'
@@ -90,7 +90,7 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
             tags: basicDetailsData.tags,
             constraints: basicDetailsData.constraints,
             examples: basicDetailsData.examples.length === 0 
-                        ? [{input : '', output : ''}]
+                        ? [{input : '', output : '', explanation : undefined}]
                         : basicDetailsData.examples,
             starterCodes: basicDetailsData.starterCodes || [],
             solutionRoadmap: basicDetailsData.solutionRoadmap?.length
@@ -102,13 +102,23 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
     }, [basicDetailsData, basicForm]);
 
     const onBasicSubmit = async (data: BasicDetailsSchemaType) => {
-            const toastId = toast.loading('Updating data, please wait. . .',{
-                className : 'info-toast'
-            })
+        const toastId = toast.loading('Updating data, please wait. . .',{
+            className : 'info-toast'
+        })
+        const sanitizedData: BasicDetailsSchemaType = {
+            ...data,
+            examples: data.examples.map(example => {
+                if (!example.explanation?.trim()) {
+                    const { explanation, ...rest } = example;
+                    return rest;
+                }
+                return example;
+            }),
+        };
         try {
             await updateDetails({
                 problemId : basicDetailsData.Id,
-                updatedData : data
+                updatedData : sanitizedData
             }).unwrap();
 
             toast.success('Basic details updated',{
@@ -254,10 +264,21 @@ const BasicDetails = ({ basicDetailsData, refetchBasicDetails }) => {
                         <Input {...basicForm.register(`examples.${index}.output` as const)} />
                         </FormField>
 
+                        <FormField
+                        label="Explanation"
+                        error={basicForm.formState.errors.examples?.[index]?.explanation?.message}
+                        >
+                        <Textarea
+                            {...basicForm.register(`examples.${index}.explanation` as const)}
+                            placeholder="Explain how this example works..."
+                            rows={3}
+                        />
+                        </FormField>
+
                         <Button type="button" variant="destructive" onClick={() => removeExample(index)}>Delete</Button>
                     </div>
                     ))}
-                    <Button type="button" variant="outline" onClick={() => appendExample({ input: "", output: "" })}>
+                    <Button type="button" variant="outline" onClick={() => appendExample({ input: "", output: "" , explanation : ""})}>
                     + Add Example
                     </Button>
 

@@ -20,7 +20,7 @@ const initialBasicDetails = {
   active: false,
   tags: [''],
   constraints: [''],
-  examples: [{ Id: '', input: '', output: '' }],
+  examples: [{ Id: '', input: '', output: '', explanation : undefined as string | undefined }],
   starterCodes: [{ Id: '', language: '', code: '' }],
   solutionRoadmap: [{ Id: '', level: 1, description: '' }] 
 };
@@ -68,10 +68,11 @@ export default function ProblemDetailsPage() {
         tags: data.data.tags,
         constraints: data.data.constraints,
         difficulty: DifficultyMap[data.data.difficulty],
-        examples: data.data.examples.map(e => ({
-          Id: e.Id,
-          input: e.input,
-          output: e.output
+        examples: data.data.examples.map((ex: any) => ({
+          Id: ex.Id,
+          input: ex.input,
+          output: ex.output,
+          explanation: ex.explanation ?? undefined,
         })),
         starterCodes: data.data.starterCodes.map(s => ({
           Id: s.Id,

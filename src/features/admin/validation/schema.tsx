@@ -29,6 +29,7 @@ export const CreateProblemSchema = z.object({
 export const ExampleSchema = z.object({
   input:  z.string().trim().min(1, "Value cannot be empty"),
   output:  z.string().trim().min(1, "Value cannot be empty"),
+  explanation: z.string().optional(),
 });
 
 const SolutionRoadmapSchema = z.object({
