@@ -279,8 +279,6 @@ const CollaborationPageInternal: React.FC = () => {
         onFontSizeChange={setFontSize}
         language={language}
         onLanguageChange={(newLanguage : string) => setLanguage(newLanguage)}
-        // intelliSense={intelliSense}
-        // onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
       />
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Section - CollabEditor (60%) */}

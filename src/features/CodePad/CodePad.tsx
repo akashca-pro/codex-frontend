@@ -26,7 +26,6 @@ export default function CodePad() {
   const [tempId, setTempId] = useState('');
   const [editorTheme, setEditorTheme] = useState('codexDark');
   const [language, setLanguage] = useState('javascript');
-  const [intelliSense, setIntelliSense] = useState(true);
   const [fontSize, setFontSize] = useState(16);
   const [consoleMessages, setConsoleMessages] = useState<string>(
     "View execution results, including logs and error traces, here."
@@ -137,8 +136,6 @@ export default function CodePad() {
 
           fontSize={fontSize}
           onFontSizeChange={setFontSize}
-          intelliSense={intelliSense}
-          onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
           goBackLink={`/problems`}
         />
         <Allotment>
@@ -198,7 +195,7 @@ export default function CodePad() {
                         theme={editorTheme}
                         height="100%"
                         fontSize={fontSize}
-                        intelliSense={intelliSense}
+                        intelliSense={false}
                       />
                     ) : (
                       <div className="h-full flex items-center justify-center text-muted-foreground">

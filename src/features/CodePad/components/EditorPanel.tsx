@@ -18,7 +18,6 @@ const EditorPanel = ({
   handleCodeChange,
   editorTheme,
   fontSize,
-  intelliSense,
   onRun,
   isRunning,
   isFetching,
@@ -49,7 +48,7 @@ const EditorPanel = ({
                 theme={editorTheme}
                 height="100%"
                 fontSize={fontSize}
-                intelliSense={intelliSense}
+                intelliSense={false}
               />
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">
