@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Code2, ShieldCheck, Users, Sword } from "lucide-react"
+import { Code2, Users, Brain, Trophy } from "lucide-react"
 
 const features = [
   {
@@ -8,9 +8,9 @@ const features = [
     description: "Sharpen your skills with handpicked problems in arrays, strings, trees, graphs, and core algorithms.",
   },
   {
-    icon: Sword,
-    title: "1v1 Code Battles",
-    description: "Challenge random players or invite friends. Compete in real-time duels and claim your spot on the leaderboard.",
+    icon: Brain,
+    title: "Smart AI Hints",
+    description: "Stuck mid problem? Get context aware hints based on your code and unlock the next logical step without breaking your learning flow.",
   },
   {
     icon: Users,
@@ -18,7 +18,7 @@ const features = [
     description: "Pair up, share code, and learn together with our blazing-fast real-time code editor and compiler.",
   },
   {
-    icon: ShieldCheck,
+    icon: Trophy,
     title: "Leaderboard & Rankings",
     description: "Track your global and country rank. Improve your score, level up, and dominate the charts.",
   },

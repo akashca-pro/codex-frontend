@@ -22,8 +22,7 @@ export default function Hero() {
             </div>
 
             <p className="text-xl mt-5 text-gray-400 mb-8 max-w-3xl mx-auto">
-              Master Data Structures, crack Algorithms, and battle developers in real-time. CodeX is your ultimate
-              destination to practice, duel, and rise through the leaderboard.
+            Master DSA challenges, collaborate in a shared live editor for pair programming and code reviews, get AI powered logical hints as you code, and track your rise through leaderboards and submission heatmaps.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -33,7 +32,7 @@ export default function Hero() {
                   : '/login'
               }>
                 <Button size="lg" className="bg-orange-600 hover:bg-orange-700 neon-glow text-lg px-8 py-3">
-                  Start Coding
+                  Start Solving
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>

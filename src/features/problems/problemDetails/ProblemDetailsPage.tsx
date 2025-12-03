@@ -51,7 +51,6 @@ export default function ProblemDetails() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"problemInfo" | "submissions">("problemInfo")
   const [editorTheme, setEditorTheme] = useState('codexDark');
-  const [intelliSense, setIntelliSense] = useState(true);
   const [fontSize, setFontSize] = useState(16);
   const [problemDetails,setProblemDetails] = useState(initialProblemDetails);
   const [language, setLanguage] = useState('javascript');
@@ -306,8 +305,6 @@ const handleLanguageChange = (newLanguage: string) => {
         onLanguageChange={handleLanguageChange}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
-        intelliSense={intelliSense}
-        onToggleIntelliSense={() => setIntelliSense((prev) => !prev)}
         goBackLink={'/problems'}
       />
   <div className="flex-1 overflow-hidden">
@@ -362,7 +359,7 @@ const handleLanguageChange = (newLanguage: string) => {
                 language={language === "javascript" ? "javascript" : language}
                 height="100%"
                 fontSize={fontSize}
-                intelliSense={intelliSense}
+                intelliSense={false}
               />
             </div>
           </Allotment.Pane>
